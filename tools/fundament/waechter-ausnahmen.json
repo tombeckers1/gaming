@@ -138,79 +138,99 @@
   ],
   "laufzeit": {
     "stand": "2026-10-15",
-    "grund": "Halle Etappe A (14.10.): Ausbau lagerlogistik im Vollausbau - Hochregal, Kartonlager 3, Schleuse, Anbruch-Regale, Aussenanlagen (Tank, Pforte); Halleninhalt nur mit Blick in die Halle, Innenteile ohne Sonnenschatten",
+    "grund": "Halle Etappe B (15.10.): Werk West gekauft (3 Strassen, Raeume, Aussenanlagen) - neue Bauteile drehtuer/zelle/portalgreifer/maschine/erdwall/treppe, notausgang ersetzt durch drehtuer",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
     },
     "ansicht": "neues Spiel, Level 99, alle Ausbauten, applyZonen, Stufe Hoch (gespeichert), swiftshader 480x300, Abend (clock 1000), vor der Laufzeit-Buendelung",
-    "tore": 13,
+    "tore": 15,
     "bauteile": {
-      "wand": 269,
-      "lampe": 28,
+      "wand": 346,
+      "lampe": 42,
       "absperrung": 9,
-      "zaun": 55,
-      "palette": 11,
-      "tor": 98,
+      "zaun": 68,
+      "palette": 17,
+      "tor": 105,
       "versandhof": 1,
-      "schild": 34,
+      "schild": 98,
       "anfahrschutz": 2,
       "stadtmoebel": 6,
       "stadthaus": 18,
+      "drehtuer": 45,
       "brandschutztor": 3,
-      "bodenmarkierung": 9,
+      "bodenmarkierung": 15,
       "hochregal": 7,
-      "foerderer": 4,
+      "foerderer": 29,
       "packmaterial": 2,
-      "lichtband": 2,
+      "lichtband": 4,
       "sprinkler": 2,
-      "notausgang": 3,
-      "rbg": 4,
+      "rbg": 12,
       "fts": 6,
       "sprinklertank": 3,
-      "pforte": 3
+      "pforte": 3,
+      "brandwand": 3,
+      "brandschutzabschluss": 6,
+      "feststellanlage": 2,
+      "werkdach": 3,
+      "decke": 2,
+      "treppe": 2,
+      "leitstand": 3,
+      "chemie": 6,
+      "tragwerk": 1,
+      "satzkanal": 1,
+      "dragiertrommel": 6,
+      "werkraum": 8,
+      "strasse1": 9,
+      "zelle": 8,
+      "strasse2": 8,
+      "strasse3": 8,
+      "portalgreifer": 39,
+      "werkstueck": 6,
+      "mischhaus": 6,
+      "erdwall": 2
     },
     "sechsMaterial": 25,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 2186,
-      "materialien": 439,
-      "texturen": 243
+      "meshes": 2618,
+      "materialien": 513,
+      "texturen": 299
     },
     "ansichten": {
       "laden": {
-        "calls": 699,
+        "calls": 695,
         "schatten": 370,
-        "mats": 250,
-        "texs": 138
+        "mats": 249,
+        "texs": 139
       },
       "lager": {
         "calls": 594,
-        "schatten": 377,
-        "mats": 228,
-        "texs": 132
+        "schatten": 373,
+        "mats": 227,
+        "texs": 133
       },
       "lagerDock": {
-        "calls": 783,
-        "schatten": 384,
-        "mats": 226,
-        "texs": 129
+        "calls": 751,
+        "schatten": 383,
+        "mats": 225,
+        "texs": 130
       },
       "dockHof": {
-        "calls": 930,
-        "schatten": 395,
-        "mats": 244,
-        "texs": 140
+        "calls": 903,
+        "schatten": 391,
+        "mats": 242,
+        "texs": 141
       },
       "testfeld": {
-        "calls": 472,
-        "schatten": 360,
-        "mats": 200,
-        "texs": 117
+        "calls": 469,
+        "schatten": 359,
+        "mats": 199,
+        "texs": 118
       },
       "strasse": {
         "calls": 122,
-        "schatten": 365,
+        "schatten": 364,
         "mats": 104,
         "texs": 81
       }

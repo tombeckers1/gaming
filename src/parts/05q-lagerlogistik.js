@@ -115,6 +115,11 @@ function llBauen(){
   { const ao=LL_G.children.filter(o=>o.isMesh&&o.material===aoMatF);
     if(ao.length>1){ const teile=ao.map(o=>{ o.updateMatrix(); return {geo:o.geometry,m:o.matrix.clone()}; }); const m=new THREE.Mesh(merge(teile),aoMatF); m.renderOrder=1; m.matrixAutoUpdate=false; ao.forEach(o=>{ LL_G.remove(o); o.geometry.dispose(); }); LL_G.add(m); } }
   fang(LL_H,()=>{ llHochregal(); llZonen(); llBoden(); llLicht(); });
+  /* unter dem Hallendach gibt es keine Sonne: Halleninhalt, ③ und Schleuse werfen keinen Sonnenschatten (spart den
+     Schattendurchgang); draussen nur Daecher, Tank und Pforte (Waende zeichnet das Wandbild mit eigenem Schatten) */
+  LL_H.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
+  LL_G.traverse(o=>{ if(o.isMesh&&o.userData.bauteil!=='wand'&&!(o.material===MAT.get('anthrazitMatt'))) o.castShadow=false; });
+  LL_A.traverse(o=>{ if(o.isMesh&&!/sprinklertank|pforte/.test(o.userData.bauteil||'')) o.castShadow=false; });
   LL_COLS=colliders.slice(vorC); for(const c of LL_COLS) dropCol(c);
   for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].id=LL.id;
   bk.wandbild();
@@ -135,9 +140,10 @@ function llRohbau(){
   bbox(6.0,0.25,10.2,MAT.get('anthrazitMatt'),-23.0,h3+0.24,-11.9,null,true);
   bbox(6.0,0.25,13.1,MAT.get('anthrazitMatt'),-23.0,hs+0.24,-23.55,null,true);
   /* Gelbe Wand x −36 (zur Halle Signalgelb bis 5 m, darueber Paneel bis unters Hallendach), Tor N1 */
-  llW(-36-W,-36+W,L3.z0-W,N.z0,0,h3,'+x','lager',GELB);
-  llW(-36-W,-36+W,N.z1,L3.z1,0,h3,'+x','lager',GELB);
-  llW(-36-W,-36+W,N.z0,N.z1,N.h,h3,'+x','lager',GELB);
+  /* Stoesse der Teilstuecke liegen unter der Torzarge (senkrecht) bzw. in Sturzhoehe (waagerecht) - keine sichtbaren Haarfugen */
+  llW(-36-W,-36+W,L3.z0-W,N.z0,0,N.h,'+x','lager',GELB);
+  llW(-36-W,-36+W,N.z1,L3.z1,0,N.h,'+x','lager',GELB);
+  llW(-36-W,-36+W,L3.z0-W,L3.z1,N.h,h3,'+x','lager',GELB);
   llW(-36-W,-36+W,L3.z0-W,L3.z1,h3,H,'+x','lager','blech',true);
   /* Gelbe Wand z −17 (x −36…−26) */
   llW(-36+W,-26-W,L3.z0-W,L3.z0+W,0,h3,'+z','lager',GELB);
@@ -145,9 +151,9 @@ function llRohbau(){
   /* Brandwand x −26 zwischen Halle und Schleuse, Durchgang z −26,9…−23,1, Sturz 3,0 m */
   const [d0,d1]=LL.durchgang;
   llW(-26-W,-26+W,-34-W,S2.z0,0,H,'-x','lager','blech');
-  llW(-26-W,-26+W,S2.z0,d0,0,hs,'-x','lager','lager');
-  llW(-26-W,-26+W,d1,L3.z0-W,0,hs,'-x','lager','lager');
-  llW(-26-W,-26+W,d0,d1,3.0,hs,'-x','lager','lager');
+  llW(-26-W,-26+W,S2.z0,d0,0,3.0,'-x','lager','lager');
+  llW(-26-W,-26+W,d1,L3.z0-W,0,3.0,'-x','lager','lager');
+  llW(-26-W,-26+W,S2.z0,L3.z0-W,3.0,hs,'-x','lager','lager');
   llW(-26-W,-26+W,S2.z0,L3.z0-W,hs,H,'-x','lager','blech',true);
   /* Ostwand der Halle ueber ③ (ab 5 m) */
   llW(-26-W,-26+W,L3.z0-W,L3.z1+LW,h3,H,'-x','lager','blech',true);
@@ -179,6 +185,9 @@ function llRohbau(){
   LL_T.n1.set(0); LL_T.n1t=0;
   bk.schild(scene,{text:'N1',unter:'Kartonlager',b:0.9,h:0.4,x:-36-W-0.03,y:N.h+0.75,z:(N.z0+N.z1)/2,ry:-Math.PI/2});
   bk.schild(scene,{text:'KARTONLAGER',unter:'③',b:1.6,h:0.5,x:-36-W-0.03,y:6.2,z:-12,ry:-Math.PI/2});
+  /* Gehweg durch ③ (gehoert zum Lager, nicht zum Halleninhalt) */
+  { const b=0.6, M=bk.MARKIERUNG; bk.bodenmarkierung({linien:[[-35.4,-12-b,-20.6,-12-b,'gruen',M.gehweg],[-35.4,-12+b,-20.6,-12+b,'gruen',M.gehweg]],
+      piktos:[{x:-31,z:-12,ry:Math.PI/2},{x:-24,z:-12,ry:Math.PI/2}],y:0.015}); }
   /* ③ und Schleuse: Leuchtenraster wie im uebrigen Lager */
   bk.lampe({art:'raster',r:LL.lager3,y:LL.h3,ax:3.6,az:3.4,panel:deckenPanelMat()});
   bk.lampe({art:'raster',r:{x0:-26,x1:-19.9,z0:-29.9,z1:-17},y:SCHLEUSE_H,ax:3.0,az:3.2,panel:deckenPanelMat()});
@@ -202,9 +211,11 @@ function llHochregal(){
   for(const f of [LL_T.foerderer.ein,LL_T.foerderer.aus]){ const c=f.kollision; col(c.x0,c.x1,c.z0,c.z1); }
   /* Schutzzaun um I/O und Gassenenden (gelbes Gitter), Durchlass fuer die Foerderer */
   const xz=LL.io.x1+0.05;
-  bk.zaun({art:'gitter',von:[xz,-28.1],bis:[xz,-14.2],hoehe:2.0,luecke:[[B.z-0.65-(-28.1),B.z+0.65-(-28.1)]]});
-  bk.zaun({art:'gitter',von:[-48.35,-28.1],bis:[xz,-28.1],hoehe:2.0,luecke:[[A.x-0.65+48.35,A.x+0.65+48.35]]});
-  bk.zaun({art:'gitter',von:[-48.35,-14.2],bis:[xz,-14.2],hoehe:2.0});
+  { const Sz=bk.sammler({form:{fase:0.006,faseMin:0.03,lod0Kasten:true},bauteil:'zaun'});   /* Pfosten/Holme aller drei Zaeune in einen Sammler */
+    bk.zaun({art:'gitter',von:[xz,-28.1],bis:[xz,-14.2],hoehe:2.0,luecke:[[B.z-0.65-(-28.1),B.z+0.65-(-28.1)]],S:Sz});
+    bk.zaun({art:'gitter',von:[-48.35,-28.1],bis:[xz,-28.1],hoehe:2.0,luecke:[[A.x-0.65+48.35,A.x+0.65+48.35]],S:Sz});
+    bk.zaun({art:'gitter',von:[-48.35,-14.2],bis:[xz,-14.2],hoehe:2.0,S:Sz});
+    Sz.fertig(scene,{fest:true,bauteil:'zaun'}); }
   col(xz-0.06,xz+0.06,-28.1,B.z-0.65); col(xz-0.06,xz+0.06,B.z+0.65,-14.2);
   col(-48.35,A.x-0.65,-28.16,-28.04); col(A.x+0.65,xz,-28.16,-28.04); col(-48.35,xz,-14.26,-14.14);
   /* der ganze eingezaeunte Block (Gassen, I/O) ist fuer Personen gesperrt - auch im Wegenetz */
@@ -263,9 +274,9 @@ function llBoden(){
      Packerweg von der Schleuse am Packmaterial vorbei zum Anbruch; Personaltuer x −40 */
   const gw=(x0,z0,x1,z1)=>{ const b=0.6; if(z0===z1){ L.push([x0,z0-b,x1,z0-b,'gruen',M.gehweg]); L.push([x0,z0+b,x1,z0+b,'gruen',M.gehweg]); }
     else { L.push([x0-b,z0,x0-b,z1,'gruen',M.gehweg]); L.push([x0+b,z0,x0+b,z1,'gruen',M.gehweg]); } };
-  gw(-64.5,-12,-36.6,-12); gw(-35.4,-12,-20.6,-12); gw(-64.5,-11.4,-64.5,-9.6+0.6);
+  gw(-64.5,-12,-36.6,-12); gw(-64.5,-11.4,-64.5,-9.6+0.6);
   gw(-41.6,-25.0,-26.8,-25.0); gw(-40,-11.4,-40,-7.3);
-  for(const x of [-60,-52,-44,-31,-24]) Pk.push({x,z:-12,ry:Math.PI/2});
+  for(const x of [-60,-52,-44]) Pk.push({x,z:-12,ry:Math.PI/2});
   Pk.push({x:-36.0+5,z:-25.0,ry:Math.PI/2}); Pk.push({x:-40,z:-9.0,ry:0});
   bk.bodenmarkierung({linien:L,rahmen:R,flaechen:Fl,piktos:Pk,y:0.015});
 }
@@ -309,16 +320,17 @@ function llTuer(seiten){
 const _llFr=new THREE.Frustum(), _llM=new THREE.Matrix4(), _llBox=new THREE.Box3(), _llA=new THREE.Vector3(), _llB=new THREE.Vector3();
 function llSichtTakt(){
   if(!LL_H||!LL_G||!LL_G.visible) return;
-  const c=camera.position, x=c.x, z=c.z; let v=x>-66&&x<-25.9&&z>-34.1&&z<-6.9&&!(x>-36&&z>-17);
+  const c=camera.position, x=c.x, z=c.z, oben=c.y>12;   /* ueber den Daechern (Draufsicht, Bilder): alles */
+  let v=oben||(x>-66&&x<-25.9&&z>-34.1&&z<-6.9&&!(x>-36&&z>-17));
   /* von aussen nur durch eine Oeffnung, und nur aus dem Raum davor: Schleuse/Lager (Durchgang), ③/Lager (N1), Hof (Tore) */
   if(!v){ camera.updateMatrixWorld(); _llM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _llFr.setFromProjectionMatrix(_llM);
     const P=(x0,y0,z0,x1,y1,z1)=>_llFr.intersectsBox(_llBox.set(_llA.set(x0,y0,z0),_llB.set(x1,y1,z1)));
-    const imLager=x>-26&&x<-8.1&&z>-30&&z<5.9, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;
+    const imLager=x>-26&&x<-8.1&&z>-30&&z<-15, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;   /* Durchgang nur aus Schleuse und ② Sued (von ① aus verdecken Sturz und Waende) */
     v=(imLager&&P(-26.3,0,LL.durchgang[0],-25.7,3.0,LL.durchgang[1]))||(imDritten&&LL_T.n1t>0.04&&P(-36.3,0,LL.n1.z0,-35.7,LL.n1.h,LL.n1.z1));
     if(!v&&z<-34&&typeof WTORE!=='undefined') for(const T of WTORE) if(T&&T.t>0.04&&P(T.x-1.75,0,-34.3,T.x+1.75,3.1,-33.7)){ v=true; break; } }
   LL_H.visible=v; LL_D.visible=v;
   /* Aussenanlagen (Tank, Parkplatz, Pforte): nicht aus Halle, ③, Schleuse und dem Lager-Sueden (dort nur Waende dazwischen) */
-  LL_A.visible=!((x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6));
+  LL_A.visible=oben||!((x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6)||(x>-7.9&&x<37.9&&z>-21.9&&z<5.9));   /* auch nicht aus dem Laden */
 }
 function llAussen(){
   const F=MAT.farbe, T=LL.tank, P=LL.park, Pf=LL.pforte, seg=[16,28,40][bk.lod()];

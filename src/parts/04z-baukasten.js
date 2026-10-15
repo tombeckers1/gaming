@@ -859,23 +859,23 @@ bk.rbg=function(o){
   const S=bk.sammler({form:{fase:0.015,faseMin:0.06,seg:1,lod0Kasten:true},bauteil:'rbg'});
   /* Fahrwerk: zwei Fahrkatzen auf der Bodenschiene, flacher Unterzug dazwischen (Hubwagen faehrt bis zum Boden) */
   for(const dx of [-1.05,1.05]){ S.box(0.56,0.42,0.6,dx,0.3,0,GELB,'lackMetall'); S.box(0.6,0.04,0.64,dx,0.53,0,ANTH,'lackMetall');
-    S.zyl(0.15,0.15,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(0.08,0.2,0.4,dx+Math.sign(dx)*0.32,0.25,0,F('gummischwarz'),'matt'); }
+    S.zyl(0.15,0.15,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(0.08,0.2,0.4,dx+Math.sign(dx)*0.32,0.25,0,F('gummischwarz'),'lackMetall'); }
   S.box(1.6,0.05,0.22,0,0.025,0,ANTH,'lackMetall');
   /* Antrieb */
   S.zyl(0.12,0.12,0.3,seg,1.05,0.68,0.16,F('mittelgrau'),'lackMetall',Math.PI/2,0,0); S.box(0.24,0.24,0.2,1.05,0.68,-0.12,ANTH,'lackMetall');
   /* Mast (Kastenprofil) ueber der Fahrkatze Ost, Laufbahnen fuer den Hubwagen */
   S.box(0.3,H-0.55,0.4,0.95,0.55+(H-0.55)/2,0,ANTH,'lackMetall');
-  for(const z of [-0.14,0.14]) S.box(0.04,H-0.6,0.06,0.78,0.3+(H-0.6)/2,z,F('silbergrau'),'stahl');
+  for(const z of [-0.14,0.14]) S.box(0.04,H-0.6,0.06,0.78,0.3+(H-0.6)/2,z,F('silbergrau'),'lackMetall');
   if(L>0) for(let y=1.2;y<H-0.6;y+=1.2) S.box(0.31,0.03,0.41,0.95,y,0,F('graphit'),'lackMetall');
   /* Kopf mit Fuehrungsrollen an der oberen Schiene, Warnleuchte */
   S.box(2.6,0.22,0.4,0,H-0.11,0,GELB,'lackMetall');
-  for(const z of [-0.09,0.09]) for(const x of [-1.0,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'stahl');
+  for(const z of [-0.09,0.09]) for(const x of [-1.0,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'lackMetall');
   S.zyl(0.06,0.07,0.1,seg,0.0,H+0.05,0.12,ANTH,'lackMetall'); S.zyl(0.07,0.07,0.14,seg,0.0,H+0.17,0.12,F('signalorange'),'leucht');
   /* Schaltschrank auf der Fahrkatze West, Display und Not-Halt */
-  S.box(0.46,1.4,0.5,-1.05,1.25,0,F('lichtgrau'),'kunststoff'); S.box(0.5,0.05,0.54,-1.05,1.97,0,ANTH,'lackMetall');
-  S.box(0.01,0.16,0.24,-1.285,1.6,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,-1.29,1.35,-0.15,F('signalrot'),'kunststoff',0,0,Math.PI/2);
+  S.box(0.46,1.4,0.5,-1.05,1.25,0,F('lichtgrau'),'lackMetall'); S.box(0.5,0.05,0.54,-1.05,1.97,0,ANTH,'lackMetall');
+  S.box(0.01,0.16,0.24,-1.285,1.6,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,-1.29,1.35,-0.15,F('signalrot'),'lackMetall',0,0,Math.PI/2);
   /* Energiekette am Mast */
-  if(L>0) S.box(0.06,H*0.5,0.14,1.13,0.6+H*0.25,0.16,F('gummischwarz'),'matt');
+  if(L>0) S.box(0.06,H*0.5,0.14,1.13,0.6+H*0.25,0.16,F('gummischwarz'),'lackMetall');
   const meshes=S.fertig(g,{bauteil:'rbg'});
   /* Hubwagen (y = Unterkante Gabel): Traegerplatte am Mast, Gabeltraeger, Teleskopgabel quer in die Reihe */
   const hub=new THREE.Group(); hub.position.y=0.5; g.add(hub);
@@ -885,8 +885,8 @@ bk.rbg=function(o){
   meshes.push(...Sh.fertig(hub,{bauteil:'rbg'}));
   const gabel=new THREE.Group(); hub.add(gabel);
   const Sg=bk.sammler({bauteil:'rbg'});
-  for(const x of [-0.25,0.25]){ Sg.box(0.12,0.04,1.15,x,0.02,0,F('silbergrau'),'stahl'); Sg.box(0.1,0.025,1.1,x,0.05,0,F('graphit'),'lackMetall'); }
-  Sg.box(0.62,0.05,0.12,0.12,0.03,0,ANTH,'lackMetall');
+  for(const x of [-0.25,0.25]){ Sg.box(0.12,0.04,1.15,x,0.02,0,F('silbergrau'),'stahl'); Sg.box(0.1,0.025,1.1,x,0.05,0,F('graphit'),'stahl'); }
+  Sg.box(0.62,0.05,0.12,0.12,0.03,0,ANTH,'stahl');
   meshes.push(...Sg.fertig(gabel,{bauteil:'rbg'}));
   const R={g,hub,gabel,meshes,yMin:0.0,
     set(x,y,z){ if(x!==undefined) g.position.x=x; if(y!==undefined) hub.position.y=Math.max(R.yMin,y); if(z!==undefined) gabel.position.z=z; }};
@@ -1001,9 +1001,9 @@ bk.fts=function(o){
   const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='fts'; (o.parent||scene).add(g);
   const S=bk.sammler({form:{fase:0.02,faseMin:0.05,seg:1,lod0Kasten:true},bauteil:'fts'});
   S.box(1.3,0.22,0.78,0,0.15,0,F('lichtgrau'),'lackMetall');
-  S.box(1.34,0.06,0.82,0,0.08,0,F('signalgelb'),'kunststoff');
-  for(const x of [-0.45,0.45]) S.zyl(0.06,0.06,0.06,seg,x,0.06,0.34,F('gummischwarz'),'matt',Math.PI/2,0,0), S.zyl(0.06,0.06,0.06,seg,x,0.06,-0.34,F('gummischwarz'),'matt',Math.PI/2,0,0);
-  for(const s of [-1,1]){ S.zyl(0.05,0.05,0.06,seg,s*0.6,0.3,0,F('gummischwarz'),'kunststoff'); S.box(0.02,0.04,0.3,s*0.66,0.18,0,F('tiefschwarz'),'kunststoff'); }
+  S.box(1.34,0.06,0.82,0,0.08,0,F('signalgelb'),'lackMetall');
+  for(const x of [-0.45,0.45]) S.zyl(0.06,0.06,0.06,seg,x,0.06,0.34,F('gummischwarz'),'lackMetall',Math.PI/2,0,0), S.zyl(0.06,0.06,0.06,seg,x,0.06,-0.34,F('gummischwarz'),'lackMetall',Math.PI/2,0,0);
+  for(const s of [-1,1]){ S.zyl(0.05,0.05,0.06,seg,s*0.6,0.3,0,F('gummischwarz'),'lackMetall'); S.box(0.02,0.04,0.3,s*0.66,0.18,0,F('tiefschwarz'),'lackMetall'); }
   S.zyl(0.035,0.035,0.08,seg,0.5,0.3,0.3,F('signalorange'),'leucht');
   S.box(0.012,0.05,0.18,0.656,0.2,-0.2,F('signalblau'),'leucht');
   const meshes=S.fertig(g,{bauteil:'fts'});

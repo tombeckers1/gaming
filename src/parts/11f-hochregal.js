@@ -31,6 +31,7 @@ function hrAnwenden(){
   if(!HR.fts.length){ HR.fts=[bk.fts({x:-44.5,z:LL.spur,ry:0,parent:LL_D}),bk.fts({x:-43.0,z:-16.2,ry:Math.PI/2,parent:LL_D})];
     HR.fts.forEach((f,i)=>{ f.i=i; f.job=null; f.last=null; }); }
   for(const f of HR.fts) f.g.visible=true;
+  LL_D.traverse(o=>{ if(o.isMesh) o.castShadow=false; });   /* unter dem Hallendach kein Sonnenschatten */
   /* Ladungen, die beim Speichern unterwegs waren, kommen ins Regal (sonst auf einen Stellplatz) */
   if(D.tr.length&&!HR.rbg.some(r=>r&&r.job)&&!HR.fts.some(f=>f.job)){ for(const l of D.tr.splice(0)){ const i=hrFreiPlatz(); if(i>=0) D.p[i]=l.b; else hrAufBoden(l.b); } }
   hrSync(); llStellSicht();
@@ -76,7 +77,7 @@ function hrNach(cur,ziel,v,dt){ const d=ziel-cur, s=v*dt; return Math.abs(d)<=s?
 /* Ladung als sichtbare Gruppe: Palette + Kartons (Atlas je Sorte) */
 function hrLadung(boxes){ const g=new THREE.Group(); const pa=new THREE.Mesh(bk.palette('euro',{fein:bk.lod()>1}),MAT.get('palette')); pa.rotation.y=Math.PI/2; g.add(pa);
   boxes.forEach((b,i)=>{ const m=bk.karton(b.t); m.rotation.y=Math.PI/2; m.position.set(-0.2+(i%2)*0.4,bk.PALETTE.euro.h+0.2+Math.floor(i/4)*0.41,-0.3+(Math.floor(i/2)%2)*0.6); g.add(m); });
-  g.userData.bauteil='ladung'; LL_D.add(g); return g; }
+  g.userData.bauteil='ladung'; g.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); LL_D.add(g); return g; }
 function hrLadungWeg(l){ if(l&&l.g){ l.g.parent&&l.g.parent.remove(l.g); l.g=null; } const D=hrDaten(), i=D.tr.indexOf(l.d); if(i>=0) D.tr.splice(i,1); }
 
 /* FTS: faehrt eine Punktliste ab (Drehen auf der Stelle, dann gerade) */

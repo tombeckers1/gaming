@@ -16,7 +16,7 @@
    wkAusgabe(i) (Palette erreicht die Gasse), WK.produktion (Fixkosten erst ab Produktion, wkFixkosten).
    ========================================================= */
 const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66}, H:6.0, raum:3.2,
-  band:{x0:-91.0,p:18/7,y:0.92,b:0.5}, tief:1.65, pal:{x:-71.65},
+  band:{x0:-91.0,p:18/7,y:0.92,b:0.5}, tief:1.65, zelleH:3.1, pal:{x:-71.65},
   sammel:{x:-68.0,z0:-27.9,z1:-12.6,h:0.35},
   treppe:{x0:-78,x1:-76,mitte:-77,fuss:-7.9,kopf:-10.15,z0:-11,y:1.6},
   misch:{x0:-116.5,x1:-111.5,z0:-25.5,z1:-20.5,h:3.2}, erdwall:{x0:-121,x1:-107,z0:-30,z1:-16,luecke:[-115,-112]},
@@ -25,7 +25,7 @@ const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66},
   zustand:[0,1,2].map(()=>({laeuft:false,takt:4.0,ausgabe:0})), zahl:{paletten:[0,0,0],takte:0}};
 /* Straßen (Skizze STRASSEN): Kuerzel, Arbeitsschritt, Zelle (mannlos), Maschine (bk.maschine-Art, 'portal' = Portalgreifer) */
 const WK_STR=[
-  {nr:1,up:'fabrik',zc:-13.75,gasse:1,name:'Raketen',st:[['R1','Hülsen und Kappen zuführen',0,'magazin'],['R2','Treiber pressen',1],['R3','Effektkopf füllen',1],
+  {nr:1,up:'fabrik',zc:-13.75,gasse:1,name:'Raketen',st:[['R1','Hülsen und Kappen zuführen',0,'magazin'],['R2','Treiber pressen',1,'presse'],['R3','Effektkopf füllen',1],
     ['R4','Kopf aufsetzen, Kappe kleben',0,'portal'],['R5','Anzündschnur und Schutzkappe',0,'zuendschnur'],['R6','Prüfen',0,'pruef'],['R7','Verpacken',0,'verpack']]},
   {nr:2,up:'fabrik2',zc:-19.25,gasse:2,name:'Kugelbomben',st:[['K1','Halbschalen zuführen',0,'magazin'],['K2','Sterne einlegen',1],['K3','Zerlegerladung',1],
     ['K4','Schließen und bandagieren',0,'wickler'],['K5','Trockentunnel',0,'tunnel'],['K6','Ausstoßladung und Anzünder',1],['K7','Prüfen und verpacken',0,'pruef']]},
@@ -84,6 +84,7 @@ function wkAnwenden(){
     WK.zustand[i].laeuft=ja; if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
   /* alte Westwand der Halle, Westzaun und Zufahrt des LKW-Hofs */
   if(WK_ALT.halle) WK_ALT.halle.visible=!an;
+  if(WK_T) wkGlas();
   if(typeof logiAnwenden==='function') logiAnwenden();
   for(const o of WK_ALT.hof) o.visible=!an;
   for(const c of WK_ALT.hofCols){ const d=colliders.indexOf(c)>=0; if(!an&&!d) colliders.push(c); else if(an&&d) dropCol(c); }
@@ -97,7 +98,7 @@ function wkAnwenden(){
 function wkBauen(){
   const grp=(n,bnd)=>{ const g=new THREE.Group(); g.name=n; g.userData.inventar=true; if(bnd) g.userData._bnd=true; scene.add(g); return g; };
   WK_G=grp('werk'); WK_H=grp('werkInnen'); WK_V=grp('werkVerbindungsbau'); WK_D=grp('werkBewegt',true); WK_A=grp('werkAussen');
-  WK_T={str:[null,null,null],tueren:[],blende:[[],[],[]],monitor:null,lichtband:null,trommeln:[],zeit:0};
+  WK_T={str:[null,null,null],tueren:[],blende:[[],[],[]],monitor:null,lichtband:null,trommeln:[],zeit:0,glasBasis:[],glas:[[],[],[]],glasMesh:null};
   const vorC=colliders.length, vorL=LAMPEN.length;
   const fang=(ziel,fn)=>{ const vorS=new Set(scene.children); fn(); for(const o of scene.children.filter(o=>!vorS.has(o))){ scene.remove(o); ziel.add(o); } };
   fang(WK_G,()=>{ wkRohbau(); });
@@ -112,7 +113,20 @@ function wkBauen(){
   WK_G.traverse(o=>{ if(o.isMesh&&o.userData.bauteil!=='wand'&&o.userData.bauteil!=='werkdach') o.castShadow=false; });
   WK_COLS=colliders.slice(vorC); for(const c of WK_COLS) dropCol(c);
   for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].id=WK.id;
+  wkGlas();
   bk.wandbild();
+}
+/* Glas im Werk (Leitstand-Front, Labor, Sichtfenster der Zellen, Schutzumhausungen): alle Scheiben EIN Mesh (durchsichtig = nie
+   gebuendelt; je Straße ein eigenes Mesh waeren +3 Zeichenaufrufe). Die Sammler geben ihre Scheiben-Teile hier ab (wkGlasNehmen),
+   das Mesh wird bei jedem Bau/Ausbau neu zusammengesetzt (nur offene Straßen). */
+function wkGlasNehmen(S){ const t=S.L.scheibe||[]; S.L.scheibe=[]; return t; }
+function wkGlas(){
+  if(!WK_T) return; const alt=WK_T.glasMesh;
+  if(alt){ alt.parent&&alt.parent.remove(alt); alt.geometry.dispose(); WK_T.glasMesh=null; }
+  const t=WK_T.glasBasis.slice(); WK_T.str.forEach((st,i)=>{ if(st&&wkStrasseOffen(i)) t.push(...WK_T.glas[i]); });
+  if(!t.length) return;
+  const me=new THREE.Mesh(merge(t),MAT.get('glasScheibe')); me.userData.bauteil='glas'; me.castShadow=false; me.matrixAutoUpdate=false; me.updateMatrix();
+  WK_H.add(me); WK_T.glasMesh=me;
 }
 /* Was in den Verbindungsbau reicht (Sammelfoerderer, Ausgangsfoerderer, Uebergaben, Schilder), kommt in eine eigene Gruppe: aus dem
    Verbindungsbau und durch die Tuer der Halle sieht man nur sie, nicht das ganze Werk (Instanzen und Sammler ueber das Werk bleiben) */
@@ -221,7 +235,7 @@ function wkRohbau(){
     S.box(8.0,1.6,0.02,-82,4.9,zr,F('glasKlar'),'scheibe');
     for(let i=0;i<=4;i++) S.box(0.08,1.62,0.12,-86+i*2,4.9,zr,F('aluminium'),'lackMetall');
     for(const y of [4.1,5.7]) S.box(8.0,0.08,0.14,-82,y,zr,F('aluminium'),'lackMetall');
-    S.fertig(scene,{fest:true}); }
+    WK_T.glasBasis.push(...wkGlasNehmen(S)); S.fertig(scene,{fest:true}); }
   /* Technik-Tuer (zu) */
   { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:-80,z:zr,ry:0,breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl'}); S.fertig(scene,{fest:true}); col(-80.5,-79.5,zr-0.1,zr+0.1); }
   /* Tueren mit Schliesser (oeffnen beim Naehern): Umkleide -> Werk, Inertlager (zweifluegelig), Labor */
@@ -366,7 +380,7 @@ function wkRaeume(){
   { const Sz=bk.sammler({form:{fase:0.006,faseMin:0.03,lod0Kasten:true},bauteil:'zaun'});
     bk.zaun({art:'gitter',von:[-76,-27.6],bis:[-70.25,-27.6],hoehe:2.0,luecke:[[2.2,3.7]],S:Sz}); Sz.fertig(scene,{fest:true,bauteil:'zaun'});
     col(-76,-73.8,-27.66,-27.54); col(-72.3,-70.25,-27.66,-27.54); }
-  S.fertig(scene,{fest:true});
+  WK_T.glasBasis.push(...wkGlasNehmen(S)); S.fertig(scene,{fest:true});
   for(const c of C) col(c[0],c[1],c[2],c[3]);
 }
 /* Bodenmarkierungen: Gehwege gruen (Gaenge zwischen den Straßen, Querweg West, Verbindungsbau), Fahrweg gelb (Annahme),
@@ -433,7 +447,7 @@ function wkAussen(){
     const mr=MAT.neu('ampelRot'), mg=MAT.neu('ampelGruen'); mr.emissiveIntensity=0; mg.emissiveIntensity=1.4;
     for(const [l,m] of [[Lm.rot,mr],[Lm.gruen,mg]]) if(l.length){ const me=new THREE.Mesh(merge(l),m); me.userData.bauteil='zelle'; me.userData.klasse='leuchte'; scene.add(me); }
     bk.schild(scene,{text:'MISCHHAUS',unter:'Fernbedienter Mischer · Zutritt nur bei Stillstand',b:1.6,h:0.45,x:-114,y:2.75,z:Mi.z0-0.01,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
-    const E2=WK.erdwall, w=bk.erdwall({x0:E2.x0,x1:E2.x1,z0:E2.z0,z1:E2.z1,hoehe:4,fuss:3,krone:0.8,luecke:{seite:'s',von:E2.luecke[0],bis:E2.luecke[1]},prallwand:false});
+    const E2=WK.erdwall, w=bk.erdwall({x0:E2.x0,x1:E2.x1,z0:E2.z0,z1:E2.z1,hoehe:4,fuss:3,krone:0.8,luecke:{seite:'s',von:E2.luecke[0],bis:E2.luecke[1]}});
     for(const c of w.kollision) col(c.x0,c.x1,c.z0,c.z1); }
 }
 /* Werkstueck-Traeger je Straße (eine Geometrie, Instanzen): Raketen (Huelsen mit Kopf), Kugelbomben (Kugeln mit Bandage),
@@ -464,16 +478,20 @@ function wkStrasseBauen(i){
     /* Band (Rollenbahn, Alu wie im Referenzfoto) durch alle Stationen bis zum Palettierer */
     bk.foerderer({von:[B.x0-0.25,zc],bis:[-72.85,zc],breite:B.b,hoehe:B.y,teilung:L?0.1:0.2});
     s.st.forEach((q,j)=>{ const x0=B.x0+j*p, x1=x0+p, xm=(x0+x1)/2;
-      if(q[2]){ bk.zelle({S,x0,x1,z0:zc-WK.tief,z1:zc+WK.tief,h:4.0,band:{z:zc,y0:0.45,y1:1.4,b:0.9},tueren:[{seite:1,x:x0+0.72},{seite:-1,x:x1-0.72}],leuchten:Lz,schild:L?{text:q[0],unter:q[1]+' · Zelle'}:null,parent:scene}); return; }
+      /* Zelle (Feinschliff 15.10.): Paneel hell, 3,1 m mit sichtbarem Ausblasdach, Sichtfenster, Kamera; drinnen die Maschine (Presse/Dosierer) */
+      if(q[2]){ bk.zelle({S,x0,x1,z0:zc-WK.tief,z1:zc+WK.tief,h:WK.zelleH,wand:'paneel',fenster:true,kamera:true,band:{z:zc,y0:0.45,y1:1.4,b:0.9},tueren:[{seite:1,x:x0+0.72},{seite:-1,x:x1-0.72}],leuchten:Lz,schild:L?{text:q[0],unter:q[1]+' · Zelle'}:null,parent:scene});
+        bk.maschine(S,{art:q[3]||'fuell',x:xm,z:zc,y:B.y,laenge:p-0.5,breite:2.0}); return; }
+      /* offene Station: Alu-Profil-Schutzumhausung mit Polycarbonat an beiden Gangseiten (Linie als Fertigungsstraße lesbar) */
+      const schutz=WK.tief-0.2;
       if(q[3]==='portal'){ const P=bk.portalgreifer({x:xm,z:zc,laenge:p-0.2,breite:2.0,hoehe:2.3,greifer:i===2?'sauger':'zange',hub:1.0,parent:d});
-        st.portale.push({P,art:'station'});
+        st.portale.push({P,art:'station'}); bk.maschine(S,{art:'schutz',x:xm,z:zc,laenge:p,schutz});
         if(i===2){ /* Rohrmagazin hinter dem Portal (hohe Pappe-Rohre wie im Referenzfoto) und Rohr-Raster neben dem Band */
           for(let a=0;a<3;a++) S.zyl(0.04,0.04,2.2,[6,8,10][L],xm-0.3+a*0.3,1.5,zc-0.75,F('wellpappe'),'stumpf');
           S.box(1.1,0.06,0.25,xm,0.38,zc-0.75,F('aluminium'),'stahl');
           bk.rohrraster(S,{x:xm,y:0.62,z:zc+0.72,nx:6,nz:5,r:0.032,h:0.32,teilung:0.085}); S.box(0.7,0.62,0.6,xm,0.31,zc+0.72,F('aluminium'),'stahl'); }
         else { S.box(0.9,0.75,0.45,xm,0.375,zc-0.75,F('lichtgrau'),'lackMetall');
           for(let a=0;a<6;a++) S.zyl(0.0,0.03,0.08,[6,8,10][L],xm-0.3+a*0.12,0.79,zc-0.75,F('feuerrot'),'stumpf'); } }
-      else bk.maschine(S,{art:q[3],x:xm,z:zc,y:B.y,laenge:p,breite:2.2});
+      else bk.maschine(S,{art:q[3],x:xm,z:zc,y:B.y,laenge:p,breite:2.2,schutz});
       /* Stationsschild an einem Alu-Pfosten am Gangrand (nicht frei schwebend) */
       S.box(0.05,2.75,0.05,xm+0.55,1.375,zc+WK.tief-0.06,F('aluminium'),'stahl'); bk.fuss(S,xm+0.55,zc+WK.tief-0.06,0.12);
       S.box(1.04,0.34,0.03,xm,2.55,zc+WK.tief-0.025,F('anthrazit'),'lackMetall');
@@ -485,7 +503,7 @@ function wkStrasseBauen(i){
     const fa=bk.foerderer({von:[-72.75,zc],bis:[-68.55,zc],breite:1.0,hoehe:WK.sammel.h});
     const fu=bk.foerderer({von:[-67.45,zT],bis:[-66.02,zT],breite:1.0,hoehe:WK.sammel.h,antrieb:false});
     col(fa.kollision.x0,fa.kollision.x1,fa.kollision.z0,fa.kollision.z1); col(fu.kollision.x0,fu.kollision.x1,fu.kollision.z0,fu.kollision.z1);
-    S.fertig(scene,{fest:true});
+    WK_T.glas[i]=wkGlasNehmen(S); S.fertig(scene,{fest:true});
     /* Zellen-Ampeln: je Straße EIN Mesh je Farbe, Material veraenderlich (MAT.neu) - rot = Maschine laeuft, Tuer zu */
     const mr=MAT.neu('ampelRot'), mg=MAT.neu('ampelGruen'); st.ampel={rot:mr,gruen:mg};
     for(const [l,m] of [[Lz.rot,mr],[Lz.gruen,mg]]) if(l.length){ const me=new THREE.Mesh(merge(l),m); me.userData.bauteil='zelle'; me.userData.klasse='leuchte'; scene.add(me); }

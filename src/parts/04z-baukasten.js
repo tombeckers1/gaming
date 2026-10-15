@@ -883,6 +883,8 @@ bk.hochregal=function(o){
 };
 /* Regalbediengeraet (RBG) fuer eine Gasse: zwei Fahrkatzen (Signalgelb wie Kran), Mast Anthrazit, Hubwagen mit
    Teleskopgabel bis zum Boden, Schaltschrank, Kopf an der Fuehrungsschiene, Warnleuchte. Gabelmitte = g.x (Ladung mittig).
+   Unsymmetrisch wie ein Einmast-RBG (Feinschliff 15.10.): Mast, Antrieb und Schaltschrank im Osten, im Westen nur eine schmale
+   Fahrkatze mit Puffer (reicht 0,80 m ueber die Gabelmitte) - sonst ragte das Geraet an Feld 0 durch die Brandwand x −66.
    o = {x, z (Gassenmitte), hoehe (Mast bis Fuehrungsschiene), parent}
    -> {g (faehrt in x), hub (faehrt in y = Unterkante Gabel), gabel (faehrt in z, quer in die Reihe), set(x,y,z), yMin, meshes} */
 bk.rbg=function(o){
@@ -890,9 +892,9 @@ bk.rbg=function(o){
   const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.userData.bauteil='rbg'; (o.parent||scene).add(g);
   const S=bk.sammler({form:{fase:0.015,faseMin:0.06,seg:1,lod0Kasten:true},bauteil:'rbg'});
   /* Fahrwerk: zwei Fahrkatzen auf der Bodenschiene, flacher Unterzug dazwischen (Hubwagen faehrt bis zum Boden) */
-  for(const dx of [-1.05,1.05]){ S.box(0.56,0.42,0.6,dx,0.3,0,GELB,'lackMetall'); S.box(0.6,0.04,0.64,dx,0.53,0,ANTH,'lackMetall');
-    S.zyl(0.15,0.15,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(0.08,0.2,0.4,dx+Math.sign(dx)*0.32,0.25,0,F('gummischwarz'),'lackMetall'); }
-  S.box(1.6,0.05,0.22,0,0.025,0,ANTH,'lackMetall');
+  for(const [dx,b] of [[-0.62,0.3],[1.05,0.56]]){ const s=Math.sign(dx); S.box(b,0.42,0.6,dx,0.3,0,GELB,'lackMetall'); S.box(b+0.04,0.04,0.64,dx,0.53,0,ANTH,'lackMetall');
+    S.zyl(0.13,0.13,0.2,seg,dx,0.15,0,ANTH,'lackMetall',Math.PI/2,0,0); S.box(s<0?0.03:0.08,0.2,0.4,dx+s*(b/2+(s<0?0.015:0.04)),0.25,0,F('gummischwarz'),'lackMetall'); }
+  S.box(1.67,0.05,0.22,0.215,0.025,0,ANTH,'lackMetall');
   /* Antrieb */
   S.zyl(0.12,0.12,0.3,seg,1.05,0.68,0.16,F('mittelgrau'),'lackMetall',Math.PI/2,0,0); S.box(0.24,0.24,0.2,1.05,0.68,-0.12,ANTH,'lackMetall');
   /* Mast (Kastenprofil) ueber der Fahrkatze Ost, Laufbahnen fuer den Hubwagen */
@@ -900,12 +902,12 @@ bk.rbg=function(o){
   for(const z of [-0.14,0.14]) S.box(0.04,H-0.6,0.06,0.78,0.3+(H-0.6)/2,z,F('silbergrau'),'lackMetall');
   if(L>0) for(let y=1.2;y<H-0.6;y+=1.2) S.box(0.31,0.03,0.41,0.95,y,0,F('graphit'),'lackMetall');
   /* Kopf mit Fuehrungsrollen an der oberen Schiene, Warnleuchte */
-  S.box(2.6,0.22,0.4,0,H-0.11,0,GELB,'lackMetall');
-  for(const z of [-0.09,0.09]) for(const x of [-1.0,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'lackMetall');
+  S.box(2.05,0.22,0.4,0.275,H-0.11,0,GELB,'lackMetall');
+  for(const z of [-0.09,0.09]) for(const x of [-0.6,1.0]) S.zyl(0.06,0.06,0.12,seg,x,H+0.06,z,ANTH,'lackMetall');
   S.zyl(0.06,0.07,0.1,seg,0.0,H+0.05,0.12,ANTH,'lackMetall'); S.zyl(0.07,0.07,0.14,seg,0.0,H+0.17,0.12,F('signalorange'),'leucht');
-  /* Schaltschrank auf der Fahrkatze West, Display und Not-Halt */
-  S.box(0.46,1.4,0.5,-1.05,1.25,0,F('lichtgrau'),'lackMetall'); S.box(0.5,0.05,0.54,-1.05,1.97,0,ANTH,'lackMetall');
-  S.box(0.01,0.16,0.24,-1.285,1.6,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,-1.29,1.35,-0.15,F('signalrot'),'lackMetall',0,0,Math.PI/2);
+  /* Schaltschrank aussen am Mast (Ost), Display und Not-Halt */
+  S.box(0.22,1.3,0.5,1.3,1.6,0,F('lichtgrau'),'lackMetall'); S.box(0.24,0.05,0.54,1.3,2.27,0,ANTH,'lackMetall'); S.box(0.04,0.06,0.3,1.17,1.6,0,ANTH,'lackMetall');
+  S.box(0.01,0.16,0.24,1.415,1.85,0.05,F('signalblau'),'leucht'); S.zyl(0.035,0.035,0.03,seg,1.42,1.55,-0.15,F('signalrot'),'lackMetall',0,0,Math.PI/2);
   /* Energiekette am Mast */
   if(L>0) S.box(0.06,H*0.5,0.14,1.13,0.6+H*0.25,0.16,F('gummischwarz'),'lackMetall');
   const meshes=S.fertig(g,{bauteil:'rbg'});
@@ -1181,7 +1183,10 @@ bk.rohrraster=function(S,o){
    'magazin' Huelsen-/Halbschalen-Magazin mit Rutsche, 'presse' Presse (hydraulisch), 'fuell' Dosierer mit Trichter (Satz, Sterne,
    Ladung), 'zuendschnur' Spule mit Zufuehrung, 'pruef' Waage + Kamerabruecke + Bildschirm, 'verpack' Kartonierer mit Sichtfenster,
    'wickler' Wickelautomat (Ring + Papierrolle), 'tunnel' Trockentunnel (Gehaeuse mit Luefter), 'banderole' Etikettierer,
-   'spritz' Einspritzkopf (Zuendschnur in die Bodenplatte), 'verdaemm' Verdaemmen und Deckel (Trichter + Pressplatte). */
+   'spritz' Einspritzkopf (Zuendschnur in die Bodenplatte), 'verdaemm' Verdaemmen und Deckel (Trichter + Pressplatte),
+   'schutz' nur die Schutzumhausung (Station mit Portalgreifer).
+   o.schutz = Abstand der Schutzumhausung von der Bandmitte (m, z. B. 1,45): Alu-Profil-Rahmen mit Polycarbonat-Scheiben 0,2-1,9 m an
+   beiden Gangseiten, Stirnseiten offen fuer das Band (Feinschliff 15.10., wie die Alu-Gestelle im Referenzfoto). */
 bk.maschine=function(S,o){
   const F=MAT.farbe, L=bk.lod(), seg=[6,10,14][L], AL=F('aluminium'), ANTH=F('anthrazit'), x=o.x, z=o.z, y=o.y||0.9, lx=o.laenge||2.2, bz=o.breite||1.6, p=0.07;
   /* Gestell: vier Alu-Stuetzen bis 2,1 m, Rahmen oben (alle Arten ausser Tunnel/Wickler) */
@@ -1224,8 +1229,14 @@ bk.maschine=function(S,o){
     case 'verdaemm': gestell(2.1,lx*0.6,bz*0.8);
       S.zyl(0.28,0.07,0.5,seg,x-0.25,1.65,z,F('hellgrau'),'blank'); kasten(0.5,0.06,0.5,x+0.25,y+0.6,z,F('silbergrau'),'stahl');
       S.zyl(0.06,0.06,0.6,seg,x+0.25,1.2,z,F('silbergrau'),'blank'); break;
+    case 'schutz': break;
     default: throw new Error('bk.maschine: Art unbekannt: '+o.art);
   }
+  if(o.schutz){ const zs=o.schutz, hx=lx/2-0.06, n=Math.max(1,Math.round(lx/1.3));
+    for(const sz of [-1,1]){ const zz=z+sz*zs;
+      for(let i=0;i<=n;i++){ const xx=x-hx+i*2*hx/n; S.box(0.045,1.95,0.045,xx,0.975,zz,AL,'stahl'); bk.fuss(S,xx,zz,0.1); }
+      for(const y of [0.2,1.06,1.93]) S.box(2*hx,0.04,0.045,x,y,zz,AL,'stahl');
+      S.box(2*hx-0.05,1.68,0.006,x,1.065,zz,F('glasKlar'),'scheibe'); } }
   return S;
 };
 /* Erdwall (Schutzwall um das Mischhaus): Ring mit Trapez-Querschnitt um ein Rechteck (aussen x0..x1 / z0..z1): Fuss o.fuss (3 m),
@@ -1267,23 +1278,44 @@ bk.erdwall=function(o){
       const a0=P(ta,0,0), a1=P(tb,f,0); kol.push({x0:Math.min(a0[0],a1[0]),x1:Math.max(a0[0],a1[0]),z0:Math.min(a0[2],a1[2]),z1:Math.max(a0[2],a1[2])}); } }
   const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   S.geo(geo,new THREE.Matrix4(),0xffffff,'rasen');
-  /* Prallwand vor der Luecke (versetzt, Beton 30 cm, 2,6 m hoch) */
-  if(o.luecke&&o.prallwand!==false&&o.luecke.seite==='s'){ const g0=Math.min(o.luecke.von,o.luecke.bis), g1=Math.max(o.luecke.von,o.luecke.bis), zz=o.z0-2.2, x0=g0+1.2, x1=g1+2.4;
+  /* Prallwand vor der Luecke (Beton 30 cm, 2,6 m hoch, 2,2 m vor dem Wallfuss): deckt die Luecke ganz und je 1 m daneben - kein
+     gerader Weg und keine Sichtlinie nach aussen, Zugang seitlich versetzt zwischen Wall und Prallwand (Feinschliff 15.10.; vorher
+     deckte sie nur den Ostteil der Luecke und war im Werk abgeschaltet) */
+  if(o.luecke&&o.prallwand!==false&&o.luecke.seite==='s'){ const g0=Math.min(o.luecke.von,o.luecke.bis), g1=Math.max(o.luecke.von,o.luecke.bis), zz=o.z0-2.2, x0=g0-1.0, x1=g1+1.0;
     S.geo(bk.kastenM(x1-x0,2.6,0.3,2.4,(x0+x1)/2,1.3,zz),tm((x0+x1)/2,1.3,zz),0xffffff,'beton'); kol.push({x0,x1,z0:zz-0.15,z1:zz+0.15}); }
   const meshes=S.fertig(o.parent||scene,{bauteil:'erdwall',fest:true});
   return {meshes,kollision:kol};
 };
-/* Betonzelle (mannlose Station im Werk, "laeuft die Maschine, ist kein Mensch drin"): Waende Beton Steingrau 25 cm, Ausblasdach
-   (leichte Platten auf Stahlrahmen, blaest bei einer Verpuffung nach oben aus), Durchreiche mit Klappe (Feuerrot, Brandschutzabschluss)
-   in beiden Stirnwaenden fuer das Band, zwei versetzte Stahltueren (nie gegenueber), Kupferplatte (Entladen) und Ampel an jeder Tuer,
-   leitfaehiger Gummiboden innen, Zellenschild. Alles in den Sammler o.S (bk.werkSammler) - eine ganze Straße = wenige Meshes.
+/* Betonzelle (mannlose Station im Werk, "laeuft die Maschine, ist kein Mensch drin"): Waende 25 cm, Ausblasdach
+   (leichte Platten auf Stahlrahmen, blaest bei einer Verpuffung nach oben aus), Durchreiche mit Klappe (Feuerrot, Brandschutzabschluss,
+   Rahmen Signalgelb = bewegtes Teil) in beiden Stirnwaenden fuer das Band, zwei versetzte Stahltueren (nie gegenueber), Kupferplatte
+   (Entladen) und Ampel an jeder Tuer, leitfaehiger Gummiboden innen, Zellenschild. Alles in den Sammler o.S (bk.werkSammler) - eine
+   ganze Straße = wenige Meshes.
    o = {S, x0,x1,z0,z1, h 4,0, d 0,25, band:{z,y0,y1,b}, tueren:[{seite:+1 (z1)|-1 (z0), x}], leuchten:{rot:[],gruen:[]} (Geometrien der
-   Ampeln, der Aufrufer schaltet sie je Straße ueber MAT.neu), schild:{text,unter}, parent (Schild)}
+   Ampeln, der Aufrufer schaltet sie je Straße ueber MAT.neu), schild:{text,unter}, parent (Schild),
+   wand 'beton' (Sichtbeton Steingrau, Chemie-Boxen, Satz-Bunker, Mischhaus) | 'paneel' (beschichtet Lichtgrau mit Fugen, Sockel
+   Steingrau 30 cm - Fertigungszellen der Straßen, Feinschliff 15.10.: hell wie im Referenzfoto),
+   fenster true|{b 0,6, h 0,42, y 1,3} (Panzerglas-Sichtfenster je Laengswand, gegenueber der Tuer versetzt), kamera true (Kamera
+   ueber der Durchreiche West, schaut auf die Klappe)}
    -> {kollision:{x0,x1,z0,z1}, tueren:[{x,z,seite}]} */
 bk.zelle=function(o){
-  const S=o.S, F=MAT.farbe, d=o.d||0.25, h=o.h||4.0, x0=o.x0, x1=o.x1, z0=o.z0, z1=o.z1, seg=[6,10,12][bk.lod()];
+  const S=o.S, F=MAT.farbe, d=o.d||0.25, h=o.h||4.0, x0=o.x0, x1=o.x1, z0=o.z0, z1=o.z1, L=bk.lod(), seg=[6,10,12][L];
   const B=o.band===false?null:(o.band||{z:(z0+z1)/2,y0:0.45,y1:1.35,b:0.9});
-  const W=(w,hh,dd,x,y,z)=>{ if(w>0.005&&hh>0.005&&dd>0.005) S.geo(bk.kastenM(w,hh,dd,2.4,x,y,z),tm(x,y,z),0xffffff,'beton'); };
+  const P=o.wand==='paneel', SO=0.3, fen=o.fenster?Object.assign({b:0.6,h:0.42,y:1.3},o.fenster===true?{}:o.fenster):null;
+  /* Wandstueck: Sichtbeton (UV in Metern) oder Paneel Lichtgrau mit Sockel Steingrau (nur Stuecke, die auf dem Boden stehen) */
+  const W=(w,hh,dd,x,y,z)=>{ if(!(w>0.005&&hh>0.005&&dd>0.005)) return;
+    if(!P){ S.geo(bk.kastenM(w,hh,dd,2.4,x,y,z),tm(x,y,z),0xffffff,'beton'); return; }
+    S.geo(new THREE.BoxGeometry(w,hh,dd),tm(x,y,z),F('lichtgrau'),'kunststoff');
+    if(y-hh/2<0.01){ const sh=Math.min(SO,hh), lang=w>=dd; S.geo(new THREE.BoxGeometry(w+(lang?0:0.016),sh,dd+(lang?0.016:0)),tm(x,sh/2,z),F('steingrau'),'matt'); } };
+  /* Paneelfuge (senkrecht, beidseitig): achse 'x' = Wand laeuft in x */
+  const fuge=(achse,lage,xw)=>{ if(!P||!L) return; const fh=h-SO-0.04, fy=SO+0.02+fh/2;
+    if(achse==='x') S.geo(new THREE.BoxGeometry(0.014,fh,d+0.008),tm(lage,fy,xw),F('hellgrau'),'kunststoff');
+    else S.geo(new THREE.BoxGeometry(d+0.008,fh,0.014),tm(xw,fy,lage),F('hellgrau'),'kunststoff'); };
+  /* Wand mit Oeffnungen (Tuer, Fenster): von a bis b laengs, Oeffnungen {a,b,y0,y1}; achse 'x' (Wand bei z=w) | 'z' (Wand bei x=w) */
+  const wandMit=(achse,w,a,b,off)=>{ off=off.slice().sort((p,q)=>p.a-q.a); let c=a;
+    const st=(l,hh,m,y)=>achse==='x'?W(l,hh,d,m,y,w):W(d,hh,l,w,y,m);
+    for(const q of off){ st(q.a-c,h,(c+q.a)/2,h/2); if(q.y0>0) st(q.b-q.a,q.y0,(q.a+q.b)/2,q.y0/2); st(q.b-q.a,h-q.y1,(q.a+q.b)/2,(q.y1+h)/2); c=q.b; }
+    st(b-c,h,(c+b)/2,h/2); };
   const out={kollision:{x0,x1,z0,z1},tueren:[]};
   /* Ampel und Kupferplatte vor einer Tuer (Mitte t, Normale nach aussen n=[nx,nz]) */
   const vorTuer=(tx,tz,nx,nz,quer)=>{ const ry=Math.atan2(nx,nz);
@@ -1298,22 +1330,35 @@ bk.zelle=function(o){
     W(d,h,ta-z0,xw,h/2,(z0+ta)/2); W(d,h,z1-te,xw,h/2,(te+z1)/2); W(d,h-th,tb,xw,(th+h)/2,t.z);
     bk.drehtuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
     const nx=id==='w'?-1:1; vorTuer(xw+nx*d/2,t.z,nx,0,[0,1]); out.tueren.push({x:xw,z:t.z,seite:id}); }
-  /* Stirnwaende mit Durchreiche, Rahmen und Klappe (offen, pneumatisch) */
+  /* Stirnwaende mit Durchreiche, Rahmen (Signalgelb) und Klappe (offen, pneumatisch) */
   if(B) for(const xw of [x0+d/2,x1-d/2]){ const za=B.z-B.b/2, zb=B.z+B.b/2, s=xw<(x0+x1)/2?-1:1, xa=xw+s*(d/2+0.013), kl=B.y1-B.y0, a=1.2;
-    W(d,h,za-z0,xw,h/2,(z0+za)/2); W(d,h,z1-zb,xw,h/2,(zb+z1)/2); W(d,B.y0,B.b,xw,B.y0/2,B.z); W(d,h-B.y1,B.b,xw,(B.y1+h)/2,B.z);
-    for(const z of [za-0.025,zb+0.025]) S.box(0.026,kl+0.1,0.05,xa,(B.y0+B.y1)/2,z,F('anthrazit'),'stahl');
-    for(const y of [B.y0-0.025,B.y1+0.025]) S.box(0.026,0.05,B.b+0.1,xa,y,B.z,F('anthrazit'),'stahl');
-    S.box(0.02,kl,B.b-0.02,xa+s*Math.sin(a)*kl/2,B.y1+0.03-Math.cos(a)*kl/2,B.z,F('feuerrot'),'lackMetall',0,0,s*a);
-    S.zyl(0.025,0.025,0.5,seg,xa+s*0.16,B.y1+0.32,B.z-B.b/2+0.06,F('aluminium'),'blank',0,0,-s*0.7); }
-  /* Laengswaende mit je einer Tuer (versetzt) */
+    wandMit('z',xw,z0,z1,[{a:za,b:zb,y0:B.y0,y1:B.y1}]);
+    for(const zf of [B.z-1.0,B.z+1.0]) if(zf>z0+d+0.1&&zf<z1-d-0.1) fuge('z',zf,xw);
+    for(const z of [za-0.03,zb+0.03]) S.box(0.03,kl+0.12,0.06,xa,(B.y0+B.y1)/2,z,F('signalgelb'),'lackMetall');
+    for(const y of [B.y0-0.03,B.y1+0.03]) S.box(0.03,0.06,B.b+0.12,xa,y,B.z,F('signalgelb'),'lackMetall');
+    S.box(0.025,kl,B.b-0.02,xa+s*Math.sin(a)*kl/2,B.y1+0.03-Math.cos(a)*kl/2,B.z,F('feuerrot'),'lackMetall',0,0,s*a);
+    S.zyl(0.025,0.025,0.5,seg,xa+s*0.16,B.y1+0.32,B.z-B.b/2+0.06,F('aluminium'),'blank',0,0,-s*0.7);
+    /* Kamera ueber der Durchreiche West: Ausleger, Gehaeuse nach unten auf die Klappe geneigt, Objektiv */
+    if(o.kamera&&s<0){ const ky=Math.min(h-0.3,B.y1+1.0), kz=B.z+B.b/2+0.3, kx=xw-d/2;
+      S.box(0.16,0.04,0.04,kx-0.08,ky+0.07,kz,F('anthrazit'),'lackMetall');
+      S.box(0.24,0.1,0.11,kx-0.2,ky,kz,F('lichtgrau'),'kunststoff',0,0,0.45);
+      S.zyl(0.035,0.035,0.03,seg,kx-0.31,ky-0.055,kz,F('tiefschwarz'),'kunststoff',0,0,Math.PI/2+0.45); } }
+  /* Laengswaende mit je einer Tuer (versetzt) und dem Sichtfenster am anderen Ende */
   for(const zw of [z0+d/2,z1-d/2]){ const seite=zw>(z0+z1)/2?1:-1, t=(o.tueren||[]).find(q=>q.seite===seite), xa=x0+d, xb=x1-d;
     if(!t){ W(xb-xa,h,d,(xa+xb)/2,h/2,zw); continue; }
-    const tb=0.9, th=2.05, ta=t.x-tb/2, te=t.x+tb/2;
-    W(ta-xa,h,d,(xa+ta)/2,h/2,zw); W(xb-te,h,d,(te+xb)/2,h/2,zw); W(tb,h-th,d,t.x,(th+h)/2,zw);
+    const tb=0.9, th=2.05, off=[{a:t.x-tb/2,b:t.x+tb/2,y0:0,y1:th}], wx=x0+x1-t.x;
+    if(fen) off.push({a:wx-fen.b/2,b:wx+fen.b/2,y0:fen.y,y1:fen.y+fen.h});
+    wandMit('x',zw,xa,xb,off);
+    if(P){ const xm=(x0+x1)/2; if(!off.some(q=>xm>q.a-0.05&&xm<q.b+0.05)) fuge('x',xm,zw); }
+    if(fen){ const fy=fen.y+fen.h/2;
+      S.box(fen.b,fen.h,0.03,wx,fy,zw,F('glasKlar'),'scheibe');
+      for(const sz of [-1,1]){ const zf=zw+sz*(d/2+0.012);
+        for(const y of [fen.y-0.03,fen.y+fen.h+0.03]) S.box(fen.b+0.12,0.06,0.025,wx,y,zf,F('anthrazit'),'lackMetall');
+        for(const x of [wx-fen.b/2-0.03,wx+fen.b/2+0.03]) S.box(0.06,fen.h,0.025,x,fy,zf,F('anthrazit'),'lackMetall'); } }
     bk.drehtuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
     const zo=zw+seite*(d/2);
     vorTuer(t.x,zo,0,seite,[t.x<(x0+x1)/2?1:-1,0]);
-    if(o.schild&&seite>0) bk.schild(o.parent||scene,{text:o.schild.text,unter:o.schild.unter,b:1.25,h:0.4,x:(x0+x1)/2,y:th+0.75,z:zo+0.012,ry:0});
+    if(o.schild&&seite>0) bk.schild(o.parent||scene,{text:o.schild.text,unter:o.schild.unter,b:1.25,h:0.4,x:(x0+x1)/2,y:Math.min(th+0.75,h-0.25),z:zo+0.012,ry:0});
     out.tueren.push({x:t.x,z:zw,seite}); }
   /* Ausblasdach: Stahlrahmen auf der Wandkrone, zwei leichte Platten, Mittelpfette */
   for(const z of [z0+0.06,z1-0.06]) S.box(x1-x0,0.12,0.12,(x0+x1)/2,h+0.06,z,F('anthrazit'),'stahl');

@@ -14,7 +14,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const mangel=[]; const M=(ok,t)=>{ if(!ok) mangel.push(t); };
 
   /* 1) Kauf: vorher nichts im Speicher, danach Werk + Straße 1 + Gasse 2 */
-  const a=await p.evaluate(()=>{ const bb=window.__bb, o={};
+  const a=await p.evaluate((GEGEN)=>{ const bb=window.__bb, o={};
     bb.S.level=40; bb.S.money=900000;
     ['lager','lager_nord','lager_gross','lager_sued','lager_sued2','lager_west','lager_west2','lager_west3','rampe2','rampe3','rampe4','rampe5','lagerlogistik'].forEach(id=>bb.testKauf(id));
     bb.run(1,0.05);
@@ -27,12 +27,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.gassen=bb.LL_T.gassen.map(G=>!!G.rbg&&G.rbg.g.visible); o.altWand=bb.WK_ALT.halle&&bb.WK_ALT.halle.visible; o.altHof=bb.WK_ALT.hof.some(m=>m.visible);
     o.kapitel=!bb.KAPITEL[7].geplant&&bb.KAPITEL[7].up==='fabrik'; o.x0=bb.wkWeltX0(); o.n1=bb.LL_T.n1.art;
     const t1=performance.now(); bb.navBuild(); o.navMs1=Math.round((performance.now()-t1)*10)/10; o.nav1=bb.NAV.w*bb.NAV.h;
-    return o; });
+    /* Feinschliff 15.10.: RBG an Feld 0 (westlichster Platz) darf nicht in die Brandwand x −66 ragen */
+    { const xs=bb.LL_T.hr.plaetze.map(q=>q.x), xmin=Math.min(...xs)-(GEGEN?0.6:0); o.rbgWest=bb.LL_T.gassen.filter(G=>G.rbg).map(G=>{ const R=G.rbg, x=R.g.position.x;
+        R.set(xmin); R.g.updateMatrixWorld(true); const bx=new THREE.Box3().setFromObject(R.g); R.set(x); return Math.round(bx.min.x*100)/100; }); }
+    return o; },!!process.env.GEGENPROBE_RBG);
   console.log('KAUF',JSON.stringify(a));
   M(!a.vorG,'Werk vor dem Kauf schon gebaut (Speicher)');
   M(a.bezahlt===a.preis&&a.offen&&a.gebaut,'Kauf/Bau fehlgeschlagen: '+JSON.stringify(a));
   M(a.str[0]&&!a.str[1]&&!a.str[2],'nur Straße 1 soll stehen: '+a.str);
   M(a.gassen[0]&&a.gassen[1]&&!a.gassen[2],'RBG in Gasse 1+2 erwartet: '+a.gassen);
+  M(a.rbgWest.length&&a.rbgWest.every(x=>x>=-66.0),'RBG ragt an Feld 0 in die Brandwand x -66: '+a.rbgWest);
   M(a.fixNach-a.fixVor===35,'Fixkosten: nur Betrieb Gasse 2 (35) erwartet, ist '+(a.fixNach-a.fixVor));
   M(a.altWand===false&&a.altHof===false,'alte Westwand/Hofzaun noch sichtbar');
   M(a.kapitel,'Kapitel 8 noch geplant oder nicht fabrik');

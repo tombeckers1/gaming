@@ -584,7 +584,7 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b id="lGeraet">Feuerwerksladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="rez">Entwicklung</button><button data-tab="shop">Laden</button><button data-tab="online">Onlineshop</button><button data-tab="staff">Team</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="rez">Entwicklung</button><button data-tab="shop">Laden</button><button data-tab="online">Onlineshop</button><button data-tab="staff">Team</button><button data-tab="prod">Produktion</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
@@ -1482,13 +1482,10 @@ const WIRT={
          geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
          kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
       lagerlogistik:18500,
-      /* Halle Etappe B (15.10.): Werk West. Noch Schau-Betrieb (Straßen laufen sichtbar, produzieren aber nichts) -
-         Preise passen zur spaeteren Produktion (docs/halle/produktion-konzept.md, etappe-b.md §Preis):
-         eine Straße spart 40-55 % vom Einkauf der Klasse, die sie baut (Konzept: variable Kosten 45-60 %),
-         bei ~1.200 € Einkauf je Tag und Klasse in Kapitel 8 sind das ~550 €, minus Werker und Strom ~250 € = ~+300 €/Tag.
-         fabrik (Werk + Straße 1 + Gasse 2 mit RBG, 180 Palettenplaetze sofort nutzbar): ~+300 + ~60 (Lagerplatz) -> ~130 Tage;
-         bewusst laenger als 7.3 (38 Tage): groesste Investition, lohnt erst mit Menge (Finanzbildung: Fixkosten gegen Marge).
-         fabrik2/fabrik3 nutzen das Werk mit: je ~+300 €/Tag -> ~85 bzw. ~75 Spieltage. Messen im Balancing-Paket, wenn die Produktion laeuft. */
+      /* Halle Etappe B (15.10.): Werk West mit Produktion (05s, docs/halle/produktion.md, Rechner tools/produktion/rechner.js):
+         nur fuer den eigenen Laden (~35 Stueck je Klasse am Tag, in der Vorfuehrung gemessen) traegt eine Straße ihre Fixkosten
+         nicht; mit Grosshandel (produktion.grosshandel), gutem Produkt und wenig Stillstand: fabrik ~50 Spieltage (Ziel 30-60),
+         nachlaessig ~75, falsches Produkt ~200, nur Laden/Ueberproduktion nie. fabrik2/fabrik3 nutzen Werk und Mischer mit: ~25/~21 Tage. */
       fabrik:46000, fabrik2:26000, fabrik3:23000
     }
   },
@@ -1508,8 +1505,11 @@ const WIRT={
     pause:0.3,          // Saisonpause: 30 % Lohn, keine Arbeit, Rueckkehr ohne neue Einstellung
     kuendigung:{unter:0.8,chanceTag:0.14},   // Lohnstufe < 0,8: kuendigt mit 14 % je Tag (Ruf: ruf.kuendigung)
     tempo:{grund:0.55,jeLohn:0.48},
-    einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800},   // € einmalig
-    lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175}   // € Grundlohn je Tag (x Lohnstufe)
+    einstellung:{reinigung:250, auffueller:450, auffueller2:600, kassierer:600, kassierer2:600, kassierer3:600, security:800, packer:700, packer2:750, packer3:800,
+      werker1:900, werker2:900, werker3:900, mischer:1200},   // € einmalig (Werk West: Werker je Straße, Mischer fuer den Satz aller Straßen)
+    lohn:{reinigung:55, auffueller:110, auffueller2:130, kassierer:145, kassierer2:140, kassierer3:140, security:190, packer:165, packer2:170, packer3:175,
+      werker1:150, werker2:150, werker3:150, mischer:175}   // € Grundlohn je Tag (x Lohnstufe). Werker/Mischer: Fachkraft mit Sprengstoff-
+      // Befaehigungsschein (SprengG §20), ueber dem Packer; laeuft auch, wenn die Straße steht (Produktion: Fixkosten gegen Marge)
   },
   deko:{ preis:{pflanze:70, stehtisch:95, muell:80, teppich:130, lichter:170, ventilator:210, baum:290, neon:480, automat:640, bild_raketen:180, bild_stadt:320, bild_sortiment:420, saeule:900, vitrine:1400, bild_meister:820} },
   wand:{ preis:{creme:0, weiss:50, salbei:140, sand:250, streifen:370, anthrazit:520, raute:670, terrakotta:780, ziegel:840, metro:960, beere:1020, blume:1210, holzvert:1410, mitternacht:1620, petrol:1840, gold:2060, gras:2400, damast:2900, moire:3400, nussbaum:4200, samt:5600, marmorwand:7800} },
@@ -1603,13 +1603,59 @@ const WIRT={
     regalArt:{klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8},  // € je Verkaufsregal
     regalStandard:9,    // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
     hochregal:35,       // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
-    /* Werk West (Etappe B, 15.10.): Betrieb erst, wenn die Straßen produzieren (Produktions-Gameplay, WK.produktion in 05r) -
-       im Schau-Betrieb kein Betrieb, keine Kosten. Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) */
+    /* Werk West (15.10.): Betrieb erst ab der ersten eingeschalteten Straße (S.pd.aktiv, 05s) - vorher keine Kosten.
+       Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) */
     werk:45,            // € je Tag fuer das Werk ab Produktion (05r wkFixkosten)
-    werkStrasse:30      // € je Tag und laufender Fertigungsstraße (Strom, Verschleiss) ab Produktion
+    werkStrasse:30      // € je Tag und eingeschaltete Fertigungsstraße (Strom, Bereitschaft) - auch wenn sie steht
   },
   tag:{
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
+  },
+  /* ---------- Produktion im Werk West (Produktions-Gameplay 15.10., 05s-produktion.js, docs/halle/produktion.md) ----------
+     Konzept docs/halle/produktion-konzept.md (Tom 14.10. freigegeben, OHNE Wartung): Eigenproduktion = Fixkosten gegen Marge.
+     Fixkosten: fix.werk + fix.werkStrasse (je eingeschaltete Straße), Loehne personal.lohn.werker1-3/mischer. */
+  produktion:{
+    /* Rohstoffe: € je kg (Standard), gebinde = kg je Bestelleinheit, lager = Lagerort. Groessenordnung wie im Chemiehandel
+       (Perchlorat/Nitrat 5-8 €/kg, Aluminium-/Magnaliumpulver 10-20 €/kg, Schwarzpulver gewerblich 8-15 €/kg, Pappe/Huelsen 1,5-3 €/kg) */
+    roh:{
+      huelsen:{preis:2.2,gebinde:100,lager:'inert'},
+      oxidator:{preis:5.8,gebinde:25,lager:'oxi'},
+      metall:{preis:13.5,gebinde:20,lager:'metall'},
+      schwarzpulver:{preis:9.8,gebinde:25,lager:'sp'}
+    },
+    premium:1.2,           // Premium-Rohstoffe kosten x1,2 - weniger Ausschuss, bessere Effekte (qualitaet.gewRoh/qRoh): lohnt mit
+                           // neuem Werker (Ausschuss 15 -> 10 %), mit erfahrenem etwa gleich auf - dann zaehlen Ruf (QS) und Grosshandelspreis
+    lieferpauschale:95,    // € je Liefertag an Tor R6 (Gefahrgut-LKW nach ADR), egal wie viel
+    lieferTage:1,          // heute bestellt -> morgen frueh an R6
+    lager:{inert:2000,oxi:600,metall:300,sp:400},   // kg je Lagerort (Inertlager, drei Chemie-Boxen) - Grenze beim Bestellen
+    /* Rezept je Klasse aus der Groesse (Packmass in Litern): Satzgewicht NEM = nemJeL g/L (mind. nemMin g), Huelsen/Pappe huelseJeL g/L,
+       schwarz = Anteil Schwarzpulver am NEM (Treib-/Ausstoss-/Zerlegerladung), Rest Sternsatz (oxi = Anteil Oxidator, Rest Metallpulver).
+       Takt = s je Stueck bei refL Litern, mit der Wurzel der Groesse skaliert, zwischen taktMin und taktMax.
+       Klasse 0 Raketen (rocketset), 1 Kugelbomben (shell), 2 Batterien (battery, fan) - die Reihenfolge der Straßen */
+    klasse:[
+      {nemJeL:24,nemMin:20,huelseJeL:70,schwarz:0.5,oxi:0.6,takt:1.25,refL:8,taktMin:0.8,taktMax:4},
+      {nemJeL:45,nemMin:40,huelseJeL:55,schwarz:0.35,oxi:0.65,takt:3.5,refL:6,taktMin:2,taktMax:9},
+      {nemJeL:16,nemMin:30,huelseJeL:30,schwarz:0.4,oxi:0.62,takt:3.0,refL:20,taktMin:1.4,taktMax:8}
+    ],
+    /* variable Kosten je Stueck (Standard-Rohstoffe) bleiben in diesem Band vom Katalog-Einkaufspreis: liegt das Rezept aus der Groesse
+       ausserhalb, wird es als Ganzes skaliert (Effektaufwand) - Konzept: variable Kosten 45-60 % vom Einkauf */
+    band:[0.45,0.6],
+    tagSek:330,            // Produktionszeit je Spieltag in s = Ladenoeffnung (zeit.echtzeitSek): Werker arbeiten 8-22 Uhr
+    ausgabeSek:6,          // s je Palette ueber Sammelfoerderer und Brandwaende in die Gasse
+    stauPaletten:3,        // so viele fertige Paletten warten hoechstens auf einen Hochregalplatz, dann steht die Straße
+    /* Qualitaet: Erfahrung e = Produktionstage des Werkers / erfahrungTage (max 1), r = Premium-Anteil der Rohstoffe.
+       Ausschuss = ausschussMax - (ausschussMax-ausschussMin) x (gewErf*e + gewRoh*r); Effektqualitaet q = qMin + qErf*e + qRoh*r.
+       q wirkt wie die Ware vom Lieferanten (Preistoleranz +(q-1)*kunden.kauf.jeMenge, Blindgaenger unter 1) und ueber die QS auf den Ruf */
+    qualitaet:{erfahrungTage:20,ausschussMin:0.02,ausschussMax:0.15,gewErf:0.6,gewRoh:0.4,qMin:0.9,qErf:0.14,qRoh:0.1},
+    /* Stoerungen (keine Wartung - Tom 14.10.): im Schnitt jeTag je laufender Straße; der Werker behebt sie selbst nach selbstSek,
+       der Spieler sofort (an der Station oder im Leitstand "Zelle freigeben") */
+    stoerung:{jeTag:0.7,selbstSek:110},
+    kugelTrocknungTage:1,  // Kugelbomben trocknen in der Trockenkammer: fertig am naechsten Spieltag
+    /* Werksverkauf an den Grosshandel (je Straße einschaltbar): am Abend holt eine Spedition alles aus dem Hochregal, was von der
+       Eigenproduktion ueber reserveKartons je Sorte liegt. Preis = faktor x aktueller Einkaufspreis x Qualitaet (qMin..qMax geklemmt).
+       Warum: der eigene Laden verkauft in Kapitel 8 nur ~35 Stueck je Klasse am Tag (gemessen in der Vorfuehrung) - das traegt
+       die Fixkosten einer Straße nicht. Ein Werk lohnt sich erst mit Absatz an Wiederverkaeufer (Auslastung, Break-even). */
+    grosshandel:{faktor:0.85,reserveKartons:6,qMin:0.9,qMax:1.12}
   },
   /* ---------- Ruf (0..100) ---------- */
   /* Jede Aenderung geht ueber rep(d) und wird auf 0..100 geklemmt. Ruf wirkt auf: Kunden je Tag
@@ -1627,7 +1673,8 @@ const WIRT={
     auftragErfuellt:2.5, auftragVerfehlt:-4,   // Grossauftraege (Telefon)
     pruefungGut:3, pruefungSchlecht:-5, pruefungSauberAb:70,   // Ereignis "Gewerbeaufsicht": Sauberkeit >= 70
     kuendigung:-1,      // Mitarbeiter kuendigt wegen Mindestlohn
-    kontoMinus:-3       // je Tagesabschluss mit Konto < 0
+    kontoMinus:-3,      // je Tagesabschluss mit Konto < 0
+    qsJe:6, qsMax:1.5   // QS-Stichprobe der Eigenproduktion (je Straße und Tag): Ruf (q-1) x 6, hoechstens +-1,5
   },
   /* ---------- Erfahrung ---------- */
   /* Level-Kurve: XP bis zum naechsten Level = round(a * Level^exp). Level schaltet Lizenzen,
@@ -1811,9 +1858,21 @@ const WIRT_KETTEN=[
    folgen:[
      {text:'Einmalig {ausbau.preis.fabrik|€} (Werk, Straße 1 Raketen, Hochregal-Gasse 2 mit RBG), {ausbau.preis.fabrik2|€} (Straße 2 Kugelbomben, Gasse 3) und {ausbau.preis.fabrik3|€} (Straße 3 Batterien).',ort:'02-data.js:UPGRADES',werte:['ausbau.preis.fabrik','ausbau.preis.fabrik2','ausbau.preis.fabrik3']},
      {text:'Jede neue Gasse kostet sofort {fix.hochregal|€} am Tag Betrieb (Fixkosten) und bringt 180 Palettenplaetze.',ort:'16-day.js:fixedCosts',werte:['fix.hochregal']},
-     {text:'Ab Produktion: Werk {fix.werk|€} und je laufender Straße {fix.werkStrasse|€} am Tag; im Schau-Betrieb (heute) 0.',ort:'05r-werk.js:wkFixkosten',werte:['fix.werk','fix.werkStrasse']}],
-   warum:'Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md).',
-   luecken:['Produktion (Rohstoffe, Rezepte, Takt, Qualität) fehlt noch - die Straßen laufen als Schau-Betrieb ohne Ertrag; Amortisation geschaetzt, nicht gemessen.']},
+     {text:'Ab der ersten eingeschalteten Straße: Werk {fix.werk|€} am Tag, je eingeschaltete Straße {fix.werkStrasse|€} - auch wenn sie gerade steht.',ort:'05r-werk.js:wkFixkosten',werte:['fix.werk','fix.werkStrasse']},
+     {text:'Personal: Mischer {personal.lohn.mischer|€} und je Straße ein Werker {personal.lohn.werker1|€} am Tag (Einstellung {personal.einstellung.mischer|€} / {personal.einstellung.werker1|€}); ohne Mischer steht das ganze Werk, ohne Werker seine Straße.',ort:'05s-produktion.js:pdGrund',werte:['personal.lohn','personal.einstellung']}],
+   warum:'Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md). Rechnung: tools/produktion/rechner.js, docs/halle/produktion.md.',
+   luecken:['Der Spielverlauf bis Kapitel 8 ist nicht mit dem Balancing-Bot gemessen; Amortisation aus dem Rechner (Katalog-EK, Markt 1,0) und einem Lauf in der Vorfuehrung.']},
+  {id:'produktion',entscheidung:'Produzieren: Rohstoffe, Produkt, Menge, Qualitaet, Grosshandel (Werk West)',
+   folgen:[
+     {text:'Rohstoffe je kg: Huelsen/Pappe {produktion.roh.huelsen.preis|€}, Oxidator {produktion.roh.oxidator.preis|€}, Metallpulver {produktion.roh.metall.preis|€}, Schwarzpulver {produktion.roh.schwarzpulver.preis|€}; Premium x{produktion.premium}; je Liefertag {produktion.lieferpauschale|€} Gefahrgut-LKW, Lieferung am naechsten Tag an Tor 6. Bezahlt wird bei der Bestellung (bis in den Dispo).',ort:'05s-produktion.js:pdBestellen',werte:['produktion.roh','produktion.premium','produktion.lieferpauschale']},
+     {text:'Lager begrenzt (Inertlager {produktion.lager.inert} kg, Chemie-Boxen {produktion.lager.oxi} / {produktion.lager.metall} / {produktion.lager.sp} kg): wer zu wenig bestellt, steht - Rohstoffe aus heisst Straße steht, Werker und Fixkosten laufen weiter.',ort:'05s-produktion.js:pdStueck',werte:['produktion.lager']},
+     {text:'Rezept aus Klasse und Groesse (Satzgewicht NEM, Huelsen); variable Kosten im Band {produktion.band.0|%}-{produktion.band.1|%} vom Einkauf - teure Ware mit kleinem Packmass spart am meisten je Stunde.',ort:'05s-produktion.js:pdRezept',werte:['produktion.klasse','produktion.band']},
+     {text:'Qualitaet: Ausschuss {produktion.qualitaet.ausschussMax|%} (neuer Werker, Standard) bis {produktion.qualitaet.ausschussMin|%} (nach {produktion.qualitaet.erfahrungTage} Produktionstagen, Premium); Effektqualitaet wirkt wie Lieferantenware auf Kaufbereitschaft und Blindgaenger und ueber die taegliche QS-Stichprobe auf den Ruf ((q-1) x {ruf.qsJe}).',ort:'05s-produktion.js:pdQs',werte:['produktion.qualitaet','ruf.qsJe','ruf.qsMax']},
+     {text:'Stoerungen (im Schnitt {produktion.stoerung.jeTag} je Tag und Straße): sofort freigeben (Station/Leitstand) oder der Werker braucht {produktion.stoerung.selbstSek} s - verlorene Zeit traegt dieselben Fixkosten.',ort:'05s-produktion.js:pdBeheben',werte:['produktion.stoerung']},
+     {text:'Werksverkauf: die Spedition holt abends alles ueber {produktion.grosshandel.reserveKartons} Kartons je Sorte fuer {produktion.grosshandel.faktor|%} vom Einkaufspreis x Qualitaet. Ohne Grosshandel bleibt Ueberproduktion als gebundenes Kapital im Hochregal, bis es voll ist (dann steht die Straße).',ort:'05s-produktion.js:pdGrosshandel',werte:['produktion.grosshandel','produktion.stauPaletten']}],
+   warum:'Deckungsbeitrag und Auslastung: die Straße kostet jeden Tag dasselbe (Werker, Strom, Werk, Mischer), jedes gute Stueck bringt (Einkauf bzw. Grosshandelspreis - Rohstoffe). Nur fuer den eigenen Laden (gemessen ~35 Stueck je Klasse am Tag) traegt sie ihre Fixkosten nicht - erst Menge (Grosshandel), die richtige Produktwahl und wenig Stillstand bringen die Amortisation in 30-60 Tage.',
+   quelle:'Kalkulation nach Deckungsbeitragsrechnung (variable vs. fixe Kosten, Break-even = Fixkosten / Stueckdeckungsbeitrag); Rohstoffpreise in der Groessenordnung des Chemiehandels',
+   luecken:['Rohstoffpreise folgen weder Markt noch Inflation (der Einkaufspreis der Ware schon) - mit der Zeit wird Produktion guenstiger im Verhaeltnis.','Der Grosshandel nimmt unbegrenzt ab (keine Nachfrage-Grenze) - die Kapazitaet der Straße ist die Grenze.','Eigenproduktion ist im Hochregal markiert; im Laden/Regal nicht mehr (Qualitaet geht mit).']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},
@@ -2132,9 +2191,9 @@ const UPGRADES=[
   {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>WIRT.ausbau.preis.rampe5,done:()=>S.up.rampe5},
   /* Kapitel 7.3 (Halle Etappe A, 14.10.): die volle Halle wird zum Hochregallager (05q, 11f) */
   {id:'lagerlogistik',kat:'flaeche',lvl:31,req:'lager_west3',kap:7,name:'Lagerlogistik – Hochregal und Kartonlager',desc:`Die Logistikhalle wird zum Hochregallager: Gasse 1 mit 180 Palettenplätzen und Regalbediengerät, Ein- und Auslagerung über Förderer, Anbruch zum Kommissionieren, Stellplätze am Wareneingang und zwei fahrerlose Transportfahrzeuge. Lieferungen an Tor 2 bis 4 gehen ab jetzt automatisch ins Hochregal, Nachschub fährt nach ③ und ①. Dazu das Kartonlager ③ mit gelber Wand und Schnelllauftor N1 – ①, ② und ③ sind ein Raum – und eine neue Schleuse. Die Lagerregale in der Halle ziehen nach ③ um. Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag.`,cost:()=>WIRT.ausbau.preis.lagerlogistik,done:()=>S.up.lagerlogistik},
-  /* Kapitel 8 / 8.2 / 8.3 (Halle Etappe B, 15.10.): Werk West (05r). Die Straßen laufen als Schau-Betrieb - die Produktion
-     (Rohstoffe, Rezepte, Kosten, Qualität) kommt mit dem Produktions-Gameplay (docs/halle/produktion-konzept.md) */
-  {id:'fabrik',kat:'flaeche',lvl:33,req:'lagerlogistik',kap:8,name:'Pyro-Werk – Werkhalle und Raketenstraße',desc:`Das eigene Werk westlich der Halle: 30 mal 27 Meter, Leichtdach, getrennte Betonzellen für alles mit Satz. Dazu Leitstand auf der Galerie, QS-Labor, Sternhaus, Trockenkammern, drei Chemie-Boxen, Annahme mit Tor 6, Mischhaus hinter dem Erdwall und ein eigener Hof. Straße 1 baut Raketen in sieben Stationen, der Förderer bringt die Paletten durch zwei Brandwände in Gasse 2 des Hochregals – die bekommt dafür ihr Regalbediengerät (Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag). Die Straße läuft vorerst im Schau-Betrieb; die eigene Produktion folgt.`,cost:()=>WIRT.ausbau.preis.fabrik,done:()=>S.up.fabrik},
+  /* Kapitel 8 / 8.2 / 8.3 (Halle Etappe B, 15.10.): Werk West (05r), Produktion (05s, docs/halle/produktion.md):
+     Rohstoffe, Rezepte, Takt, Qualitaet, Stoerungen, Grosshandel - Tab "Produktion" im Laptop, Lager-PC und Leitstand */
+  {id:'fabrik',kat:'flaeche',lvl:33,req:'lagerlogistik',kap:8,name:'Pyro-Werk – Werkhalle und Raketenstraße',desc:`Das eigene Werk westlich der Halle: 30 mal 27 Meter, Leichtdach, getrennte Betonzellen für alles mit Satz. Dazu Leitstand auf der Galerie, QS-Labor, Sternhaus, Trockenkammern, drei Chemie-Boxen, Annahme mit Tor 6, Mischhaus hinter dem Erdwall und ein eigener Hof. Straße 1 baut Raketen in sieben Stationen, der Förderer bringt die Paletten durch zwei Brandwände in Gasse 2 des Hochregals – die bekommt dafür ihr Regalbediengerät (Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag). Produziert wird nach deinem Plan (Laptop, Lager-PC oder Leitstand: Produktion) – dafür brauchst du einen Werker, einen Mischer und Rohstoffe, die der Gefahrgut-LKW an Tor 6 bringt. Ab der ersten eingeschalteten Straße kostet das Werk ${WF.euro(WIRT.fix.werk,0)} am Tag, jede eingeschaltete Straße ${WF.euro(WIRT.fix.werkStrasse,0)}.`,cost:()=>WIRT.ausbau.preis.fabrik,done:()=>S.up.fabrik},
   {id:'fabrik2',kat:'flaeche',lvl:35,req:'fabrik',name:'Pyro-Werk 8.2 – Kugelbombenstraße',desc:`Straße 2: Halbschalen, Sterne einlegen, Zerlegerladung, Bandage, Trockentunnel, Ausstoßladung – sieben Stationen, drei davon in Betonzellen. Dazu Gasse 3 des Hochregals mit eigenem Regalbediengerät (Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag).`,cost:()=>WIRT.ausbau.preis.fabrik2,done:()=>S.up.fabrik2},
   {id:'fabrik3',kat:'flaeche',lvl:37,req:'fabrik2',name:'Pyro-Werk 8.3 – Batteriestraße',desc:'Straße 3: Rohre ins Raster, Bodenplatte mit eingespritzter Zündschnur, Ausstoßladung, Effekte, Verdämmen, Banderole, Prüfen und Palettieren – vollautomatisch. Damit ist das Werk komplett.',cost:()=>WIRT.ausbau.preis.fabrik3,done:()=>S.up.fabrik3},
   {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:`Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S ${WF.euro(WIRT.versand.porto[1],2)}, M ${WF.euro(WIRT.versand.porto[3],2)}, L ${WF.euro(WIRT.versand.porto[6],2)}). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.`,cost:()=>WIRT.ausbau.preis.packstation,done:()=>S.up.packstation},
@@ -2192,7 +2251,13 @@ const STAFF=[
   {id:'security',lvl:13,name:'Sicherheitsdienst',desc:'Hält Diebe im Laden auf, bevor sie rauskommen.',hire:WIRT.personal.einstellung.security,wage:WIRT.personal.lohn.security},
   {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:WIRT.personal.einstellung.packer,wage:WIRT.personal.lohn.packer},
   {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:WIRT.personal.einstellung.packer2,wage:WIRT.personal.lohn.packer2},
-  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:WIRT.personal.einstellung.packer3,wage:WIRT.personal.lohn.packer3}
+  {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:WIRT.personal.einstellung.packer3,wage:WIRT.personal.lohn.packer3},
+  /* Werk West (Produktion 15.10., 05s): werk = Nummer der Straße (-1 Mischer). Sie arbeiten im Werk an ihrer Straße und laufen
+     nicht durchs Wegenetz (hireStaff legt keine Figur an); Lohn laeuft auch, wenn die Straße steht. Erfahrung = Produktionstage. */
+  {id:'mischer',kurz:'Mischer',lvl:33,req:'fabrik',werk:-1,name:'Mischer im Mischhaus',desc:'Mischt im Mischhaus hinter dem Erdwall den Satz für alle Straßen aus Oxidator, Metallpulver und Schwarzpulver. Ohne Mischer steht das ganze Werk.',hire:WIRT.personal.einstellung.mischer,wage:WIRT.personal.lohn.mischer},
+  {id:'werker1',kurz:'Werker 1',lvl:33,req:'fabrik',werk:0,name:'Werker Raketenstraße',desc:'Führt Straße 1: rüstet um, füllt die Magazine, behebt Störungen. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker1,wage:WIRT.personal.lohn.werker1},
+  {id:'werker2',kurz:'Werker 2',lvl:35,req:'fabrik2',werk:1,name:'Werker Kugelbombenstraße',desc:'Führt Straße 2 mit Trockentunnel und Trockenkammern. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker2,wage:WIRT.personal.lohn.werker2},
+  {id:'werker3',kurz:'Werker 3',lvl:37,req:'fabrik3',werk:2,name:'Werker Batteriestraße',desc:'Führt Straße 3, die schnellste im Werk. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker3,wage:WIRT.personal.lohn.werker3}
 ];
 /* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
    Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
@@ -14238,6 +14303,11 @@ bk.schild=function(parent,o){
   me.position.set(o.x||0,o.y||0,o.z||0); me.rotation.y=o.ry||0; me.userData.bauteil='schild';
   (parent||scene).add(me); return me;
 };
+/* Schild wieder abbauen (zeitweilige Schilder, z. B. Ausstellung 2.0): Mesh, Geometrie, Material und Textur frei, auch aus dem Cache */
+bk.schildWeg=function(me){ const m=me.material, t=m&&m.map;
+  for(const [k,v] of [..._bkSchildM]) if(v===m) _bkSchildM.delete(k);
+  for(const [k,v] of [..._bkSchildT]) if(v===t) _bkSchildT.delete(k);
+  if(me.parent) me.parent.remove(me); me.geometry.dispose(); if(m) m.dispose(); if(t) t.dispose(); };
 bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_bkSchildM.size}; };
 
 /* =========================================================
@@ -15189,6 +15259,47 @@ bk.fts=function(o){
   return {g,deck,meshes,set(h){ deck.position.y=0.27+0.06*Math.max(0,Math.min(1,h)); }};
 };
 
+/* ---------- Handhubwagen (15.10.2026, DDL-Fahrer; Doku baukasten.md) ----------
+   Gabeln zeigen nach -z (Spitze bei z -1,15), Deichsel nach +z, Ursprung = Gabelfuss auf dem Boden. Die Masse passen in die
+   Taschen der Europalette (bk.PALETTE euro: Taschen bei +-0,186, breit 0,2275, Hoehe 0,1): Gabelmitte +-0,186, Breite 0,15, Hoehe 0,075,
+   Hub 0,08. Rueckgabe {g, lift (Gabeln), deichsel (Gruppe), hub(0..1), winkel(phi), griff(phi)->{y,z}}: der Handgriff liegt in Ruhe bei
+   (griffY, griffZ) ueber dem Gabelfuss; phi dreht die Deichsel um ihr Lager (negativ = Griff hoch, Pumpen). */
+bk.HUBWAGEN={gabelX:0.186,gabelB:0.15,gabelL:1.15,gabelH:0.075,hub:0.08,lagerY:0.26,lagerZ:0.12,griffY:1.16,griffZ:0.62};
+bk.hubwagen=function(o){
+  o=o||{}; const F=MAT.farbe, K=bk.HUBWAGEN, seg=[6,10,14][bk.lod()];
+  const g=new THREE.Group(); g.position.set(o.x||0,o.y||0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='hubwagen'; (o.parent||scene).add(g);
+  const form={fase:0.01,faseMin:0.04,seg:1,lod0Kasten:true}, meshes=[];
+  /* Gestell am Boden: Gehaeuse (Pumpe) rot, Lenkraeder unter dem Fuss, Lastrollen an den Gabelspitzen */
+  const Sg=bk.sammler({form,bauteil:'hubwagen'});
+  Sg.box(0.3,0.2,0.2,0,0.2,K.lagerZ-0.02,F('signalrot'),'lackMetall');
+  for(const sx of [-1,1]){
+    Sg.zyl(0.09,0.09,0.05,seg,sx*0.07,0.09,0.12,F('gummischwarz'),'matt',0,0,Math.PI/2);
+    Sg.zyl(0.04,0.04,0.075,seg,sx*K.gabelX,0.04,-K.gabelL+0.06,F('gummischwarz'),'matt',0,0,Math.PI/2); }
+  Sg.box(0.09,0.05,0.14,0,0.12,0.12,F('graphit'),'lackMetall');
+  meshes.push(...Sg.fertig(g,{bauteil:'hubwagen'}));
+  /* Gabeln samt Fuss heben sich */
+  const lift=new THREE.Group(); g.add(lift);
+  const Sl=bk.sammler({form,bauteil:'hubwagen'}), gl=K.gabelL-0.1;
+  for(const sx of [-1,1]){
+    Sl.box(K.gabelB,K.gabelH,gl,sx*K.gabelX,0.012+K.gabelH/2,-gl/2-0.02,F('anthrazit'),'lackMetall');
+    Sl.box(K.gabelB-0.04,K.gabelH-0.03,0.1,sx*K.gabelX,0.012+K.gabelH/2-0.012,-gl-0.07,F('anthrazit'),'lackMetall'); }
+  Sl.box(2*K.gabelX+K.gabelB,0.08,0.1,0,0.012+0.04,0.04,F('anthrazit'),'lackMetall');
+  meshes.push(...Sl.fertig(lift,{bauteil:'hubwagen'}));
+  /* Deichsel: Rohr verzinkt, Handgriff mit Gummigriffen, roter Hebel (Senken) */
+  const deichsel=new THREE.Group(); deichsel.position.set(0,K.lagerY,K.lagerZ); g.add(deichsel);
+  const dy=K.griffY-K.lagerY, dz=K.griffZ-K.lagerZ, dl=Math.hypot(dy,dz), th=Math.atan2(dz,dy);
+  const Sd=bk.sammler({form,bauteil:'hubwagen'});
+  Sd.zyl(0.016,0.016,dl,seg,0,dy/2,dz/2,F('silbergrau'),'stahl',th,0,0);
+  Sd.box(0.4,0.035,0.05,0,dy,dz,F('anthrazit'),'lackMetall');
+  for(const sx of [-1,1]){ Sd.zyl(0.022,0.022,0.12,seg,sx*0.17,dy,dz,F('gummischwarz'),'matt',0,0,Math.PI/2); Sd.box(0.03,0.07,0.04,sx*0.2,dy-0.03,dz-0.01,F('anthrazit'),'lackMetall'); }
+  Sd.box(0.03,0.035,0.1,0.07,dy-0.05,dz-0.03,F('signalrot'),'lackMetall');
+  meshes.push(...Sd.fertig(deichsel,{bauteil:'hubwagen'}));
+  return {g,lift,deichsel,meshes,
+    hub(h){ lift.position.y=K.hub*Math.max(0,Math.min(1,h)); },
+    winkel(phi){ deichsel.rotation.x=phi; },
+    griff(phi){ const c=Math.cos(phi), s=Math.sin(phi); return {y:K.lagerY+dy*c-dz*s, z:K.lagerZ+dy*s+dz*c}; }};
+};
+
 /* =========================================================
    Werk West (Halle Etappe B, 15.10.2026, docs/halle/plan-1410.md, Referenzfoto docs/uebergabe/produktion-referenz.webp):
    Betonzelle, Tuer, Treppe, Portalgreifer (Alu-Profil), Rohr-Raster, Stationsmaschinen, Erdwall. Doku: baukasten.md §2c.
@@ -15508,6 +15619,84 @@ bk.zelle=function(o){
   /* Gummiboden innen */
   S.box(x1-x0-2*d,0.01,z1-z0-2*d,(x0+x1)/2,0.008,(z0+z1)/2,F('gummischwarz'),'matt');
   return out;
+};
+
+/* =========================================================
+   Verkaufstisch + Schild-Atlas (Verpackungs-Ausstellung 2.0, 15.10.2026)
+
+   Tom 15.10.: "Verkaufstische hin und jedes Produkt EINMAL drauf, mit dem Namen - dann sage ich dir,
+   welche Verpackung nicht passt." Rund 250 Tische mit je einem Schild waeren ohne Baukasten 250 Tische
+   (je mehrere Meshes, Texturen) und 250 Schilder. Darum:
+   - bk.verkaufstischTeile(K,box)  die Teile des Ladenbau-Tisches (SHELFKIND.tisch / tischgross), EINE
+                                   Quelle: bauMoebel (06) und bk.verkaufstisch benutzen sie, Optik wie im Laden
+   - bk.verkaufstisch({tische:[{x,z,ry,kind}],parent}) -> {mesh,anzahl,dispose()}  viele Tische = EIN Mesh
+                                   (Vertexfarben nach Rolle wie regalFarben, Material gestellMat)
+   - bk.schildAtlas({schilde:[{m,b,h}],zelle:{w,h},malen(g,i,w,h),status:{...}}) -> {platte,schrift,set(i,s),...}
+                                   viele Schilder = ZWEI Meshes: Platte (Vertexfarbe je Status) und Schrift
+                                   (ein Atlas, Zelle je Schild; Statusstreifen tauscht nur die UVs)
+   Doku: docs/fundament/baukasten.md (Ausstellung 2.0)
+   ========================================================= */
+bk.verkaufstischTeile=function(K,box){
+  const W=K.w, D=K.d, y=K.lv[K.lv.length-1], iw=W-0.1, st=[];
+  st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
+  st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
+  for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
+  for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
+  for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
+  st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
+  for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
+  st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+  return st;
+};
+bk.verkaufstisch=function(o){
+  const GB={}, box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d)), teile=[];
+  for(const T of o.tische){ const K=SHELFKIND[T.kind||'tisch'], RF=regalFarben(K), M=tm(T.x,0,T.z,0,T.ry||0,0);
+    for(const q of bk.verkaufstischTeile(K,box)) teile.push({geo:q.geo,m:new THREE.Matrix4().multiplyMatrices(M,q.m),color:RF[q.rolle]}); }
+  const geo=merge(teile); for(const k in GB) GB[k].dispose();
+  const mesh=new THREE.Mesh(geo,gestellMat()); mesh.userData.bauteil='verkaufstisch';
+  (o.parent||scene).add(mesh);
+  return {mesh,anzahl:o.tische.length,dispose(){ if(mesh.parent) mesh.parent.remove(mesh); geo.dispose(); }};
+};
+/* o.schilde[i]={m:Matrix4 (Ebene b x h, Mitte im Ursprung, Blick +z -> Welt), b,h}; o.zelle={w,h} (Pixel der Vorlage),
+   o.spalten, o.malen(g,i,w,h) malt Schild i auf TRANSPARENT (Zelle w x h), o.status={w,h (Pixel), hm (Hoehe in m),
+   ton:[Palettenton je Status], malen:[fn(g,w,h)]}. set(i,s): Plattenfarbe und Statusstreifen. */
+bk.schildAtlas=function(o){
+  const n=o.schilde.length, cw=o.zelle.w, ch=o.zelle.h, ST=o.status, cols=o.spalten||12, rows=Math.max(1,Math.ceil(n/cols));
+  const sk=Math.max(o.skalaMin||0,Math.min(1,MAT.stufe().tx||1))*(o.skala||1);   /* Schrift bleibt lesbar: auch Ultra Low mindestens skalaMin */
+  const Wp=Math.max(64,Math.ceil(Math.max(cols*cw,ST.malen.length*ST.w)*sk)), Hp=Math.ceil((rows*ch+ST.h)*sk);
+  const c=document.createElement('canvas'); c.width=Wp; c.height=Hp; const g=c.getContext('2d'); g.scale(sk,sk);
+  const zelle=(x,y,w,h,f,a)=>{ g.save(); g.translate(x,y); g.beginPath(); g.rect(0,0,w,h); g.clip(); if(a===undefined) f(g,w,h); else f(g,a,w,h); g.restore(); };
+  for(let i=0;i<n;i++) zelle((i%cols)*cw,Math.floor(i/cols)*ch,cw,ch,o.malen,i);
+  ST.malen.forEach((f,k)=>zelle(k*ST.w,rows*ch,ST.w,ST.h,f));
+  const T=new THREE.CanvasTexture(c); T.anisotropy=GFX_START.ani; T.encoding=THREE.sRGBEncoding;
+  const uvR=(x,y,w,h)=>[(x*sk+0.5)/Wp,1-((y+h)*sk-0.5)/Hp,((x+w)*sk-0.5)/Wp,1-(y*sk+0.5)/Hp];
+  /* Platte (Rahmen r rundum) und Schrift (Schild + Statusstreifen) als je EIN Mesh */
+  const r=o.rand===undefined?0.012:o.rand, PP=new Float32Array(n*12), PN=new Float32Array(n*12), PC=new Float32Array(n*12), PI=new Uint32Array(n*6);
+  const SP=new Float32Array(n*24), SN=new Float32Array(n*24), SU=new Float32Array(n*16), SI=new Uint32Array(n*12);
+  const v=new THREE.Vector3(), nm=new THREE.Vector3(), nmat=new THREE.Matrix3();
+  const ecke=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  for(let i=0;i<n;i++){ const S=o.schilde[i], b=S.b, h=S.h; nmat.getNormalMatrix(S.m); nm.set(0,0,1).applyMatrix3(nmat).normalize();
+    const quad=(P,N,off,q,hx,y0,y1,z)=>{ for(let k=0;k<4;k++){ v.set(ecke[k][0]*hx,ecke[k][1]<0?y0:y1,z).applyMatrix4(S.m); P.set([v.x,v.y,v.z],(off+k)*3); N.set([nm.x,nm.y,nm.z],(off+k)*3); } };
+    quad(PP,PN,i*4,0,b/2+r,-h/2-r,h/2+r,0);
+    quad(SP,SN,i*8,0,b/2,-h/2,h/2,0.003);
+    quad(SP,SN,i*8+4,0,b/2,-h/2,-h/2+ST.hm,0.0045);
+    const c0=uvR((i%cols)*cw,Math.floor(i/cols)*ch,cw,ch); SU.set([c0[0],c0[1],c0[2],c0[1],c0[2],c0[3],c0[0],c0[3]],i*16);
+    for(const [I,off] of [[PI,i*4],[SI,i*8],[SI,i*8+4]]){ const base=I===PI?i*6:i*12+(off===i*8?0:6); I.set([off,off+1,off+2,off,off+2,off+3],base); } }
+  const pg=new THREE.BufferGeometry(); pg.setAttribute('position',new THREE.BufferAttribute(PP,3)); pg.setAttribute('normal',new THREE.BufferAttribute(PN,3)); pg.setAttribute('color',new THREE.BufferAttribute(PC,3)); pg.setIndex(new THREE.BufferAttribute(PI,1));
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(SP,3)); sg.setAttribute('normal',new THREE.BufferAttribute(SN,3)); sg.setAttribute('uv',new THREE.BufferAttribute(SU,2)); sg.setIndex(new THREE.BufferAttribute(SI,1));
+  /* ungelit und ohne Tonwert: Schildfarben (Status!) und Schrift sehen bei jedem Licht gleich aus */
+  const platte=new THREE.Mesh(pg,MAT.vc('leucht')), mat=MAT.neu('weissMatt',{map:T,emissiveMap:T,emissive:MAT.farbe('weiss'),alphaTest:0.4,toneMapped:false}), schrift=new THREE.Mesh(sg,mat);
+  mat.color.setRGB(0,0,0);
+  platte.userData.bauteil=schrift.userData.bauteil='schildAtlas';
+  const farben=ST.ton.map(t=>LIN(MAT.farbe(t)));
+  const A={n,platte,schrift,tex:T,skala:sk,pixel:Wp*Hp,
+    set(i,s){ const F=farben[s]; for(let k=0;k<4;k++) PC.set([F.r,F.g,F.b],(i*4+k)*3); pg.attributes.color.needsUpdate=true;
+      const u=uvR(s*ST.w,rows*ch,ST.w,ST.h); SU.set([u[0],u[1],u[2],u[1],u[2],u[3],u[0],u[3]],i*16+8); sg.attributes.uv.needsUpdate=true; },
+    dispose(){ for(const m of [platte,schrift]) if(m.parent) m.parent.remove(m); pg.dispose(); sg.dispose(); T.dispose(); mat.dispose(); c.width=c.height=0; }};
+  for(let i=0;i<n;i++) A.set(i,(o.start&&o.start[i])||0);
+  pg.computeBoundingSphere(); sg.computeBoundingSphere();
+  (o.parent||scene).add(platte); (o.parent||scene).add(schrift);
+  return A;
 };
 
 /* =========================================================
@@ -23798,8 +23987,8 @@ function llTuerTakt(dt){ const T=LL_T&&LL_T.tuer; if(!T) return; const ziel=Math
      Paletten laufen durch beide Brandwaende ins Hochregal - EINE Update-Funktion (wkTick), nur wenn sichtbar.
    - Aussen: Hof West mit Werkszaun und Einfahrt, Mischhaus hinter dem Erdwall, Gefahrstoffweg.
    Gebaut wird erst beim Kauf (vorher liegt nichts davon im Speicher); Straße 2/3 erst mit fabrik2/fabrik3.
-   Schnittstelle Produktion (spaeter, produktion-konzept.md): WK.zustand[i] {laeuft, takt, ausgabe}, wkStrasseSetzen(i,laeuft),
-   wkAusgabe(i) (Palette erreicht die Gasse), WK.produktion (Fixkosten erst ab Produktion, wkFixkosten).
+   Produktion (05s-produktion.js, 15.10.): WK.zustand[i] {laeuft = produziert gerade, takt = Takt der Animation, ausgabe}, pdTick aus
+   wkTick, WK.produktion (= S.pd.aktiv: Werk-Fixkosten erst ab der ersten eingeschalteten Straße, wkFixkosten), Leitstand-Bildschirme.
    ========================================================= */
 const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66}, H:6.0, raum:3.2,
   band:{x0:-91.0,p:18/7,y:0.92,b:0.5}, tief:1.65, zelleH:3.1, pal:{x:-71.65},
@@ -23807,7 +23996,7 @@ const WK={id:'fabrik', werk:{x0:-100,x1:-70,z0:-34,z1:-7}, verb:{x0:-70,x1:-66},
   treppe:{x0:-78,x1:-76,mitte:-77,fuss:-7.9,kopf:-10.15,z0:-11,y:1.6},
   misch:{x0:-116.5,x1:-111.5,z0:-25.5,z1:-20.5,h:3.2}, erdwall:{x0:-121,x1:-107,z0:-30,z1:-16,luecke:[-115,-112]},
   hof:{x0:-104,x1:-70,z0:-62,z1:-34}, zaunX:-124, einfahrt:[-54,-47], r6:{x:-84,b:3.4,h:3.4}, westTuer:-30.9,
-  produktion:false,                 /* Produktions-Gameplay noch nicht freigegeben: Straßen laufen als Schau-Betrieb */
+  produktion:false,                 /* true, sobald eine Straße eingeschaltet wurde (05s, S.pd.aktiv) - erst dann Werk-Fixkosten */
   zustand:[0,1,2].map(()=>({laeuft:false,takt:4.0,ausgabe:0})), zahl:{paletten:[0,0,0],takte:0}};
 /* Straßen (Skizze STRASSEN): Kuerzel, Arbeitsschritt, Zelle (mannlos), Maschine (bk.maschine-Art, 'portal' = Portalgreifer) */
 const WK_STR=[
@@ -23824,9 +24013,10 @@ function wkStrasseOffen(i){ return wkOffen()&&zoneOffen(WK_STR[i].up); }
 function wkGasseZ(k){ return LL.hr.z0(k)+2.0; }
 /* Welt reicht mit dem Werk bis x −124 (Spieler); Wegenetz bleibt, wo es ist - im Werk laeuft (noch) kein Personal */
 function wkWeltX0(){ return wkOffen()?WK.zaunX+0.4:NAV.x0+0.4; }
-/* Fixkosten Werk: erst, wenn produziert wird (WIRT.fix.werk/werkStrasse) - im Schau-Betrieb 0 */
-function wkFixkosten(){ if(!WK.produktion||!wkOffen()) return 0; let f=WIRT.fix.werk;
-  for(let i=0;i<3;i++) if(wkStrasseOffen(i)&&WK.zustand[i].laeuft) f+=WIRT.fix.werkStrasse; return f; }
+/* Fixkosten Werk: erst ab Produktion (WIRT.fix.werk), dazu je eingeschaltete Straße WIRT.fix.werkStrasse - auch wenn sie gerade
+   steht (Stoerung, Rohstoffe aus, Laden zu): eingeschaltet heisst Strom, Druckluft, Bereitschaft (05s pdStrasseAn) */
+function wkFixkosten(){ if(typeof S!=='undefined'&&S&&S.pd) WK.produktion=!!S.pd.aktiv; if(!WK.produktion||!wkOffen()) return 0; let f=WIRT.fix.werk;
+  for(let i=0;i<3;i++) if(typeof pdStrasseAn==='function'&&pdStrasseAn(i)) f+=WIRT.fix.werkStrasse; return f; }
 /* Bodenhoehe: Treppe (zwei Laeufe mit Podest bei 1,6 m) und Leitstand-Galerie +3,2 m. Unter dem Leitstand liegt die Technik -
    abgeschlossen, also gibt es im Grundriss keine Stelle mit zwei Ebenen. */
 function wkBoden(x,z){
@@ -23837,9 +24027,9 @@ function wkBoden(x,z){
   if(z>=T.fuss) return x>T.mitte?0:WK.raum;
   const t=(T.fuss-z)/L; return x>T.mitte?t*T.y:WK.raum-t*(WK.raum-T.y);
 }
-/* Schau-Betrieb einer Straße an/aus (Schnittstelle fuer das Produktions-Gameplay: Straße stoppen, Zelle freigeben) */
+/* Animation einer Straße an/aus (05s setzt laeuft je Bild aus dem Produktionszustand) */
 function wkStrasseSetzen(i,laeuft){ const z=WK.zustand[i]; if(!z) return; z.laeuft=!!laeuft&&wkStrasseOffen(i); wkAmpeln(); }
-/* Palette hat die Gasse erreicht: spaeter Fertigware ins Hochregal (S.hr), heute nur gezaehlt */
+/* Palette der Animation hat die Gasse erreicht (gezaehlt; die echte Fertigware lagert 05s pdAusgabeTick ins Hochregal ein) */
 function wkAusgabe(i){ WK.zahl.paletten[i]++; WK.zustand[i].ausgabe++; }
 
 /* ---------- Alte Teile, die mit dem Werk weichen (Westwand der Halle Stufe 3, Westzaun und Zufahrt des LKW-Hofs) ---------- */
@@ -23867,7 +24057,7 @@ function wkAnwenden(){
   if(an) for(let i=0;i<3;i++) if(wkStrasseOffen(i)&&!WK_T.str[i]) wkStrasseBauen(i);
   if(WK_T) WK_T.str.forEach((st,i)=>{ if(!st) return; const ja=wkStrasseOffen(i); st.g.visible=ja; st.d.visible=ja; st.v.visible=ja;
     for(const c of st.cols){ const d=colliders.indexOf(c)>=0; if(ja&&!d) colliders.push(c); else if(!ja&&d) dropCol(c); }
-    WK.zustand[i].laeuft=ja; if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
+    WK.zustand[i].laeuft=ja&&typeof pdLaeuft==='function'&&pdLaeuft(i); if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
   /* alte Westwand der Halle, Westzaun und Zufahrt des LKW-Hofs */
   if(WK_ALT.halle) WK_ALT.halle.visible=!an;
   if(WK_T) wkGlas();
@@ -24312,23 +24502,32 @@ function wkStrasseBauen(i){
 /* Ampeln aller Zellen: rot = Straße laeuft (Tuer zu), gruen = steht (Zelle frei) */
 function wkAmpeln(){ if(!WK_T) return; WK_T.str.forEach((st,i)=>{ if(!st||!st.ampel) return; const an=WK.zustand[i].laeuft;
   st.ampel.rot.emissiveIntensity=an?1.4:0; st.ampel.gruen.emissiveIntensity=an?0:1.4; }); }
-/* Leitstand-Bildschirme: je Straße Status und Ausstoß (Leinwand, wird bei jedem Kauf neu gemalt) */
+/* Leitstand-Bildschirme: je Straße zwei Anzeigen (Leinwand; 05s malt sie im Werk einmal je Sekunde neu). Links: Status, Auftrag,
+   Takt, Stueck heute. Rechts: Stationen (rot = Zelle, blinkt bei Stoerung), Ausschuss, Qualitaet, Rohstoff-Reichweite. */
 function wkMonitore(){
   if(!WK_T||!WK_T.monitor) return; const t=WK_T.monitor.t, c=t.image, g=c&&c.getContext&&c.getContext('2d'); if(!g) return;
-  const W=c.width/6, H=c.height;
-  for(let k=0;k<6;k++){ const i=k>>1, s=WK_STR[i], an=wkStrasseOffen(i), x0=k*W;
-    g.fillStyle=MAT.css('nachtblau'); g.fillRect(x0,0,W,H); g.fillStyle=MAT.css('anthrazit'); g.fillRect(x0,0,W,46);
+  const W=c.width/6, H=c.height, D=typeof S!=='undefined'&&S&&S.pd?S.pd:null, blink=Math.floor((WK_T.zeit||0)*2)%2===0;
+  const zahl=v=>String(v).replace('.',',');
+  for(let k=0;k<6;k++){ const i=k>>1, s=WK_STR[i], an=wkStrasseOffen(i), x0=k*W, p=D&&D.s?D.s[i]:null, grund=an&&typeof pdGrund==='function'?pdGrund(i):'';
+    const laeuft=an&&WK.zustand[i].laeuft, stoer=!!(p&&p.stoer);
+    g.fillStyle=MAT.css('nachtblau'); g.fillRect(x0,0,W,H); g.fillStyle=MAT.css(stoer?'signalrot':'anthrazit'); g.fillRect(x0,0,W,46);
     g.textAlign='left'; g.textBaseline='middle'; g.fillStyle=MAT.css('weiss'); fitFont(g,'STRASSE '+s.nr+' · '+s.name.toUpperCase(),W-28,30,BAR); g.fillText('STRASSE '+s.nr+' · '+s.name.toUpperCase(),x0+14,24);
-    if(k%2===0){ g.fillStyle=an?MAT.css('signalgruen'):MAT.css('mittelgrau'); g.fillRect(x0+14,70,26,26);
-      g.fillStyle=MAT.css('weiss'); g.font=BAR(34); g.fillText(an?(WK.zustand[i].laeuft?'LÄUFT':'STEHT'):'NICHT GEBAUT',x0+52,84);
-      const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
-      g.fillStyle=MAT.css('lichtgrau'); zl(an?'Takt '+WK.zustand[i].takt.toFixed(1).replace('.',',')+' s · Schau-Betrieb':'Ausbau '+(i?'8.'+(i+1):'8'),134);
-      zl(an?'Ausgabe → Hochregal Gasse '+(s.gasse+1):'',176); }
+    const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
+    if(k%2===0){ g.fillStyle=!an?MAT.css('mittelgrau'):stoer?(blink?MAT.css('signalrot'):MAT.css('nachtblau')):laeuft?MAT.css('signalgruen'):MAT.css('signalgelb'); g.fillRect(x0+14,70,26,26);
+      g.fillStyle=MAT.css('weiss'); g.font=BAR(34); g.fillText(!an?'NICHT GEBAUT':stoer?'STÖRUNG':laeuft?'LÄUFT':'STEHT',x0+52,84);
+      g.fillStyle=MAT.css('lichtgrau');
+      if(!an) zl('Ausbau '+(i?'8.'+(i+1):'8'),134);
+      else if(p&&p.plan&&p.plan.length&&P[p.plan[0].t]){ const a=p.plan[0];
+        zl(P[a.t].short+' · '+a.f+'/'+a.n+' Kartons',134); zl(pdProStunde(a.t)+' Stück/h · heute '+p.heute.stk+' Stück'+(grund&&!laeuft?' · '+grund:''),176); }
+      else zl(grund||'kein Auftrag',134); }
     else { g.strokeStyle=MAT.css('mittelgrau'); g.lineWidth=2; for(let j=0;j<7;j++){ const bx=x0+14+j*34; g.strokeRect(bx,70,28,28);
-        if(an){ g.fillStyle=s.st[j][2]?MAT.css('signalrot'):MAT.css('signalgruen'); g.fillRect(bx+4,74,20,20); } }
-      g.fillStyle=MAT.css('lichtgrau'); const zl=(t2,yy)=>{ fitFont(g,t2,W-28,26,BAR); g.fillText(t2,x0+14,yy); };
-      zl(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',134);
-      zl(an?'Qualität · Ausschuss: ab Produktion':'',176); } }
+        if(an){ const st=p&&p.stoer&&p.stoer.j===j; g.fillStyle=st?(blink?MAT.css('signalrot'):MAT.css('nachtblau')):s.st[j][2]?MAT.css('signalrot'):MAT.css('signalgruen'); g.fillRect(bx+4,74,20,20); } }
+      g.fillStyle=MAT.css('lichtgrau');
+      if(an&&p&&typeof pdAusschuss==='function'){ const ges=p.heute.stk+p.heute.aus;
+        zl('Ausschuss '+(ges?Math.round(p.heute.aus/ges*100):Math.round(pdAusschuss(i,p.pre?1:0)*100))+' % · Qualität '+Math.round(pdQualitaet(i,p.pre?1:0)*100)+' % · '+(p.pre?'Premium':'Standard'),134);
+        const RW=pdReichweite(); let m=Infinity, mr=''; for(const r of PD_ROH) if(RW[r]<m){ m=RW[r]; mr=r; }
+        zl(isFinite(m)?'Rohstoffe reichen '+zahl(Math.round(m*10)/10)+' Tage ('+PD_ROH_NAME[mr]+')':'Erfahrung '+(p.erf||0)+' Tage',176); }
+      else zl(an?'7 Stationen · '+s.st.filter(q=>q[2]).length+' Zellen (rot = mannlos)':'',134); } }
   t.needsUpdate=true;
 }
 
@@ -24352,6 +24551,7 @@ function wkSichtTakt(){
 /* ---------- Takt: Tueren (immer), Lichtbaender, Schau-Betrieb (nur wenn sichtbar), Ausgabe an die Gasse (immer, zeitbasiert) ---------- */
 function wkTick(dt){
   if(!WK_T||!WK_G||!WK_G.visible) return;
+  if(typeof pdTick==='function') pdTick(dt);   /* Produktion (05s): Rohstoffe, Takt, Ausgabe, Stoerungen, Leitstand */
   WK_T.zeit+=dt;
   for(const t of WK_T.tueren){ const ziel=Math.hypot(pl.x-t.x,pl.z-t.z)<t.r?1:0, a=t.T.t;
     if(a!==ziel) t.T.set(a+Math.sign(ziel-a)*Math.min(Math.abs(ziel-a),dt*2.4)); }
@@ -24384,6 +24584,412 @@ function wkStrasseTakt(i,st,C){
     let r=Math.min(1,u*1.15)*Lg, n=0; while(n<seg.length-1&&r>seg[n]){ r-=seg[n]; n++; }
     const a=W[n], b=W[n+1], q=Math.min(1,r/(seg[n]||1));
     P.g.position.set(a[0]+(b[0]-a[0])*q,WK.sammel.h,a[1]+(b[1]-a[1])*q); P.g.visible=u<0.97; }
+}
+/* =========================================================
+   Produktion im Werk West (Produktions-Gameplay, 15.10.2026) - Doku docs/halle/produktion.md
+   Konzept docs/halle/produktion-konzept.md (Tom 14.10. freigegeben, OHNE Wartung): Eigenproduktion = Fixkosten gegen Marge.
+
+   - Rohstoffe (Huelsen/Pappe, Oxidator, Metallpulver, Schwarzpulver) in Standard- und Premium-Qualitaet bestellen (Laptop, Lager-PC,
+     Leitstand: Tab "Produktion"), Lieferung am naechsten Spieltag mit dem Gefahrgut-LKW an Tor R6, Lager mit Kapazitaetsgrenze
+     (Inertlager, drei Chemie-Boxen).
+   - Rezept je Produkt aus Klasse + Groesse (pdRezept): Satzgewicht NEM, Rohstoffe je Stueck, Takt - keine Handpflege; jedes Produkt
+     des Sortiments (Lizenz) der Klasse der gekauften Straße ist herstellbar (Raketen / Kugelbomben / Batterien).
+   - Produktionsplan je Straße (Produkt, Menge in Kartons, Reihenfolge), laeuft nur waehrend der Ladenoeffnung, mit Werker der Straße
+     und Mischer. Kugelbomben trocknen: fertig am naechsten Spieltag. Fertige Paletten gehen ueber den Sammelfoerderer in die Gasse
+     der Straße (S.hr wie Kaufware, Karton-Merkmal e:1 = Eigenproduktion) und von dort wie Kaufware in Laden und Versand.
+   - Qualitaet: Werker-Erfahrung (Produktionstage) + Rohstoffqualitaet -> Ausschuss und Effektqualitaet q (wirkt wie Lieferantenware
+     auf Kaufbereitschaft/Blindgaenger und ueber die taegliche QS-Stichprobe auf den Ruf). Keine Wartung.
+   - Stoerungen: Straße steht (Ampel blinkt rot, Meldung, Leitstand), Spieler gibt die Zelle frei (an der Station oder im Leitstand),
+     sonst der Werker nach WIRT.produktion.stoerung.selbstSek. Rohstoffe aus = Straße steht, Loehne laufen weiter.
+   - QS-Stichprobe: das erste Stueck des Tages je Straße wird geprueft; eines je Tag wird auf dem Testfeld gezuendet (14z4 abStichprobe).
+   - Statistik (Finanzbildung): Stueckkosten bei aktueller Menge, Break-even, Marge gegen Einkauf, gebundenes Kapital; Tagesabschluss.
+   Alle Zahlen: WIRT.produktion (01c). Spielstand: S.pd. Welt/Schnittstellen: 05r (WK, WK_STR, WK_T, wkAusgabe, wkFixkosten).
+   ========================================================= */
+const PD_ROH=['huelsen','oxidator','metall','schwarzpulver'];
+const PD_ROH_NAME={huelsen:'Hülsen und Pappe',oxidator:'Oxidator',metall:'Metallpulver',schwarzpulver:'Schwarzpulver'};
+const PD_LAGER_NAME={inert:'Inertlager',oxi:'Chemie-Box Oxidatoren',metall:'Chemie-Box Metallpulver',sp:'Chemie-Box Schwarzpulver'};
+const PD_KLASSE_NAME=['Raketen','Kugelbomben','Batterien'];
+const PD_WERKER=['werker1','werker2','werker3'];
+/* Darstellung (keine Wirtschaft): Takt der Animation zwischen 2,5 und 8 s, damit man die Stationen arbeiten sieht */
+const PD_VIS={taktMin:2.5,taktMax:8};
+
+/* Klasse eines Produkts = Straße: 0 Raketen, 1 Kugelbomben, 2 Batterien (Faecher sind Batterien), sonst -1 */
+function pdKlasse(t){ const s=P[t]&&P[t].shape; return s==='rocketset'?0:s==='shell'?1:(s==='battery'||s==='fan')?2:-1; }
+/* herstellbar auf Straße i: Klasse passt, im Sortiment (Lizenz), normale Katalogware (keine eigene Rezeptur, kein Prototyp) */
+function pdHerstellbar(t,i){ const p=P[t]; return !!p&&pdKlasse(t)===i&&!p.noOrder&&!p.rezept&&!p.eigen&&!p.proto&&p.cost>0&&isUnlocked(t); }
+function pdProdukte(i){ return ORDER.filter(t=>pdHerstellbar(t,i)); }
+
+/* ---------- Rezept aus Klasse + Groesse (einmal je Sorte) ----------
+   Liter = Packmass (dims). NEM = nemJeL g/L (mind. nemMin), davon schwarz Schwarzpulver, Rest Sternsatz (oxi Oxidator, Rest Metall);
+   Huelsen/Pappe huelseJeL g/L. Effektaufwand: liegen die variablen Kosten mit Standard-Rohstoffen ausserhalb des Bands
+   WIRT.produktion.band vom Katalog-Einkauf, wird das ganze Rezept darauf skaliert (teure kleine Ware = aufwendige Effekte, mehr Satz;
+   billige grosse Ware = viel Luft im Karton, weniger Satz). kg = je Stueck. */
+const _pdRez={};
+function pdRezept(t){
+  if(_pdRez[t]) return _pdRez[t];
+  const p=P[t], k=pdKlasse(t); if(!p||k<0) return null;
+  const W=WIRT.produktion, K=W.klasse[k], R=W.roh, d=p.dims||[0.2,0.2,0.2], L=Math.max(0.05,d[0]*d[1]*d[2]*1000);
+  const nem=Math.max(K.nemMin,K.nemJeL*L)/1000, sp=nem*K.schwarz, stern=nem-sp, hu=K.huelseJeL*L/1000;
+  const kg0={huelsen:hu,oxidator:stern*K.oxi,metall:stern*(1-K.oxi),schwarzpulver:sp}, k0=pdKostenKg(kg0,false);
+  const f=clamp(k0,W.band[0]*p.cost,W.band[1]*p.cost)/Math.max(1e-9,k0), kg={}; for(const r of PD_ROH) kg[r]=kg0[r]*f;
+  const st=kg.oxidator+kg.metall;
+  const takt=clamp(K.takt*Math.sqrt(L/K.refL),K.taktMin,K.taktMax);
+  const r={t,k,liter:L,nem:Math.round((kg.schwarzpulver+st)*1000),kg,takt,aufwand:f,kosten:pdKostenKg(kg,false),kostenPremium:pdKostenKg(kg,true)};
+  r.anteil=r.kosten/p.cost;
+  return (_pdRez[t]=r);
+}
+function pdPreisKg(r,pre){ return WIRT.produktion.roh[r].preis*(pre?WIRT.produktion.premium:1); }
+function pdKostenKg(kg,pre){ let s=0; for(const r of PD_ROH) s+=kg[r]*pdPreisKg(r,pre); return s; }
+function pdStueckJeTag(t){ const r=pdRezept(t); return r?WIRT.produktion.tagSek/r.takt:0; }
+/* Stueck je Spielstunde (Anzeige; der Tag hat zeit.schliessen-zeit.oeffnen Spielminuten) */
+function pdProStunde(t){ return Math.round(pdStueckJeTag(t)*60/(WIRT.zeit.schliessen-WIRT.zeit.oeffnen)); }
+
+/* ---------- Spielstand ---------- */
+function pdStrasseNeu(){ return {an:false,pre:false,b2b:false,plan:[],fort:0,stoer:null,karton:null,pal:[],erf:0,qsTag:-1,heute:{stk:0,aus:0,kosten:0,kartons:0,q:0},gestern:null}; }
+function pdDaten(){
+  if(!S) return null;
+  if(!S.pd||!Array.isArray(S.pd.s)){ const L={}; for(const r of PD_ROH) L[r]={std:0,pre:0};
+    S.pd={aktiv:false,tag:S.day,s:[0,1,2].map(pdStrasseNeu),lager:L,bestellt:[],trocken:[],aus:[[],[],[]],qsZuend:-1,summe:{stk:0,aus:0,kosten:0,paletten:0}}; }
+  const D=S.pd; for(const r of PD_ROH) if(!D.lager[r]) D.lager[r]={std:0,pre:0};
+  if(!Array.isArray(D.aus)) D.aus=[[],[],[]]; if(!Array.isArray(D.trocken)) D.trocken=[]; if(!Array.isArray(D.bestellt)) D.bestellt=[];
+  return D;
+}
+/* Lager je Ort: belegt (kg, beide Qualitaeten) und unterwegs */
+function pdLagerOrt(r){ return WIRT.produktion.roh[r].lager; }
+function pdBelegt(ort){ const D=pdDaten(); let n=0; for(const r of PD_ROH) if(pdLagerOrt(r)===ort) n+=D.lager[r].std+D.lager[r].pre; return n; }
+function pdUnterwegs(ort){ const D=pdDaten(); let n=0; for(const b of D.bestellt) if(pdLagerOrt(b.r)===ort) n+=b.kg; return n; }
+function pdFrei(ort){ return WIRT.produktion.lager[ort]-pdBelegt(ort)-pdUnterwegs(ort); }
+
+/* ---------- Werker, Status ---------- */
+function pdPersonDa(id){ return !!(S&&S.staff&&S.staff[id])&&!(typeof inPause==='function'&&inPause(id)); }
+function pdErfahrung(i){ const D=pdDaten(); return Math.min(1,(D.s[i].erf||0)/WIRT.produktion.qualitaet.erfahrungTage); }
+function pdAusschuss(i,pre){ const Q=WIRT.produktion.qualitaet; return Q.ausschussMax-(Q.ausschussMax-Q.ausschussMin)*(Q.gewErf*pdErfahrung(i)+Q.gewRoh*(pre||0)); }
+function pdQualitaet(i,pre){ const Q=WIRT.produktion.qualitaet; return Q.qMin+Q.qErf*pdErfahrung(i)+Q.qRoh*(pre||0); }
+/* Straße eingeschaltet (fuer die Fixkosten werkStrasse): gebaut + vom Spieler angeschaltet */
+function pdStrasseAn(i){ const D=S&&S.pd; return !!(D&&D.s&&D.s[i]&&D.s[i].an&&typeof wkStrasseOffen==='function'&&wkStrasseOffen(i)); }
+/* Warum steht sie? '' = sie laeuft (oder wuerde laufen, sobald der Laden offen ist) */
+function pdGrund(i){
+  const D=pdDaten(), s=D.s[i];
+  if(!wkStrasseOffen(i)) return 'nicht gebaut';
+  if(!s.an) return 'ausgeschaltet';
+  if(!pdPersonDa(PD_WERKER[i])) return 'kein Werker';
+  if(!pdPersonDa('mischer')) return 'kein Mischer';
+  if(!s.plan.length) return 'kein Auftrag';
+  if(s.stoer) return s.stoer.art==='roh'?'Rohstoff fehlt: '+PD_ROH_NAME[s.stoer.r]:s.stoer.art==='voll'?'Hochregal voll':'Störung '+s.stoer.st;
+  return '';
+}
+function pdLaeuft(i){ return !!S&&!!S.pd&&phase==='open'&&!pdGrund(i); }
+
+/* ---------- Rohstoffe bestellen ---------- */
+function pdBestellen(r,pre,n){
+  const D=pdDaten(), R=WIRT.produktion.roh[r]; if(!R||!wkOffen()) return false; n=Math.max(1,n|0);
+  const kg=R.gebinde*n, ort=R.lager;
+  if(pdFrei(ort)<kg-1e-6){ toast(`${PD_LAGER_NAME[ort]} ist voll: noch ${Math.max(0,Math.floor(pdFrei(ort)))} kg frei (mit Bestellungen unterwegs).`,'bad'); return false; }
+  const neuerTag=!D.bestellt.some(b=>b.tag===S.day);
+  const preis=r2(kg*pdPreisKg(r,pre)+(neuerTag?WIRT.produktion.lieferpauschale:0));
+  if(preis>verfuegbar()){ toast('Dafür reicht das Geld nicht (auch nicht mit Dispo).','bad'); return false; }
+  S.money=r2(S.money-preis); DS.roh=r2((DS.roh||0)+preis); D.summe.einkauf=r2((D.summe.einkauf||0)+preis);
+  D.bestellt.push({r,pre:!!pre,kg,tag:S.day});
+  if(typeof sfx!=='undefined'&&sfx.cash) sfx.cash();
+  toast(`${PD_ROH_NAME[r]} ${pre?'Premium':'Standard'}: ${kg} kg für ${eur(preis)}${neuerTag?` (inkl. Gefahrgut-Lieferung ${eur(WIRT.produktion.lieferpauschale)})`:''} – kommt morgen früh an Tor 6.`,'money');
+  return true;
+}
+
+/* ---------- Gefahrgut-LKW an Tor R6 ---------- */
+let pdLkw=null;
+function pdLieferTick(dt){
+  const D=pdDaten();
+  if(!pdLkw&&phase==='open'&&D.bestellt.some(b=>S.day>=b.tag+WIRT.produktion.lieferTage)&&WK_T&&WK_T.r6){
+    const z=WK.werk.z0-LW-0.05-13.2/2, g=abstellAuflieger(WK.r6.x,z-8,Math.PI/2,'Gefahrgut · Rohstoffe',TRUCKCOL.premium,true);
+    pdLkw={g,z,state:'anfahrt',t:0}; toast('Der Gefahrgut-LKW mit den Rohstoffen setzt an Tor 6 (Werk West).'); }
+  const L=pdLkw; if(!L) return;
+  if(L.state==='anfahrt'){ const d=L.z-L.g.position.z; L.g.position.z+=clamp(d*0.9,0.6,3.0)*dt; if(d<=0.04){ L.g.position.z=L.z; L.state='auf'; L.t=0; } }
+  else if(L.state==='auf'){ L.t+=dt/2.2; WK_T.r6.set(Math.min(1,L.t)); if(L.t>=1){ L.state='entladen'; L.t=0; } }
+  else if(L.state==='entladen'){ L.t+=dt; if(L.t>=4){ pdEinbuchen(); L.state='zu'; L.t=1; } }
+  else if(L.state==='zu'){ L.t-=dt/2.2; WK_T.r6.set(Math.max(0,L.t)); if(L.t<=0){ L.state='ab'; L.t=0; } }
+  else if(L.state==='ab'){ L.g.position.z-=Math.min(7,3+L.t*6)*dt; L.t+=dt; if(L.g.position.z<WK.hof.z0+7){ scene.remove(L.g); pdLkw=null; } }
+}
+/* Ware vom LKW ins Lager (alles, was faellig ist) */
+function pdEinbuchen(){
+  const D=pdDaten(), faellig=D.bestellt.filter(b=>S.day>=b.tag+WIRT.produktion.lieferTage); if(!faellig.length) return;
+  for(const b of faellig){ D.lager[b.r][b.pre?'pre':'std']+=b.kg; }
+  D.bestellt=D.bestellt.filter(b=>faellig.indexOf(b)<0);
+  for(const s of D.s) if(s.stoer&&s.stoer.art==='roh') s.stoer=null;
+  toast(`Tor 6: ${faellig.length} Gebindeposten eingelagert (Inertlager und Chemie-Boxen).`,'money');
+}
+
+/* ---------- Ein Stueck herstellen ---------- */
+/* Rohstoffe nehmen: zuerst die gewaehlte Qualitaet, dann die andere. Rueckgabe {kosten, pre (Anteil Premium)} oder {fehlt:r} */
+function pdRohReicht(kg){ const D=pdDaten(); for(const r of PD_ROH){ const l=D.lager[r]; if(l.std+l.pre<kg[r]-1e-9) return r; } return ''; }
+function pdRohNehmen(kg,pre){
+  const D=pdDaten();
+  for(const r of PD_ROH){ const l=D.lager[r]; if(l.std+l.pre<kg[r]-1e-9) return {fehlt:r}; }
+  let kosten=0, prem=0, ges=0;
+  for(const r of PD_ROH){ const l=D.lager[r], erst=pre?'pre':'std', dann=pre?'std':'pre'; let n=kg[r];
+    const a=Math.min(n,l[erst]); l[erst]-=a; n-=a; const b=Math.min(n,l[dann]); l[dann]-=b;
+    const kp=(erst==='pre'?a:b), ks=(erst==='pre'?b:a);
+    kosten+=kp*pdPreisKg(r,true)+ks*pdPreisKg(r,false); prem+=kp; ges+=kp+ks;
+    if(l.std<1e-9) l.std=0; if(l.pre<1e-9) l.pre=0; }
+  return {kosten,pre:ges>0?prem/ges:0};
+}
+function pdStueck(i){
+  const D=pdDaten(), s=D.s[i], a=s.plan[0], R=pdRezept(a.t); if(!R) { s.plan.shift(); return false; }
+  const n=pdRohNehmen(R.kg,s.pre);
+  if(n.fehlt){ s.stoer={art:'roh',r:n.fehlt,t:0}; toast(`Straße ${i+1} steht: ${PD_ROH_NAME[n.fehlt]} ist aus. Rohstoffe bestellen (Produktion) – der Werker kostet trotzdem.`,'bad'); return false; }
+  s.heute.kosten+=n.kosten; D.summe.kosten=r2((D.summe.kosten||0)+n.kosten);
+  const q=pdQualitaet(i,n.pre);
+  /* QS-Stichprobe: das erste Stueck des Tages geht ins Labor (eines je Tag auf das Testfeld) */
+  if(s.qsTag!==S.day){ s.qsTag=S.day; pdQs(i,a.t,q); return true; }
+  if(Math.random()<pdAusschuss(i,n.pre)){ s.heute.aus++; D.summe.aus++; }
+  else { s.heute.stk++; s.heute.q+=q; D.summe.stk++;
+    /* angebrochener Karton einer anderen Sorte (Auftrag umgestellt): als Restkarton mit auf die Palette, nichts geht verloren */
+    if(s.karton&&s.karton.t!==a.t&&s.karton.n>0) s.pal.push({t:s.karton.t,c:s.karton.n,q:Math.round(s.karton.q/s.karton.n*1000)/1000,e:1});
+    if(!s.karton||s.karton.t!==a.t) s.karton={t:a.t,n:0,q:0};
+    s.karton.n++; s.karton.q+=q;
+    if(s.karton.n>=P[a.t].box){ s.pal.push({t:a.t,c:P[a.t].box,q:Math.round(s.karton.q/s.karton.n*1000)/1000,e:1}); s.karton=null; a.f++; s.heute.kartons++;
+      if(s.pal.length>=HR_JE_PALETTE||a.f>=a.n) pdPalette(i);
+      if(a.f>=a.n){ s.plan.shift(); if(!s.plan.length) toast(`Straße ${i+1} (${PD_KLASSE_NAME[i]}): Auftragsliste abgearbeitet.`); } } }
+  /* Stoerung: im Schnitt stoerung.jeTag je Tag und laufender Straße */
+  if(Math.random()<WIRT.produktion.stoerung.jeTag*R.takt/WIRT.produktion.tagSek){
+    const Z=WK_STR[i].st.filter(q=>q[2]), st=Z[Math.floor(Math.random()*Z.length)]||WK_STR[i].st[0];
+    s.stoer={art:'zelle',st:st[0],j:WK_STR[i].st.indexOf(st),t:0};
+    toast(`Störung Straße ${i+1}: Zelle ${st[0]} (${st[1]}) steht. Hingehen und freigeben oder im Leitstand.`,'bad'); }
+  return true;
+}
+/* fertige Palette: Kugelbomben in die Trockenkammer, sonst auf den Sammelfoerderer */
+function pdPalette(i){ const D=pdDaten(), s=D.s[i]; if(!s.pal.length) return; const b=s.pal.splice(0);
+  if(i===1) D.trocken.push({b,tag:S.day+WIRT.produktion.kugelTrocknungTage}); else D.aus[i].push(b); }
+/* Palette in die Gasse der Straße (sonst irgendeine aktive Gasse) - false = Hochregal voll */
+function pdEinlagern(b,i){
+  const H=hrDaten(), k=WK_STR[i].gasse; let j=-1;
+  if(llGasseAktiv(k)){ const P0=hrPlaetze(k); let bd=1e9;
+    for(let n=0;n<P0.length;n++){ const q=k*180+n; if(H.p[q]||HR.reserv&&HR.reserv[q]) continue; const p=P0[n], d=Math.abs(p.x-LL.aufgabe.x)/HR_TEMPO.fahr+p.y/HR_TEMPO.hub; if(d<bd){ bd=d; j=q; } } }
+  if(j<0) j=hrFreiPlatz(); if(j<0) return false;
+  H.p[j]=b; hrSync(); return true; }
+function pdAusgabeTick(dt){
+  const D=pdDaten(); D._aT=(D._aT||0)+dt; if(D._aT<WIRT.produktion.ausgabeSek) return; D._aT=0;
+  for(let i=0;i<3;i++){ const Q=D.aus[i]; if(!Q.length) continue;
+    if(pdEinlagern(Q[0],i)){ Q.shift(); D.summe.paletten++; const s=D.s[i]; if(s.stoer&&s.stoer.art==='voll') s.stoer=null; }
+    else if(Q.length>=WIRT.produktion.stauPaletten&&!D.s[i].stoer){ D.s[i].stoer={art:'voll',t:0}; toast(`Straße ${i+1} steht: Hochregal voll – zu viel produziert, ${Q.length} Paletten warten. Erst verkaufen, dann weiter.`,'bad'); } }
+}
+/* Stoerung beheben (Spieler an der Station / im Leitstand, oder der Werker selbst) */
+function pdBeheben(i,wer){ const D=pdDaten(), s=D.s[i]; if(!s||!s.stoer||s.stoer.art!=='zelle') return false;
+  const z=s.stoer.st; s.stoer=null; wkAmpeln();
+  if(wer!=='selbst'){ toast(`Zelle ${z} freigegeben – Straße ${i+1} läuft wieder.`,'money'); if(typeof sfx!=='undefined'&&sfx.pop) sfx.pop(); }
+  else toast(`Straße ${i+1}: Der Werker hat Zelle ${z} nach langer Suche selbst freibekommen.`);
+  return true; }
+
+/* ---------- QS-Stichprobe ---------- */
+function pdQs(i,t,q){
+  const D=pdDaten(), W=WIRT.ruf, d=clamp((q-1)*W.qsJe,-W.qsMax,W.qsMax);
+  rep(d); D.qs=D.qs||[]; D.qs.unshift({tag:S.day,i,t,q:Math.round(q*100)/100,ruf:Math.round(d*100)/100}); D.qs.length=Math.min(D.qs.length,12);
+  const txt=q>=1.08?'sehr gut – sauberer Effekt':q>=0.98?'in Ordnung':'mangelhaft – Kunden merken das';
+  /* eines je Tag sichtbar auf dem Testfeld (Abschuss-Baustein 14z4, Effekt unveraendert, ohne Hype) */
+  let feld=false;
+  if(D.qsZuend!==S.day&&typeof abStichprobe==='function'){ const r=abStichprobe(t,q); if(r&&r.frei){ D.qsZuend=S.day; feld=true; } }
+  toast(`QS-Stichprobe Straße ${i+1}: ${P[t].short} ${txt} (Qualität ${Math.round(q*100)} %, Ruf ${d>=0?'+':''}${String(Math.round(d*10)/10).replace('.',',')})${feld?' – wird auf dem Testfeld gezündet':''}.`,d>=0?'money':'bad');
+}
+
+/* ---------- Tageswechsel ---------- */
+function pdNeuerTag(){
+  const D=pdDaten();
+  for(let i=0;i<3;i++){ const s=D.s[i];
+    if(s.heute.stk+s.heute.aus>0&&pdPersonDa(PD_WERKER[i])) s.erf=(s.erf||0)+1;
+    if(!(S.staff&&S.staff[PD_WERKER[i]])) s.erf=0;      /* neuer Werker faengt von vorn an */
+    s.gestern=s.heute; s.heute={stk:0,aus:0,kosten:0,kartons:0,q:0};
+    if(s.stoer&&s.stoer.art==='zelle') s.stoer=null;   /* ueber Nacht behoben */
+    if(s.pal.length) pdPalette(i); }
+  /* getrocknete Kugelbomben auf den Foerderer */
+  const fertig=D.trocken.filter(x=>x.tag<=S.day); D.trocken=D.trocken.filter(x=>x.tag>S.day); for(const x of fertig) D.aus[1].push(x.b);
+  D.tag=S.day;
+  if(typeof gpAn!=='undefined'&&gpAn) pdAutoBestellen();
+}
+/* Vorfuehrung: der Disponent bestellt Rohstoffe nach, wenn weniger als zwei Tage reichen (normale Preise) */
+function pdAutoBestellen(){ const RW=pdReichweite(), W=WIRT.produktion;
+  for(const r of PD_ROH){ if(RW[r]>=2) continue; const R=W.roh[r], n=Math.floor(Math.max(0,pdFrei(R.lager)*0.6)/R.gebinde); if(n>0) pdBestellen(r,false,n); } }
+
+/* ---------- Takt (aus wkTick, jedes Bild solange das Werk steht) ---------- */
+let _pdMonT=0, _pdBlink=0; const _pdBlinkAn=[false,false,false];
+function pdTick(dt){
+  if(!S||!wkOffen()) return;
+  const D=pdDaten(); if(D.tag!==S.day) pdNeuerTag();
+  WK.produktion=!!D.aktiv;
+  pdLieferTick(dt); pdAusgabeTick(dt);
+  _pdBlink+=dt;
+  for(let i=0;i<3;i++){ const s=D.s[i], z=WK.zustand[i];
+    if(s.stoer){ s.stoer.t=(s.stoer.t||0)+dt;
+      if(s.stoer.art==='zelle'&&phase==='open'&&s.stoer.t>WIRT.produktion.stoerung.selbstSek) pdBeheben(i,'selbst');
+      if(s.stoer&&s.stoer.art==='roh'&&(!s.plan.length||!pdRohReicht(pdRezept(s.plan[0].t).kg))) s.stoer=null; }
+    const lauf=pdLaeuft(i);
+    if(z.laeuft!==lauf){ z.laeuft=lauf; wkAmpeln(); }
+    if(!lauf) continue;
+    const R=pdRezept(s.plan[0].t); z.takt=clamp(R.takt,PD_VIS.taktMin,PD_VIS.taktMax);
+    s.fort+=dt; let n=0;
+    while(s.fort>=R.takt&&n++<50){ s.fort-=R.takt; if(!pdStueck(i)||!pdLaeuft(i)) { s.fort=0; break; } }
+  }
+  /* Stoerung: Ampel der Straße blinkt rot */
+  if(WK_T) WK_T.str.forEach((st,i)=>{ if(!st||!st.ampel) return; const s=D.s[i];
+    if(s.stoer&&s.an){ const an=Math.floor(_pdBlink*2.5)%2===0; st.ampel.rot.emissiveIntensity=an?1.6:0.1; st.ampel.gruen.emissiveIntensity=0; _pdBlinkAn[i]=true; }
+    else if(_pdBlinkAn[i]){ _pdBlinkAn[i]=false; wkAmpeln(); } });
+  pdFiguren(dt);
+  /* Leitstand-Bildschirme: einmal je Sekunde, nur mit Blick ins Werk */
+  _pdMonT-=dt; if(_pdMonT<=0){ _pdMonT=1; if(WK_H&&WK_H.visible) wkMonitore(); }
+}
+
+/* ---------- Werker an ihrer Straße (Figur am Gang vor Station 5, Blick aufs Band; nur mit Blick ins Werk gezeichnet: WK_D) ---------- */
+const PD_FIG=[null,null,null], PD_KOPF=['CM07','M09','BM04'];
+function pdFiguren(dt){
+  if(!WK_D||typeof makePerson!=='function') return;
+  for(let i=0;i<3;i++){ const soll=wkStrasseOffen(i)&&pdPersonDa(PD_WERKER[i]);
+    if(soll&&!PD_FIG[i]){ const g=makePerson({kopf:PD_KOPF[i]}), B=WK.band; g.position.set(B.x0+4.5*B.p,0,WK_STR[i].zc-1.85); g.rotation.y=0; WK_D.add(g); PD_FIG[i]=g; }
+    else if(!soll&&PD_FIG[i]){ WK_D.remove(PD_FIG[i]); if(typeof personWeg==='function') personWeg(PD_FIG[i]); PD_FIG[i]=null; }
+    if(PD_FIG[i]&&WK_D.visible&&typeof animPerson==='function') animPerson(PD_FIG[i],false,dt); } }
+
+/* ---------- Statistik (Finanzbildung) ---------- */
+/* Fixkosten je Tag, die Straße i zu tragen hat: Werker + Straßenbetrieb + Anteil Werk und Mischer (auf die eingeschalteten Straßen) */
+function pdFixStrasse(i){
+  const st=n=>{ const s=STAFF.find(x=>x.id===n); return s&&S.staff[n]?r2(s.wage*wageOf(n)*(inPause(n)?WIRT.personal.pause:1)):0; };
+  let an=0; for(let k=0;k<3;k++) if(pdStrasseAn(k)) an++;
+  const teil=(WIRT.fix.werk+st('mischer'))/Math.max(1,an);
+  return r2(st(PD_WERKER[i])+WIRT.fix.werkStrasse+teil);
+}
+/* Kennzahlen fuer Produkt t auf Straße i bei der Tagesmenge n (Stueck je Tag; ohne n: volle Auslastung) */
+function pdKennzahlen(t,i,n){
+  const R=pdRezept(t); if(!R) return null; const s=pdDaten().s[i];
+  const aus=pdAusschuss(i,s.pre?1:0), vk=(s.pre?R.kostenPremium:R.kosten)/(1-aus), ek=costOf(t), fix=pdFixStrasse(i);
+  const kap=pdStueckJeTag(t), menge=Math.max(1,Math.min(kap,n||kap));
+  const stueck=vk+fix/menge, spar=ek-vk, q=pdQualitaet(i,s.pre?1:0), G=WIRT.produktion.grosshandel, gh=ek*G.faktor*clamp(q,G.qMin,G.qMax);
+  return {var:vk,stueck,ek,fix,kap,menge,aus,q,gh,marge:(ek-stueck)/ek,margeVar:spar/ek,breakEven:spar>0?Math.ceil(fix/spar):Infinity,
+    breakEvenGh:gh>vk?Math.ceil(fix/(gh-vk)):Infinity,dbTagGh:kap*(gh-vk)-fix};
+}
+/* Eigenproduktion im Hochregal und auf dem Weg: Kartons, Stueck, gebundenes Kapital zu Herstellkosten und zum Einkaufswert */
+function pdImLager(){
+  const o={kartons:0,stueck:0,herstell:0,ek:0}; const add=b=>{ if(!b||!b.e) return; const R=pdRezept(b.t); o.kartons++; o.stueck+=b.c; o.herstell+=b.c*(R?R.kosten:0); o.ek+=b.c*costOf(b.t); };
+  if(S&&S.hr){ for(const p of S.hr.p) if(p) p.forEach(add); for(const l of S.hr.tr||[]) (l.b||[]).forEach(add); }
+  const D=pdDaten(); for(const Q of D.aus) for(const b of Q) b.forEach(add); for(const x of D.trocken) x.b.forEach(add);
+  o.herstell=r2(o.herstell); o.ek=r2(o.ek); return o; }
+/* Reichweite der Rohstoffe in Tagen beim aktuellen Plan (alle eingeschalteten Straßen) */
+function pdReichweite(){
+  const D=pdDaten(), bed={}; for(const r of PD_ROH) bed[r]=0;
+  for(let i=0;i<3;i++){ const s=D.s[i]; if(!pdStrasseAn(i)||!s.plan.length) continue; const R=pdRezept(s.plan[0].t), n=pdStueckJeTag(s.plan[0].t); for(const r of PD_ROH) bed[r]+=R.kg[r]*n; }
+  const o={}; for(const r of PD_ROH){ const v=D.lager[r].std+D.lager[r].pre; o[r]=bed[r]>0?v/bed[r]:Infinity; } return o; }
+
+/* ---------- Werksverkauf an den Grosshandel (16-day endDay, vor dem Abschluss) ----------
+   Je Straße mit b2b: alle Kartons der Eigenproduktion ihrer Klasse im Hochregal (und auf dem Foerderer), die ueber
+   grosshandel.reserveKartons je Sorte liegen, gehen an die Spedition. Erloes = faktor x Einkauf x Qualitaet. Rueckgabe: Euro. */
+function pdGrosshandel(){
+  if(!S||!S.pd||!wkOffen()) return 0; const D=pdDaten(), G=WIRT.produktion.grosshandel, H=S.hr; let sum=0, kart=0;
+  for(let i=0;i<3;i++){ if(!D.s[i].b2b) continue;
+    const orte=[]; if(H) H.p.forEach((pl,j)=>{ if(pl) pl.forEach((b,k)=>{ if(b&&b.e&&pdKlasse(b.t)===i) orte.push({pl,b,j}); }); });
+    for(const Q of [D.aus[i]]) for(const pl of Q) pl.forEach(b=>{ if(b&&b.e) orte.push({pl,b,j:-1}); });
+    const je={}; for(const o of orte) (je[o.b.t]=je[o.b.t]||[]).push(o);
+    for(const t in je){ const L=je[t]; /* zuerst die Kartons auf dem Foerderer, dann die oberen Plaetze */ L.sort((x,y)=>(x.j<0?-1:0)-(y.j<0?-1:0));
+      for(const o of L.slice(0,Math.max(0,L.length-G.reserveKartons))){ const i2=o.pl.indexOf(o.b); if(i2<0) continue; o.pl.splice(i2,1);
+        const e=r2(o.b.c*costOf(t)*G.faktor*clamp(o.b.q||1,G.qMin,G.qMax)); sum+=e; kart++; D.s[i].heute.b2b=r2((D.s[i].heute.b2b||0)+e); } } }
+  if(H) for(let j=0;j<H.p.length;j++) if(H.p[j]&&!H.p[j].length) H.p[j]=null;
+  for(let i=0;i<3;i++) D.aus[i]=D.aus[i].filter(pl=>pl.length);
+  if(typeof hrSync==='function') hrSync();
+  sum=r2(sum); DS.b2b=sum; DS.b2bKartons=kart; D.summe.b2b=r2((D.summe.b2b||0)+sum);
+  return sum; }
+
+/* ---------- Tagesabschluss (16-day endDay) ---------- */
+function pdTagesabschluss(){
+  if(!S||!S.pd||!wkOffen()) return [];
+  const D=pdDaten(), rows=[{head:'Produktion (Werk West)'}];
+  let n=0;
+  for(let i=0;i<3;i++){ if(!wkStrasseOffen(i)) continue; const s=D.s[i], h=s.heute, ges=h.stk+h.aus;
+    if(!s.an&&!ges) { rows.push([`Straße ${i+1} · ${PD_KLASSE_NAME[i]}`,'ausgeschaltet']); continue; } n++;
+    const fix=pdFixStrasse(i), je=h.stk?(h.kosten+fix)/h.stk:0;
+    rows.push([`Straße ${i+1} · ${PD_KLASSE_NAME[i]}`,ges?`${h.stk} Stück · Ausschuss ${Math.round(h.aus/ges*100)} % · Rohstoffe ${eur(h.kosten)} · ${eur(je)} je Stück mit Fixkosten${h.b2b?` · Großhandel ${eur(h.b2b)}`:''}`:`nichts gefertigt (${pdGrund(i)||'Laden war zu'}) · Fixkosten ${eur(fix)} laufen trotzdem`]); }
+  const L=pdImLager(); if(L.kartons) rows.push(['Eigenproduktion im Lager',`${L.kartons} Kartons · gebundenes Kapital ${eur(L.herstell)} (Einkaufswert ${eur(L.ek)})`]);
+  const Tr=D.trocken.reduce((a,x)=>a+x.b.length,0); if(Tr) rows.push(['In der Trockenkammer',`${Tr} Kartons Kugelbomben, morgen fertig`]);
+  const B=D.bestellt.reduce((a,b)=>a+b.kg,0); if(B) rows.push(['Rohstoffe unterwegs',`${Math.round(B)} kg, kommen morgen an Tor 6`]);
+  return n||L.kartons||B?rows:[];
+}
+
+/* ---------- Leitstand und Stationen: Treffer fuer die Aktionstaste (15-player). Unsichtbare Trefferkoerper ausserhalb der Szene
+   (der Strahl prueft sie trotzdem, kein Zeichenaufruf) ---------- */
+let _pdHitPult=null; const _pdHitStoer=[null,null,null];
+function pdHits(){
+  if(!WK_T||!WK_H||!WK_H.visible||!S||!S.pd) return [];
+  const out=[];
+  if(!_pdHitPult){ _pdHitPult=new THREE.Mesh(new THREE.BoxGeometry(5.6,1.2,1.3),hitM); _pdHitPult.position.set(-82.2,WK.raum+0.9,-10.0); _pdHitPult.userData={kind:'pdleitstand',ref:null}; _pdHitPult.updateMatrixWorld(true); }
+  if(Math.abs(pl.z+10)<4&&pl.x<-76&&pl.x>-88) out.push(_pdHitPult);
+  for(let i=0;i<3;i++){ const s=S.pd.s[i]; if(!s||!s.stoer||s.stoer.art!=='zelle'||!WK_T.str[i]) continue;
+    if(!_pdHitStoer[i]){ _pdHitStoer[i]=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.6,2.6),hitM); _pdHitStoer[i].userData={kind:'pdstoer',ref:i}; }
+    const B=WK.band, x=B.x0+((s.stoer.j||0)+0.5)*B.p; _pdHitStoer[i].position.set(x,1.3,WK_STR[i].zc); _pdHitStoer[i].updateMatrixWorld(true);
+    if(Math.abs(pl.x-x)<6&&Math.abs(pl.z-WK_STR[i].zc)<6) out.push(_pdHitStoer[i]); }
+  return out; }
+function pdPrompt(t){
+  if(t.kind==='pdleitstand') return {t:'Leitstand: Produktion steuern, Störungen freigeben',a:true};
+  const s=S.pd.s[t.ref]; return s&&s.stoer?{t:`Zelle ${s.stoer.st} freigeben (Straße ${t.ref+1})`,a:true}:{t:'Läuft',a:false}; }
+function pdAktion(t){ if(t.kind==='pdleitstand') openLaptop('prod','leitstand'); else pdBeheben(t.ref,'hand'); }
+
+/* ---------- Laptop / Lager-PC / Leitstand: Tab "Produktion" ---------- */
+let pdWahl=-1;
+function pdLaptop(){
+  if(!S.up.fabrik) return {h:`<div class="row"><div class="rm"><b>Noch kein Werk</b><small>Eigene Produktion gibt es mit dem Pyro-Werk (Ausbau, Kapitel 8). Dann baust du Raketen, Kugelbomben und Batterien selbst – billiger als im Einkauf, aber mit Fixkosten für Werker, Strom und Werk.</small></div></div>`,hint:''};
+  const D=pdDaten(), lei=lapGeraet==='leitstand', W=WIRT.produktion;
+  const kn=(txt,a,ds,on,dis)=>`<button data-a="${a}" ${Object.entries(ds||{}).map(([k,v])=>`data-${k}="${v}"`).join(' ')} ${dis?'disabled':''} ${on?'':'class="ghost"'} style="padding:3px 9px;font-size:14px;margin:2px 3px 0 0;${on?'background:var(--mint);color:var(--ink)':''}">${txt}</button>`;
+  const pz=v=>Math.round(v*100)+' %';
+  let h='';
+  { const L=pdImLager(); let fix=WIRT.fix.werk*(D.aktiv?1:0); for(let i=0;i<3;i++) if(pdStrasseAn(i)) fix+=WIRT.fix.werkStrasse;
+    const lohn=['mischer',...PD_WERKER].reduce((a,n)=>{ const s=STAFF.find(x=>x.id===n); return a+(s&&S.staff[n]?r2(s.wage*wageOf(n)*(inPause(n)?WIRT.personal.pause:1)):0); },0);
+    h+=`<div class="row"><div class="rm"><b>Werk West · ${lei?'Leitstand':'Produktion'}</b><small>Fixkosten Werk heute ${eur(fix)} · Löhne Werker und Mischer ${eur(lohn)} – laufen auch, wenn eine Straße steht.</small>`+
+      `<small>Eigenproduktion im Lager: ${L.kartons} Kartons · gebundenes Kapital ${eur(L.herstell)} zu Herstellkosten (${eur(L.ek)} Einkaufswert)</small>`+
+      `<small>${pdPersonDa('mischer')?'Mischer im Dienst.':'<span class="warn">Kein Mischer – ohne Satz steht das ganze Werk (Team).</span>'} Produziert wird, solange der Laden offen ist.${lei?'':' Störungen gibst du an der Station oder im Leitstand frei.'}</small></div></div>`; }
+  for(let i=0;i<3;i++){
+    if(!wkStrasseOffen(i)){ h+=`<div class="row locked"><div class="rm"><b>Straße ${i+1} · ${PD_KLASSE_NAME[i]}</b><small>Kommt mit dem Ausbau ${i?'8.'+(i+1):'8'}.</small></div></div>`; continue; }
+    const s=D.s[i], g=pdGrund(i), a=s.plan[0], K=a?pdKennzahlen(a.t,i):null;
+    const status=g?(s.stoer?`<span class="warn">steht: ${g}</span>`:`steht: ${g}`):(phase==='open'?'läuft':'bereit (läuft, sobald der Laden offen ist)');
+    h+=`<div class="row mitEinr"><div class="rm"><b>Straße ${i+1} · ${PD_KLASSE_NAME[i]} – ${status}</b>`+
+      `<small>Werker: ${pdPersonDa(PD_WERKER[i])?`${s.erf||0} Produktionstag${(s.erf||0)===1?'':'e'} Erfahrung · Ausschuss ${pz(pdAusschuss(i,s.pre?1:0))} · Effektqualität ${pz(pdQualitaet(i,s.pre?1:0))}`:'<span class="warn">keiner eingestellt (Team)</span>'}</small>`+
+      `<small>${kn(s.an?'Eingeschaltet':'Ausgeschaltet','pdan',{i},s.an)}${kn('Standard-Rohstoffe','pdqual',{i,v:0},!s.pre)}${kn('Premium-Rohstoffe','pdqual',{i,v:1},s.pre)}`+
+      `${kn(s.b2b?'Großhandel nimmt Überschuss':'Nur für den eigenen Laden','pdb2b',{i},s.b2b)}`+
+      `${s.stoer&&s.stoer.art==='zelle'&&lei?kn('Zelle '+s.stoer.st+' freigeben','pdfrei',{i},false):''}</small>`;
+    if(K) h+=`<small>Jetzt: ${P[a.t].short} · ${pdProStunde(a.t)} Stück je Stunde, bis ${Math.floor(K.kap)} am Tag · Rohstoffe ${eur(K.var)} je gutes Stück, mit Fixkosten ${eur(K.stueck)} bei voller Auslastung · Einkauf ${eur(K.ek)} (Marge ${pz(K.marge)}) · Großhandel zahlt ${eur(K.gh)}</small>`+
+      `<small>Break-even: ${isFinite(K.breakEven)?K.breakEven+' Stück am Tag, die du sonst einkaufen würdest':'nie'} · mit Großhandel ${isFinite(K.breakEvenGh)?K.breakEvenGh+' Stück am Tag':'nie'} · voll ausgelastet an den Großhandel ${K.dbTagGh>=0?'+':''}${eur(K.dbTagGh)} am Tag nach Fixkosten</small>`;
+    if(s.gestern&&(s.gestern.stk+s.gestern.aus)) h+=`<small>Gestern: ${s.gestern.stk} Stück, Ausschuss ${s.gestern.aus}, Rohstoffe ${eur(s.gestern.kosten)}${s.gestern.b2b?`, Großhandel ${eur(s.gestern.b2b)}`:''}</small>`;
+    h+=`<div class="einr"><small><b>Auftragsliste</b> (Kartons, von oben nach unten)</small>`+
+      (s.plan.length?s.plan.map((q,j)=>`<div class="einrZ"><span class="nr">${j+1}</span><span class="tx"><b>${P[q.t].short}</b><small>${q.f} von ${q.n} Kartons à ${P[q.t].box} Stück${i===1?' · trocknet bis morgen':''}</small></span>`+
+        kn('▲','pdhoch',{i,j},false,j===0)+kn('−','pdmenge',{i,j,v:-1},false)+kn('+','pdmenge',{i,j,v:1},false)+kn('✕','pddel',{i,j},false)+`</div>`).join(''):'<small>Noch kein Auftrag.</small>')+
+      `<div>${kn(pdWahl===i?'Auswahl schließen':'Produkt hinzufügen','pdwahl',{i},pdWahl===i)}</div>`;
+    if(pdWahl===i){ const L=pdProdukte(i).map(t=>({t,K:pdKennzahlen(t,i)})).sort((x,y)=>(y.K.ek-y.K.var)*y.K.kap-(x.K.ek-x.K.var)*x.K.kap);
+      h+=L.map(({t,K})=>`<div class="einrZ"><span class="tx"><b>${P[t].short}</b><small>Rohstoffe ${eur(K.var)} statt Einkauf ${eur(K.ek)} (${pz(K.margeVar)} gespart) · ${Math.floor(K.kap)} Stück/Tag · NEM ${pdRezept(t).nem} g · Bestand ${stockOf(t)} Stück</small></span>`+
+        kn('+1 Karton','pdadd',{i,t,v:1},false)+kn('+1 Palette','pdadd',{i,t,v:HR_JE_PALETTE},false)+`</div>`).join('')||'<small>Kein Produkt dieser Klasse im Sortiment (Lizenz fehlt).</small>'; }
+    h+=`</div></div></div>`;
+  }
+  /* Rohstoffe */
+  const RW=pdReichweite();
+  h+=`<div class="row"><div class="rm"><b>Rohstoffe</b><small>Bestellt heute, Lieferung morgen früh an Tor 6 (Gefahrgut-LKW ${eur(W.lieferpauschale)} je Liefertag). Premium kostet ${WF.prozMehr(W.premium)} % mehr: weniger Ausschuss, bessere Effekte.</small></div></div>`;
+  for(const r of PD_ROH){ const R=W.roh[r], l=D.lager[r], ort=R.lager, rw=RW[r];
+    h+=`<div class="row"><div class="rm"><b>${PD_ROH_NAME[r]}</b><small>${PD_LAGER_NAME[ort]}: ${Math.round(l.std)} kg Standard · ${Math.round(l.pre)} kg Premium · ${Math.round(pdUnterwegs(ort))} kg unterwegs · frei ${Math.max(0,Math.floor(pdFrei(ort)))} von ${W.lager[ort]} kg</small>`+
+      `<small>${eur(pdPreisKg(r,false))} je kg (Premium ${eur(pdPreisKg(r,true))}) · Gebinde ${R.gebinde} kg${isFinite(rw)?` · reicht ${String(Math.round(rw*10)/10).replace('.',',')} Tage`:''}</small></div>`+
+      `<div class="steps">${kn('Standard +'+R.gebinde+' kg','pdroh',{r,v:0,n:1})}${kn('+'+R.gebinde*5+' kg','pdroh',{r,v:0,n:5})}${kn('Premium +'+R.gebinde+' kg','pdroh',{r,v:1,n:1})}${kn('+'+R.gebinde*5+' kg','pdroh',{r,v:1,n:5})}</div></div>`; }
+  if(D.qs&&D.qs.length) h+=`<div class="row"><div class="rm"><b>QS-Labor</b>${D.qs.slice(0,4).map(x=>`<small>${dateStr(x.tag)} · Straße ${x.i+1} · ${P[x.t]?P[x.t].short:x.t}: Qualität ${Math.round(x.q*100)} % · Ruf ${x.ruf>=0?'+':''}${String(x.ruf).replace('.',',')}</small>`).join('')}</div></div>`;
+  return {h,hint:''};
+}
+function pdKlick(a,ds){
+  const D=pdDaten(), i=+ds.i, s=D.s[i];
+  if(a==='pdan'){ s.an=!s.an; if(s.an) D.aktiv=true; WK.produktion=!!D.aktiv; toast(`Straße ${i+1} ${s.an?'eingeschaltet – Fixkosten laufen ab jetzt':'ausgeschaltet'}.`); }
+  else if(a==='pdqual'){ s.pre=ds.v==='1'; }
+  else if(a==='pdb2b'){ s.b2b=!s.b2b; toast(s.b2b?`Straße ${i+1}: Die Spedition holt jeden Abend alles ab, was über ${WIRT.produktion.grosshandel.reserveKartons} Kartons je Sorte im Hochregal liegt (${WF.prozent(WIRT.produktion.grosshandel.faktor)} % vom Einkaufspreis, je nach Qualität).`:`Straße ${i+1}: nur noch für den eigenen Laden.`); }
+  else if(a==='pdwahl'){ pdWahl=pdWahl===i?-1:i; }
+  else if(a==='pdadd'){ const t=ds.t, n=+ds.v||1; if(!pdHerstellbar(t,i)) return; const L=s.plan[s.plan.length-1];
+    if(L&&L.t===t) L.n+=n; else s.plan.push({t,n,f:0}); toast(`Straße ${i+1}: ${n} Karton${n===1?'':'s'} ${P[t].short} eingeplant.`); }
+  else if(a==='pdmenge'){ const q=s.plan[+ds.j]; if(q){ q.n=Math.max(q.f+1,q.n+(+ds.v)); } }
+  else if(a==='pdhoch'){ const j=+ds.j; if(j>0){ const x=s.plan.splice(j,1)[0]; s.plan.splice(j-1,0,x); if(j-1===0){ s.fort=0; } } }
+  else if(a==='pddel'){ const j=+ds.j; s.plan.splice(j,1); if(j===0) s.fort=0; }
+  else if(a==='pdfrei'){ pdBeheben(i,'hand'); }
+  else if(a==='pdroh'){ pdBestellen(ds.r,ds.v==='1',+ds.n||1); }
+}
+
+/* ---------- Gameplay-Vorfuehrung (17e): das Werk laeuft mit ---------- */
+function pdVorfuehrung(){
+  if(!wkOffen()) return; const D=pdDaten(); D.aktiv=true; WK.produktion=true;
+  for(const r of PD_ROH){ const ort=pdLagerOrt(r); D.lager[r].std=Math.floor(WIRT.produktion.lager[ort]*0.35); D.lager[r].pre=Math.floor(WIRT.produktion.lager[ort]*0.15); }
+  for(let i=0;i<3;i++){ if(!wkStrasseOffen(i)) continue; const s=D.s[i], L=pdProdukte(i).sort((a,b)=>(P[b].weight||0)-(P[a].weight||0));
+    s.an=true; s.b2b=true; s.erf=WIRT.produktion.qualitaet.erfahrungTage; s.plan=L.slice(0,3).map(t=>({t,n:HR_JE_PALETTE*2,f:0})); }
 }
 /* =========================================================
    Park hinter dem Testfeld (Tom, 26.09.: "diese graue Flaeche - ein
@@ -26174,16 +26780,9 @@ function bauMoebel(K,sh,g,RF){
   const fg=new THREE.Group(); g.add(fg);
   let preisY, headY;
   if(K.bau==='tisch'){
-    /* Ladenbau-Tisch: weisse Platte mit Kantenumleimer, vier Vierkant-
-       beine, Zarge und eine Ablage darunter fuer Nachschub */
-    st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});
-    st.push({geo:box(W+0.01,0.02,D+0.01),m:tm(0,y-0.045,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.05,y-0.06,0.05),m:tm(sx*(W/2-0.06),(y-0.06)/2,sz*(D/2-0.06)),rolle:'rahmen'});
-    for(const sz of [-1,1]) st.push({geo:box(W-0.12,0.08,0.025),m:tm(0,y-0.1,sz*(D/2-0.06)),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.025,0.08,D-0.12),m:tm(sx*(W/2-0.06),y-0.1,0),rolle:'rahmen'});
-    st.push({geo:box(W-0.14,0.02,D-0.14),m:tm(0,0.16,0),rolle:'platte'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.06,0.015,0.06),m:tm(sx*(W/2-0.06),0.008,sz*(D/2-0.06)),rolle:'fuss'});
-    st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.1,D/2-0.04),rolle:'preis'});
+    /* Ladenbau-Tisch: Bauteile aus dem Baukasten (bk.verkaufstischTeile, 04z) - dieselben Teile braucht
+       die Verpackungs-Ausstellung 2.0 (17f) fuer ihre Tischreihen */
+    st.push(...bk.verkaufstischTeile(K,box));
     preisY=[y-0.1];
     /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - eigenes
        Teil, es verschwindet, solange der Tisch leer ist */
@@ -27361,6 +27960,10 @@ const LR={rear:-20.05,len:9.4,w:3.0,h:2.88,z:-2};
 function lrFront(){ return LR.rear-LR.len; }
 /* Scharnier der Ladebordwand und ihr Ausschlag beim Hochklappen */
 const BRUECKE_X=-20.1, FLAP_MAX=1.5, FLAP_T=1.1;
+/* Oberkante des Ladebodens am Rolltor V1 = Oberkante der heruntergeklappten Bruecke (makeBruecke: y 0,035 + halbe Platte 0,025) */
+const LADEBODEN_V1=0.06;
+/* Durchstieg vom Fuehrerhaus in den Laderaum (nur DDL an V1): Breite, Hoehe, Mitte quer */
+const DURCHSTIEG={b:0.8,h:1.95,lz:0,tiefe:1.3,kabB:1.5};
 
 function liveryTex(name,col,innen){
   const hex='#'+new THREE.Color(col).getHexString();
@@ -27493,7 +28096,9 @@ function makeLaderaum(name,col,rahmen){
     for(let i=0;i<1400;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`; c.fillRect(Math.random()*Wc,Math.random()*Hc,2,2); } });
   plank.wrapS=plank.wrapT=THREE.RepeatWrapping; plank.repeat.set(3,1);
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshStandardMaterial({map:plank,roughness:0.88}));
-  fl.rotation.x=-Math.PI/2; fl.position.set(-L/2,0.025,0);
+  /* An V1 (rahmen) liegt der Ladeboden buendig mit der Ueberladebruecke (Oberkante 0,06) - und damit ueber der Betonplatte des
+     Versandhofs (0,036) samt Hofschrift und Fahrspurmarkierung (0,04-0,045), die sonst durch den Boden im Laderaum scheinen (15.10.) */
+  fl.rotation.x=-Math.PI/2; fl.position.set(-L/2,rahmen?LADEBODEN_V1:0.025,0);
   if(HIQ) fl.receiveShadow=true; g.add(fl);
   /* Seitenwaende: helle Sperrholzverkleidung mit feinen Stossfugen */
   const wallTexI=tex(512,256,(c,Wc,Hc)=>{
@@ -27538,8 +28143,30 @@ function makeLaderaum(name,col,rahmen){
   LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6; }
   /* Stirnwand mit Lieferantenschrift */
   const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
-  const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
-  front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
+  if(!rahmen){
+    const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
+    front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
+  } else {
+    /* DDL: Stirnwand mit Durchstieg zum Fuehrerhaus - der Fahrer kommt aus dem Fahrzeug, nicht aus dem Nichts (15.10.).
+       Vier Stuecke um die Oeffnung, UV wie bei der ganzen Wand (u laeuft in Richtung -z der Gruppe). */
+    const D=DURCHSTIEG, z0=D.lz-D.b/2, z1=D.lz+D.b/2;
+    const stueck=(a0,a1,y0,y1)=>{ const geo=new THREE.PlaneGeometry(a1-a0,y1-y0), pos=geo.attributes.position, uv=geo.attributes.uv, c=(a0+a1)/2, cy=(y0+y1)/2;
+      for(let i=0;i<uv.count;i++){ uv.setXY(i,(W/2-(c-pos.getX(i)))/W,(cy+pos.getY(i))/HH); }
+      const m=new THREE.Mesh(geo,fm); m.rotation.y=Math.PI/2; m.position.set(-L+0.02,cy,c); g.add(m); };
+    stueck(-W/2,z0,0,HH); stueck(z1,W/2,0,HH); stueck(z0,z1,D.h,HH);
+    /* Fuehrerhaus hinter der Wand: dunkle Kabine, die Figur steht darin, bis die Tuer aufgeht */
+    const km=MAT.ober('anthrazit','matt',{side:THREE.DoubleSide}), kb=D.kabB, kt=D.tiefe, kx=-L-kt/2+0.02;
+    const kp=(w,h,x,y,z,ry,rx)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),km); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,0); g.add(m); };
+    kp(kt,kb,kx,0.05,D.lz,0,-Math.PI/2);                       /* Boden */
+    kp(kt,kb,kx,2.1,D.lz,0,Math.PI/2);                          /* Decke */
+    kp(kt,2.1,kx,1.05,D.lz-kb/2,0,0); kp(kt,2.1,kx,1.05,D.lz+kb/2,0,0);   /* Seiten */
+    kp(kb,2.1,-L-kt+0.02,1.05,D.lz,Math.PI/2);                  /* Rueckwand */
+    /* Tuerblatt: angeschlagen an der +z-Kante, schwenkt in den Laderaum (g.userData.tuer.rotation.y: 0 zu, -1,75 offen) */
+    const tuer=new THREE.Group(); tuer.position.set(-L+0.045,0,z1); g.add(tuer);
+    const blatt=new THREE.Mesh(new THREE.BoxGeometry(0.04,D.h,D.b-0.01),MAT.ober('lichtgrau','matt')); blatt.position.set(0,D.h/2,-D.b/2); tuer.add(blatt);
+    const klinke=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.03,0.12),MAT.ober('aluminium','blank')); klinke.position.set(0.03,1.0,-D.b+0.14); tuer.add(klinke);
+    g.userData.tuer=tuer;
+  }
   for(const s of [-1,1]) bbox(0.05,HH,0.07,alu,-L+0.05,HH/2,s*(W/2-0.07),g,false);
   /* Heck: Kantenschutz innen, Rahmen aussen gegen die Torlaibung */
   for(const s of [-1,1]) bbox(0.09,HH,0.09,alu,-0.05,HH/2,s*(W/2-0.05),g,false);
@@ -28494,7 +29121,9 @@ function figPose(u,dt,moving,speed){
   const AG=figAnim(man?'m_gehen':'w_gehen'), AS=figAnim(man?'m_stehen':'w_stehen');
   F.geh+=((moving?1:0)-F.geh)*Math.min(1,dt*7);
   /* Doppelschritt der Aufnahme, auf die Beinlaenge der Figur umgerechnet */
-  if(moving){ const sch=AG.schritt*B.wurzel[1]/AG.huefte*(F.root.parent?F.root.parent.scale.x:1); F.tw=(F.tw+dt*Math.max(0.6,speed||1.3)/sch)%1; }
+  if(moving){ const sch=AG.schritt*B.wurzel[1]/AG.huefte*(F.root.parent?F.root.parent.scale.x:1), sp=speed||1.3;
+    /* speed < 0: rueckwaerts gehen (Hubwagen ziehen) - die Aufnahme laeuft rueckwaerts */
+    F.tw=((F.tw+dt*Math.max(0.6,Math.abs(sp))/sch*(sp<0?-1:1))%1+1)%1; }
   F.ti=(F.ti+dt)%AS.dauer;
   for(const k of [0,1]) F.ov[k]+=(F.ovZiel[k]-F.ov[k])*Math.min(1,dt*10);
   if(u.greif){ u.greif.t+=dt; if(u.greif.t>=u.greif.dauer) u.greif=null; }
@@ -29605,7 +30234,10 @@ class Worker{
   }
   remove(){ if(this.job&&this.job.helfer===this) this.job.helfer=null; einrAufraeumen(this); if(this.kind==='packer') vsAufraeumen(this); if(this.carry&&this.carry.vm){ vmEinlagern(this.carry.pi===undefined?-1:this.carry.pi,this.carry.vm); this.carry=null; } scene.remove(this.g); personWeg(this.g); if(this.carry&&this.carry.count>0) spawnFloorBox(this.carry.type,this.carry.count,null,this.carry.q||1); }
 }
-function hireStaff(id){ if(staff[id]) return; staff[id]=new Worker(id); }
+function hireStaff(id){ if(staff[id]) return;
+  /* Werk West (05s): Werker und Mischer arbeiten an ihrer Straße bzw. im Mischhaus - keine Figur im Wegenetz */
+  const st=STAFF.find(x=>x.id===id); if(st&&st.werk!==undefined) return;
+  staff[id]=new Worker(id); }
 function fireStaff(id){ if(!staff[id]) return; staff[id].remove(); staff[id]=null; }
 function dailyWages(){ let w=0; STAFF.forEach(s=>{ if(S.staff[s.id]) w+=r2(s.wage*wageOf(s.id)*(inPause(s.id)?WIRT.personal.pause:1)); }); return r2(w); }
 /* Wer zu schlecht bezahlt wird, kündigt irgendwann */
@@ -31405,7 +32037,7 @@ function vmPic(id){
    Frame V1: lx laeuft vom Tor in den LKW (negativ = im Laderaum, positiv
    = in der Halle), lz seitlich; Welt = (V1.x - lz, V1.rz + lx).
    ========================================================= */
-const PAL_LG=1.2, PAL_BR=0.8, PAL_Y=0.09;          /* Europalette; PAL_Y: Hub am Hubwagen */
+const PAL_LG=1.2, PAL_BR=0.8;          /* Europalette */
 /* Abholung auf Anruf (Tom 09.10.; Anruf am Wandtelefon oder per Handy, Onlineshop-App).
    DDL_PAUSCHALE 39 EUR, nachgerechnet fuer Stufe 1 (1 Palette, ~90 S-Pakete Platz, Level 25):
    ~12 Bestellungen/Tag x Deckungsbeitrag ~26 EUR (Ware + Versandeinnahme) = 312, minus Porto
@@ -31433,8 +32065,10 @@ const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
 const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
 const HUB={pal:null,g:null,park:null,t:0,von:null};
 const DDL={ruf:false,warte:false,eta:0,t:0,lad:0,voll:false,heute:0};
-const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],fahrer:null,flapCol:null};
-const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,lx:-0.4,lz:0,ziel:null,agv:false};
+const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],flapCol:null};
+/* Fahrer und Hubwagen (ldUpdate): jx/jz = Gabelfuss, psi = Richtung der Gabel in (lx,lz), fx/fz/fpsi = Fahrer (haengt am Griff, wenn att),
+   pf = Weg, wd = Drehung auf der Stelle, hub 0..1 = Gabelhub, phi = Deichselwinkel, gang = Gehtempo (negativ = rueckwaerts) */
+const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,slot:0,ziel:null,jx:0,jz:0,psi:0,fx:0,fz:0,fpsi:0,att:false,armW:0,hub:0,phi:0,phiZ:0,door:0,gang:0,pf:null,wd:null};
 const VD={g:null,panels:[],t:0,target:0,col:null,lampG:null,lampR:null,warn:null,sign:null,signHit:null};
 
 /* ---------------------------------------------------------
@@ -31624,7 +32258,7 @@ function vsPalStellen(p,o,sofort){
     g.position.set(o.cx,0,o.cz);
   } else if(p.ort==='l'){
     if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
-    const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); g.position.set(w.x,0.03,w.z); g.rotation.y=Math.PI/2; o.cx=null;
+    const s=ddlSlot(p.idx), w=vf(s.lx,s.lz); g.position.set(w.x,LADEBODEN_V1,w.z); g.rotation.y=Math.PI/2; o.cx=null;
   } else if(p.ort==='h'){
     if(g.parent!==scene){ if(g.parent) g.parent.remove(g); scene.add(g); }
     o.cx=null;
@@ -31660,44 +32294,20 @@ function hubDa(){ return zoneOffen('packstation'); }
    Karre, Kiste und Moebel, die danach fragen */
 function hubAn(){ return false; }
 function hubKollision(){}
-function hubModell(){
-  const g=new THREE.Group(), rot=MAT.ober('signalrot','lackMetall'), stahl=MAT.get('chromHell');
-  const gummi=MAT.get('gummi'), griff=MAT.get('kunststoffSchwarz');
-  /* Gabeln zeigen nach vorn (-z), unter die Palette */
-  for(const sx of [-0.27,0.27]){ rbox(0.16,0.055,1.1,0.012,stahl,sx,0.05,-0.78,g); rbox(0.16,0.05,0.2,0.01,stahl,sx,0.045,-1.42,g);
-    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.07,12),gummi); r.rotation.z=Math.PI/2; r.position.set(sx,0.04,-1.3); g.add(r);
-    const r2=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.05,14),gummi); r2.rotation.z=Math.PI/2; r2.position.set(sx*0.9,0.08,-0.28); g.add(r2); }
-  rbox(0.7,0.14,0.2,0.02,rot,0,0.14,-0.24,g);
-  /* Deichsel mit Handgriff, schraeg zum Bediener */
-  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.95,8),griff); t.position.set(0,0.52,-0.05); t.rotation.x=-0.62; g.add(t);
-  rbox(0.34,0.05,0.07,0.015,griff,0,0.93,0.2,g);
-  g.traverse(o=>{ if(o.isMesh&&HIQ) o.castShadow=true; });
-  return g;
-}
+/* Der Hubwagen ist ein Baukasten-Bauteil: bk.hubwagen (04z) */
 /* Kran oder Greifer gerade an den Paletten? Dann wartet der Fahrer. */
 function roboterBusy(){ return vsPortal.phase!=='ruhe'||vsBahn.some(e=>e.phase==='greifer'); }
-/* Palette aus der Schlange nehmen: sie gleitet an den Hubwagen */
+/* Palette aus der Schlange nehmen: sie haengt am Hubwagen, ldPose setzt ihre Lage jedes Bild (die Gabel steckt schon in ihr) */
 function palAufnehmen(p){
   const o=vsPalObjekt(p);
-  o.g.updateMatrixWorld(true); const w=new THREE.Vector3(); o.g.getWorldPosition(w);
-  const ry=o.g.rotation.y+(o.g.parent===packTisch?packTisch.rotation.y:0);
-  p.wx=w.x; p.wz=w.z; p.wry=ry; p.von={x:w.x,z:w.z,ry}; p.vt=0;
   p.ort='h'; p.idx=0;
-  vsPalStellen(p,o,true); o.g.position.set(w.x,PAL_Y,w.z); o.g.rotation.y=ry;
+  vsPalStellen(p,o,true);
   vsPalAbgleich(); syncPakete();
-}
-function palFolgen(p,z,dt){
-  const o=vsPalObj[p.id]; if(!o) return;
-  p.vt=Math.min(1,(p.vt||0)+dt/0.55);
-  const k=p.von&&p.vt<1?vsGlatt(p.vt):1, a=p.von||z;
-  const x=a.x+(z.x-a.x)*k, zz=a.z+(z.z-a.z)*k;
-  o.g.position.set(x,PAL_Y,zz); o.g.rotation.y=vsWinkel(a.ry,z.ry,k);
-  p.wx=x; p.wz=zz;
 }
 function hubAufbauPark(){
   if(HUB.park||!packTisch) return;
   /* der Hubwagen steht im Versandhof neben dem Tor, die Gabeln zeigen vom Tor weg */
-  HUB.park=hubModell(); HUB.park.position.set(V1.x+3.6,0.036,V1.wz-1.5); HUB.park.rotation.y=0; scene.add(HUB.park);
+  HUB.park=bk.hubwagen({x:V1.x+3.6,y:0.036,z:V1.wz-1.5,ry:0}).g;
 }
 
 /* ---------------------------------------------------------
@@ -31797,7 +32407,9 @@ function buildVersandhof(){
   const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
     c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
     c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z1-2.4); zm.renderOrder=2; g.add(zm);
+  /* Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das
+     Fuehrerhaus bis -42,1); frueher bei z -32,5 mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
+  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z0+2.3); zm.renderOrder=2; g.add(zm);
   /* Zaun: Doppelstabmatte aus dem Baukasten (bk.zaun, aussen) - vorher eigene Pfosten alle 2 m mit
      halbdurchsichtiger Scheibe (14.10., Fundament Schritt Zaeune) */
   for(const [a,b] of [[[hof.x0,hof.z1],[hof.x0,hof.z0]],[[hof.x1,hof.z1],[hof.x1,hof.z0]],[[hof.x0,hof.z0],[hof.x1,hof.z0]]])
@@ -31844,8 +32456,8 @@ function vtLaderaumOeffnen(){
   VT.cols=[L(-LR.w/2-0.2,-LR.w/2+0.02,-LR.len-0.3,0.2),L(LR.w/2-0.02,LR.w/2+0.2,-LR.len-0.3,0.2),L(-LR.w/2,LR.w/2,-LR.len-0.25,-LR.len-0.02)];
   void a;
   if(typeof navDirty==='function') navDirty();
-  if(!VT.fahrer){ VT.fahrer=makePerson({kopf:'CM07'}); VT.fahrer.visible=false; scene.add(VT.fahrer); }
-  { const w=vf(-LR.len+2.4,-LR.w/2-1.4); VT.fahrer.position.set(w.x,0,w.z); VT.fahrer.rotation.y=1.2; VT.fahrer.visible=true; }
+  /* Hubwagen steht an der Wand, der Fahrer sitzt im Fuehrerhaus und steigt durch den Durchstieg ein, wenn das Tor offen ist (ldUpdate) */
+  ldStowen();
 }
 function vtFlap(){ if(VT.bruecke) VT.bruecke.rotation.z=VT.flap*FLAP_MAX; }
 function vtRaumWeg(){
@@ -31853,7 +32465,7 @@ function vtRaumWeg(){
   if(VT.bruecke){ if(VT.bruecke.parent) VT.bruecke.parent.remove(VT.bruecke); VT.bruecke=null; }
   VT.cols.forEach(c=>dropCol(c)); VT.cols=[];
   if(VT.flapCol){ dropCol(VT.flapCol); VT.flapCol=null; }
-  if(VT.fahrer) VT.fahrer.visible=false;
+  if(LD.ph!=='idle') ldAbbruch(); else { if(LD.jack) LD.jack.g.visible=false; if(LD.fig) LD.fig.visible=false; }
   if(typeof navDirty==='function') navDirty();
 }
 function vtEntfernen(){
@@ -31870,7 +32482,6 @@ function vtBesetzt(){
   return false;
 }
 function vtUpdate(dt){
-  if(VT.fahrer&&VT.fahrer.visible) animPerson(VT.fahrer,false,dt,1);
   if(!VT.state) return;
   const g=VT.g;
   if(VT.state==='anfahrt'){
@@ -31896,71 +32507,215 @@ function vtUpdate(dt){
 }
 
 /* ---------------------------------------------------------
-   Der DDL-Fahrer am Hubwagen: holt die vorderste Palette aus der
-   Box, faehrt sie rueckwaerts in den Laderaum und stellt sie ab.
-   Seit 09.10. in jeder Stufe der Fahrer (vorher ab Stufe 2 ein
-   Hubwagen-Roboter des Ladens).
+   Der DDL-Fahrer am Hubwagen (neu 15.10.2026, Tom: "Hubwagen-Ablauf ist unlogisch - Hubwagen hinter sich, Palette davor").
+   Echter Ablauf, Frame V1 (lx vom Tor in den LKW, negativ = Laderaum), Hubwagen = bk.hubwagen:
+   - Er kommt aus dem Fuehrerhaus: der Durchstieg in der Stirnwand geht auf, er geht durch die Gasse zum Hubwagen, der mit der
+     Gabel zum Tor an der Wand steht (kein Auftauchen aus dem Nichts).
+   - SCHIEBEN: Gabel voran in die Palette (Taschen der Europalette, die Gabeln fluchten), PUMPEN (drei Hube, Palette steigt 8 cm),
+     ZIEHEN: rueckwaerts gehen, die Palette folgt; auf dem Wendeplatz am Tor dreht er Hubwagen samt Palette um 180 Grad,
+     SCHIEBEN: die Palette voran in den Laderaum durch die Gasse, auf ihren Platz, SENKEN (Hebel, Palette setzt auf),
+     ZIEHEN: der leere Hubwagen kommt rueckwaerts heraus, Wenden, die naechste Palette.
+   - Ist alles verladen: der Hubwagen wird zurueck an die Wand geschoben, der Fahrer geht durch die Gasse in sein Fuehrerhaus.
+   Fahrer steht 1,17 m hinter dem Gabelfuss (Hand am Griff), die Palettenmitte 0,575 m davor. Tempo: leer schieben 1,3 m/s, mit Last
+   1,0 m/s, ziehen 1,2 / 0,9 m/s, zu Fuss 1,4 m/s. Kurven laufen auf Bahnen mit Rundung (Gabel folgt der Bahn, kein Ruckeln).
    --------------------------------------------------------- */
+const HW_PAL=bk.HUBWAGEN.gabelL/2, HW_HAND=0.55;
+const LD_STOW={lx:-2.4,lz:-1.15};        /* Hubwagen an der Seitenwand nahe dem Heck, Gabel zum Tor */
+const LD_T={lx:0.6,lz:0.2};              /* Wendeplatz am Tor: Hubwagen samt Palette dreht sich frei (Zone -1,95..1,65 quer) */
+const LD_V={leer:1.3,last:1.0,zugLeer:1.2,zugLast:0.9,fuss:1.4};
+/* Boden unter dem Fahrer: Ladeboden und Bruecke 0,06, dahinter die Halle 0 (kurze Auffahrt) */
+function ldBoden(lx){ return LADEBODEN_V1*(1-vsGlatt((lx-1.5)/0.35)); }
+function ldWd(d){ while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; return d; }
+/* Linienzug w=[[lx,lz],..] mit Rundung r an den Ecken (Kreisbogen), dicht abgetastet */
+function ldRund(w,r){
+  const out=[[w[0][0],w[0][1]]];
+  for(let i=1;i<w.length-1;i++){
+    const a=w[i-1], b=w[i], c=w[i+1];
+    let ux=a[0]-b[0], uz=a[1]-b[1], vx=c[0]-b[0], vz=c[1]-b[1];
+    const lu=Math.hypot(ux,uz), lv=Math.hypot(vx,vz); if(lu<1e-6||lv<1e-6){ out.push([b[0],b[1]]); continue; }
+    ux/=lu; uz/=lu; vx/=lv; vz/=lv;
+    const th=Math.acos(clamp(ux*vx+uz*vz,-1,1));                 /* Innenwinkel an der Ecke */
+    if(th>Math.PI-0.03||th<0.03){ out.push([b[0],b[1]]); continue; }
+    const tn=Math.tan(th/2), t=Math.min(r/tn,lu*0.5,lv*0.5), rr=t*tn;
+    const p1=[b[0]+ux*t,b[1]+uz*t], p2=[b[0]+vx*t,b[1]+vz*t];
+    let bx=ux+vx, bz=uz+vz; const bl=Math.hypot(bx,bz); bx/=bl; bz/=bl;
+    const cd=rr/Math.sin(th/2), mx=b[0]+bx*cd, mz=b[1]+bz*cd;
+    const a1=Math.atan2(p1[1]-mz,p1[0]-mx), da=ldWd(Math.atan2(p2[1]-mz,p2[0]-mx)-a1), n=Math.max(2,Math.ceil(Math.abs(da)/0.12));
+    for(let k=0;k<=n;k++){ const an=a1+da*k/n; out.push([mx+Math.cos(an)*rr,mz+Math.sin(an)*rr]); } }
+  out.push([w[w.length-1][0],w[w.length-1][1]]);
+  return out;
+}
+/* modus 'vor' = Gabel voran (Fahrer schiebt), 'rueck' = Fahrer zieht, geht rueckwaerts, 'fuss' = Fahrer allein; slowL/slowV = langsam am Ende */
+function ldPfadSetzen(w,r,modus,v,o){
+  o=o||{};
+  /* Hubwagen: die Bahn beginnt in Richtung der Gabel (schieben) bzw. entgegen (ziehen) - die Gabel dreht sich erst in der Kurve */
+  if(modus!=='fuss'){ const sg=modus==='vor'?1:-1; w=[w[0],[w[0][0]+Math.cos(LD.psi)*0.3*sg,w[0][1]+Math.sin(LD.psi)*0.3*sg]].concat(w.slice(1)); }
+  const P=ldRund(w,r), C=[0]; for(let i=1;i<P.length;i++) C.push(C[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));
+  LD.pf={P,C,len:C[C.length-1],s:0,modus,v,slowL:o.slowL||0,slowV:o.slowV||0.4,i:0,mitte:!!o.mitte};
+  ldPfadPunkt(LD.pf,true);
+}
+function ldPfadPunkt(pf,snap){
+  let i=pf.i; while(i<pf.P.length-2&&pf.C[i+1]<pf.s) i++; pf.i=i;
+  const a=pf.P[i], b=pf.P[i+1], sg=pf.C[i+1]-pf.C[i], t=sg>1e-9?clamp((pf.s-pf.C[i])/sg,0,1):0, tx=sg>1e-9?(b[0]-a[0])/sg:1, tz=sg>1e-9?(b[1]-a[1])/sg:0;
+  const x=a[0]+(b[0]-a[0])*t, z=a[1]+(b[1]-a[1])*t;
+  if(pf.modus==='fuss'){ LD.fx=x; LD.fz=z; LD.fpsi+=ldWd(Math.atan2(tz,tx)-LD.fpsi)*(snap?0:0.2); }
+  else { const h=pf.modus==='vor'?Math.atan2(tz,tx):Math.atan2(-tz,-tx); if(snap) LD.psi=h; else LD.psi+=ldWd(h-LD.psi)*0.25;
+    /* mitte: die Bahn gilt der Palettenmitte (Palette voran), der Gabelfuss folgt ihr - so schwenkt die Palette nie ueber die Bahn hinaus */
+    if(pf.mitte){ LD.jx=x-Math.cos(LD.psi)*HW_PAL; LD.jz=z-Math.sin(LD.psi)*HW_PAL; } else { LD.jx=x; LD.jz=z; } }
+}
+/* ein Schritt auf dem Weg; true = angekommen */
+function ldPfadLauf(dt){
+  const pf=LD.pf, rest=pf.len-pf.s; let v=pf.v;
+  if(pf.slowL&&rest<pf.slowL) v=pf.slowV+(pf.v-pf.slowV)*clamp(rest/pf.slowL,0,1);
+  v*=Math.min(1,0.2+pf.s/0.8,0.15+rest/0.6);                  /* sanft anfahren und abbremsen */
+  pf.s=Math.min(pf.len,pf.s+v*dt);
+  ldPfadPunkt(pf,false);
+  LD.gang=pf.modus==='rueck'?-v:v;
+  if(pf.s>=pf.len-1e-6){ LD.pf=null; LD.gang=0; return true; }
+  return false;
+}
+/* Drehung des Hubwagens samt Fahrer auf der Stelle (sign +1/-1 = Drehsinn), 180 Grad */
+function ldWende(sign,dauer){ LD.wd={von:LD.psi,bis:LD.psi+sign*Math.PI,dauer,t:0}; }
+function ldWendeLauf(dt){
+  const w=LD.wd; w.t+=dt; const k=vsGlatt(w.t/w.dauer); LD.psi=w.von+(w.bis-w.von)*k;
+  LD.gang=(k>0.02&&k<0.98)?0.8:0;
+  if(w.t>=w.dauer){ LD.wd=null; LD.gang=0; LD.psi=ldWd(w.bis); return true; }
+  return false;
+}
+/* Standpunkt des Fahrers hinter dem Griff */
+function ldStand(jx,jz,psi){ const e=bk.HUBWAGEN.griffZ+HW_HAND; return {lx:jx-Math.cos(psi)*e,lz:jz-Math.sin(psi)*e}; }
+/* Anfahrpunkt des Hubwagens vor der vordersten Palette der Box (Gabelfuss) */
+function ldBoxAnfahrt(){ const c=palZentrumWelt(0), f=vfRueck(c.x,c.z); return {lx:f.lx-HW_PAL,lz:f.lz}; }
+
 function ldBauen(){
   if(LD.jack) return;
-  LD.jack=hubModell(); LD.jack.visible=false; scene.add(LD.jack);
+  LD.jack=bk.hubwagen({}); LD.jack.g.visible=false;
   LD.fig=makePerson({kopf:'CM07'}); LD.fig.visible=false; scene.add(LD.fig);
 }
 function ldPose(dt){
-  /* Bediener bei (lx,lz) im Rahmen, blickt in die Halle (+lx = Welt +z): Rotation 0 */
-  const w=vf(LD.lx,LD.lz), aktiv=LD.ph!=='idle'&&LD.ph!=='fertig';
-  LD.fig.position.set(w.x,0,w.z); LD.fig.rotation.y=0; LD.fig.visible=aktiv;
-  LD.jack.position.set(w.x,0,w.z); LD.jack.rotation.y=0; LD.jack.visible=aktiv;
-  /* der wartende Fahrer neben dem LKW ist derselbe Mann */
-  if(VT.fahrer) VT.fahrer.visible=!aktiv&&!!VT.raum;
-  if(LD.pal){ const q=vf(LD.lx+1.3,LD.lz+(LD.ph==='fahren'||LD.ph==='absetzen'?(LD.sw||0):0)); palFolgen(LD.pal,{x:q.x,z:q.z,ry:Math.PI/2},dt||0.016); }
+  const K=bk.HUBWAGEN, d=[Math.cos(LD.psi),Math.sin(LD.psi)];
+  LD.phi+=(LD.phiZ-LD.phi)*Math.min(1,dt*14);
+  LD.jack.winkel(LD.phi); LD.jack.hub(LD.hub);
+  const gr=LD.jack.griff(LD.phi), fy=ldBoden(LD.jx), wj=vf(LD.jx,LD.jz);
+  LD.jack.g.position.set(wj.x,fy,wj.z); LD.jack.g.rotation.y=Math.PI-LD.psi;
+  if(LD.att){ const e=gr.z+HW_HAND; LD.fx=LD.jx-d[0]*e; LD.fz=LD.jz-d[1]*e; LD.fpsi=LD.psi; }
+  const wf=vf(LD.fx,LD.fz); LD.fig.position.set(wf.x,ldBoden(LD.fx),wf.z); LD.fig.rotation.y=-LD.fpsi;
+  if(LD.pal){ const o=vsPalObj[LD.pal.id];
+    if(o){ const wp=vf(LD.jx+d[0]*HW_PAL,LD.jz+d[1]*HW_PAL); o.g.position.set(wp.x,fy+K.hub*LD.hub,wp.z); o.g.rotation.y=Math.PI/2-LD.psi; } }
+  if(LD.fig.visible&&dt>0){
+    animPerson(LD.fig,Math.abs(LD.gang)>0.05,dt,LD.gang||1);
+    /* beide Haende am Griff: die Arme heben sich mit dem Griff (nach animPerson, dann folgt die Arm-IK) */
+    LD.armW+=((LD.att?1:0)-LD.armW)*Math.min(1,dt*5);
+    if(LD.armW>0.01){ const u=LD.fig.userData, rot=-1.0-(gr.y-1.19)/0.55;
+      for(const i of [0,1]) u.arms[i].rotation.x=u.arms[i].rotation.x*(1-LD.armW)+rot*LD.armW; }
+  }
+}
+/* Durchstieg in der Stirnwand: auf, solange der Fahrer in Naehe der Wand ist */
+function ldTuer(dt){
+  const t=VT.raum&&VT.raum.userData.tuer; if(!t) return;
+  const ziel=(LD.ph==='tuer'||(LD.fig&&LD.fig.visible&&LD.fx<-LR.len+2.0))?1:0, d=ziel-LD.door;
+  LD.door+=Math.sign(d)*Math.min(Math.abs(d),dt/0.9);
+  t.rotation.y=-1.75*vsGlatt(LD.door);
+}
+/* Der Hubwagen steht im Laderaum an der Wand, der Fahrer ist noch im Fuehrerhaus (bevor die Tuer aufgeht) */
+function ldStowen(){
+  ldBauen();
+  LD.ph='idle'; LD.t=0; LD.pal=null; LD.att=false; LD.armW=0; LD.hub=0; LD.phi=0; LD.phiZ=0; LD.door=0; LD.gang=0; LD.pf=null; LD.wd=null;
+  LD.jx=LD_STOW.lx; LD.jz=LD_STOW.lz; LD.psi=0; LD.fx=-LR.len-0.55; LD.fz=DURCHSTIEG.lz; LD.fpsi=0;
+  LD.jack.g.visible=true; LD.fig.visible=false; ldPose(0);
 }
 function ldNaechste(){
   const p=vsPalZelle()[0];
   return p&&vsPalZahl(p)>0?p:null;
 }
 function ldFreierPlatz(){ for(let i=0;i<DDL_SLOTS;i++) if(!S.paletten.some(q=>q.ort==='l'&&q.idx===i)) return i; return -1; }
+function ldArbeit(){ return !!ldNaechste()&&ldFreierPlatz()>=0; }
+function ldBereit(){ return !vsPalGleitet()&&!roboterBusy(); }
+/* Weg zur vordersten Palette: aus dem Laderaum (mit Last-frei) oder vom Wendeplatz, Gabel voran, am Ende langsam (Gabel faedelt ein) */
+function ldZumBox(){
+  const B=ldBoxAnfahrt(), j=[LD.jx,LD.jz];
+  const w=LD.jx<-0.5?[j,[-1.0,j[1]],[0.9,B.lz],[B.lx,B.lz]]:[j,[1.25,B.lz],[B.lx,B.lz]];
+  ldPfadSetzen(w,1.4,'vor',LD_V.leer,{slowL:1.3,slowV:0.45}); LD.ph='hin'; LD.t=0;
+}
 function ldUpdate(dt){
   if(!LD.jack) ldBauen();
+  ldTuer(dt);
   const aktiv=VT.state==='docked'&&vdIstOffen();
-  if(!aktiv){ if(LD.ph!=='idle'){ ldAbbruch(); } return; }
-  const v=1.0;
+  if(!aktiv){ if(LD.ph!=='idle') ldAbbruch(); return; }
+  LD.t+=dt;
+  const L=LR.len;
   switch(LD.ph){
     case 'idle': {
       /* wartet kurz; faehrt nicht, solange der Kran noch ein Paket absetzt */
-      if(DDL.t<DDL_RUF||vsPalGleitet()||roboterBusy()) break;
-      const p=ldNaechste(), slot=ldFreierPlatz(); if(!p||slot<0) break;
-      LD.ziel=ddlSlot(slot); LD.slot=slot; LD.pal=null; LD.x0=boxStandLx(); LD.lx=LD.x0; LD.lz=BOX_LZ; LD.lz0=BOX_LZ; LD.sw=0; LD.ph='hin'; LD.t=0; ldPose(dt); break; }
+      if(DDL.t<DDL_RUF||!ldBereit()||!ldArbeit()) break;
+      LD.fig.visible=true; LD.fx=-L-0.55; LD.fz=DURCHSTIEG.lz; LD.fpsi=0; LD.ph='tuer'; LD.t=0; break; }
+    case 'tuer': {
+      if(LD.t<0.85) break;
+      const G=ldStand(LD.jx,LD.jz,0);
+      ldPfadSetzen([[-L-0.55,DURCHSTIEG.lz],[-L+1.0,DURCHSTIEG.lz],[-5.4,0],[-4.4,G.lz],[G.lx,G.lz]],0.7,'fuss',LD_V.fuss); LD.ph='aus'; LD.t=0; break; }
+    case 'aus': { if(ldPfadLauf(dt)){ LD.att=true; LD.ph='greif'; LD.t=0; } break; }
+    case 'greif': { if(LD.t>=0.8&&ldBereit()) ldZumBox(); break; }
     case 'hin': {
-      /* ans Tor stellen und die Gabeln unter die vorderste Palette schieben */
-      LD.t+=dt; ldPose(dt); if(LD.t<0.9) break;
-      const p=ldNaechste(); if(!p){ LD.ph='idle'; break; }
-      palAufnehmen(p); p.lader=true; LD.pal=p; LD.ph='fahren'; LD.t=0; break; }
-    case 'fahren': {
-      /* rueckwaerts durch die Gasse in der Mitte des Laderaums; die Palette schwenkt erst zum Schluss
-         seitlich auf ihren Platz - der Fahrer kommt so nie an stehenden Paletten vorbei */
-      const ziel=LD.ziel.lx-1.3;
-      LD.lx=Math.max(ziel,LD.lx-v*dt);
-      const rest=LD.lx-ziel;
-      LD.lz=LD.lz0*(1-vsGlatt(clamp((LD.x0-LD.lx)/1.6,0,1)));
-      LD.sw=LD.ziel.lz*vsGlatt(clamp(1-rest/1.3,0,1));
-      ldPose(dt); if(LD.lx<=ziel+1e-6){ LD.ph='absetzen'; LD.t=0; } break; }
-    case 'absetzen': {
-      LD.t+=dt; ldPose(dt); if(LD.t<0.7) break;
-      const p=LD.pal; LD.pal=null; p.ort='l'; p.idx=LD.slot; p.lader=false; vsPalStellen(p,vsPalObj[p.id],true);
-      statAdd('paletten',1); sfx.thump(0.3); syncPakete(); LD.ph='zurueck'; LD.t=0; break; }
-    case 'zurueck': {
-      /* erst in die Fahrgasse, dann vorwaerts zum Tor */
-      if(Math.abs(LD.lz)>0.01){ LD.lz+=Math.sign(-LD.lz)*Math.min(Math.abs(LD.lz),dt*0.9); }
-      else LD.lx=Math.min(LD.x0,LD.lx+1.7*dt);
-      ldPose(dt); if(LD.lx>=LD.x0-1e-6&&Math.abs(LD.lz)<0.02){ LD.ph='idle'; LD.t=0; LD.jack.visible=false; LD.fig.visible=false; if(VT.fahrer) VT.fahrer.visible=!!VT.raum; } break; }
+      if(!LD.pf||ldPfadLauf(dt)){ LD.pf=null; LD.ph='pick'; LD.t=0; } break; }
+    case 'pick': {
+      /* Gabel steckt in der Palette: warten, bis der Kran fertig ist, dann die Palette an den Hubwagen nehmen */
+      if(LD.t<0.5||!ldBereit()) break;
+      const p=ldNaechste(), slot=ldFreierPlatz();
+      if(!p||slot<0){ ldPfadSetzen([[LD.jx,LD.jz],[1.2,LD.jz],[LD_T.lx,LD_T.lz]],1.5,'rueck',LD_V.zugLeer); LD.ph='leer'; LD.t=0; break; }
+      palAufnehmen(p); LD.pal=p; LD.slot=slot; LD.ziel=ddlSlot(slot); LD.hub=0; LD.ph='heben'; LD.t=0; break; }
+    case 'heben': {
+      /* drei Pumpenhube: Griff runter = Gabel hoch, Griff hoch = zurueck; Hub 0..1 = 8 cm */
+      const T=0.66, x=LD.t/T, k=Math.floor(x), f=x-k, n=3;
+      LD.phiZ=-0.12*Math.cos(2*Math.PI*f);
+      LD.hub=Math.min(1,(k+vsGlatt(Math.min(1,f*2)))/n);
+      if(LD.t>=T*n){ LD.hub=1; LD.phiZ=0; const B=ldBoxAnfahrt();
+        ldPfadSetzen([[B.lx,B.lz],[1.2,B.lz],[LD_T.lx,LD_T.lz]],1.5,'rueck',LD_V.zugLast); LD.ph='zieh'; LD.t=0; }
+      break; }
+    case 'zieh': {
+      if(ldPfadLauf(dt)){ ldWende(1,3.0); LD.ph='wende2'; LD.t=0; } break; }
+    case 'wende2': {
+      if(ldWendeLauf(dt)){
+        /* Palette voran in den Laderaum: durch die Gasse, kurz vor dem Platz seitlich auf die Spalte, die letzten Meter gerade */
+        const e=LD.ziel.lx, z=LD.ziel.lz, C0=[LD.jx+Math.cos(LD.psi)*HW_PAL,LD.jz+Math.sin(LD.psi)*HW_PAL];
+        /* Bahn der Palettenmitte: Gasse, lange sanfte Kurve auf die Spalte, die letzten 1,3 m gerade (Radius >= 3 m: die Palettenecke bleibt 5 cm
+           vor der Seitenwand) */
+        ldPfadSetzen([C0,[e+4.5,0],[e+1.3,z],[e,z]],3.0,'vor',LD_V.last,{slowL:1.2,slowV:0.4,mitte:true}); LD.ph='rein'; LD.t=0; }
+      break; }
+    case 'rein': {
+      if(ldPfadLauf(dt)){ LD.ph='senken'; LD.t=0; } break; }
+    case 'senken': {
+      /* Senkhebel: Palette setzt auf den Ladeboden auf */
+      const T=1.1; LD.phiZ=-0.1; LD.hub=Math.max(0,1-LD.t/T);
+      if(LD.t<T) break;
+      const p=LD.pal; LD.pal=null; LD.hub=0; LD.phiZ=0; p.ort='l'; p.idx=LD.slot; vsPalStellen(p,vsPalObj[p.id],true);
+      statAdd('paletten',1); sfx.thump(0.3); syncPakete();
+      const z=LD.ziel.lz;
+      ldPfadSetzen([[LD.jx,LD.jz],[LD.jx+1.5,z],[LD.jx+4.0,0],[LD_T.lx,LD_T.lz]],3.0,'rueck',LD_V.zugLeer); LD.ph='leer'; LD.t=0; break; }
+    case 'leer': {
+      if(ldPfadLauf(dt)){ LD.ph='s0'; LD.t=0; } break; }
+    case 's0': {
+      /* am Wendeplatz: noch eine Palette? sonst Hubwagen zurueckstellen */
+      if(ldArbeit()){ if(!ldBereit()) break; ldWende(-1,2.4); LD.ph='wende1'; LD.t=0; break; }
+      const P=[-3.0,LD_STOW.lz];
+      ldPfadSetzen([[LD_T.lx,LD_T.lz],[-0.5,LD_T.lz],[-1.7,P[1]],P],1.2,'vor',LD_V.leer); LD.ph='park'; LD.t=0; break; }
+    case 'wende1': { if(ldWendeLauf(dt)) ldZumBox(); break; }
+    case 'park': {
+      if(ldPfadLauf(dt)){ LD.ph='frei'; LD.t=0; } break; }
+    case 'frei': {
+      if(LD.t<0.5) break;
+      LD.att=false; LD.phiZ=0;
+      const f=[LD.fx,LD.fz];
+      ldPfadSetzen([f,[f[0],0],[-L+1.0,0],[-L-0.7,DURCHSTIEG.lz]],0.6,'fuss',LD_V.fuss); LD.ph='heim'; LD.t=0; break; }
+    case 'heim': {
+      if(ldPfadLauf(dt)||LD.fx<-L-0.35){ LD.pf=null; LD.gang=0; LD.fig.visible=false; LD.ph='idle'; LD.t=0; } break; }
   }
-  if(LD.fig&&LD.fig.visible) animPerson(LD.fig,LD.ph==='fahren'||LD.ph==='zurueck',dt,0.9);
+  ldPose(dt);
 }
 /* Truck weg oder Tor zu: die Palette kommt zurueck an den Anfang der Schlange */
 function ldAbbruch(){
-  if(LD.pal){ const p=LD.pal; LD.pal=null; p.lader=false; p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; const o=vsPalObj[p.id]; if(o){ vsPalStellen(p,o,true); o.cx=null; } vsPalAbgleich(); syncPakete(); }
-  LD.ph='idle'; LD.t=0; if(LD.jack) LD.jack.visible=false; if(LD.fig) LD.fig.visible=false;
+  if(LD.pal){ const p=LD.pal; LD.pal=null; p.ort='z'; vsPalZelle().forEach(q=>{ if(q!==p) q.idx++; }); p.idx=0; const o=vsPalObj[p.id]; if(o){ vsPalStellen(p,o,true); o.cx=null; } vsPalAbgleich(); syncPakete(); }
+  LD.ph='idle'; LD.t=0; LD.att=false; LD.pf=null; LD.wd=null; LD.hub=0; LD.phiZ=0; LD.gang=0;
+  if(LD.jack) LD.jack.g.visible=false; if(LD.fig) LD.fig.visible=false;
 }
 
 /* ---------------------------------------------------------
@@ -36049,10 +36804,11 @@ function igniteType(t,o0,it){
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
   /* Prototyp der eigenen Rezeptur (14z4 abProtoZuenden): kostenlos, ohne Hype */
-  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto){
+  /* QS-Stichprobe der Eigenproduktion (14z4 abStichprobe, it.qs): auch ohne Hype - das Stueck gehoert zur Produktion */
+  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto&&!(it&&it.qs)){
     hype=Math.min(WIRT.kunden.hype.max,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
-  else vfGezuendet++;
+  else if(!(it&&it.qs)) vfGezuendet++;
   if(SHOWS[t]){ const tag=neuerShowTag(); emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t,tag)); return; }
   /* Anomalie-Tabellen (26.09.): Fontaenen in Phasen, Kugelsorten,
      Kleinfeuerwerk (Verteiler aus der Kleinfeuerwerk-Datei) */
@@ -50764,6 +51520,18 @@ function abProtoZuenden(r){
   const pl=abPlatzStation(st,slot), it=Object.assign(abAufstellen(pl,id),{type:id,q:1,slot,kanal:kanalVon(st,slot),state:'bereit',proto:true});
   st.items.push(it); drawPult(); zuendeItem(st,it,true);
   return {frei:true,kanal:it.kanal,id}; }
+/* QS-Stichprobe der Eigenproduktion (Werk West, 05s pdQs): ein Stueck aus der Fertigung wird auf dem Testfeld gezuendet - gleicher Platz,
+   gleiche Mechanik, Effekt unveraendert; q = Effektqualitaet (Blindgaenger bei schlechter Qualitaet wie bei Lieferantenware),
+   it.qs: kein Hype, keine Erfahrung, nicht "selbst gezuendet" (das Stueck ist Teil der Produktion). Ohne Testfeld/freien Platz: frei false */
+function abStichprobe(t,q){
+  const sid=typeof stationOf==='function'?stationOf(t):null, st=sid&&typeof stations!=='undefined'?stations[sid]:null;
+  if(!st||!P[t]) return {frei:false};
+  const slot=sid==='moerser'?moerserRohr(t):freierPlatz(st);
+  if(slot<0||itemAufPlatz(st,slot)) return {frei:false};
+  const h=abAufstellen(abPlatzStation(st,slot),t); if(!h) return {frei:false};
+  const it=Object.assign(h,{type:t,q:q||1,slot,kanal:kanalVon(st,slot),state:'bereit',qs:true});
+  st.items.push(it); drawPult(); later(1.5,()=>zuendeItem(st,it,true));
+  return {frei:true,kanal:it.kanal}; }
 
 /* Testzugang (abschussregel.js) */
 try{ window.__abschuss={abForm,abPlatz,abPlatzStation,abMuendung,abKerze,abKerzenLoecher,abOben,abPool,abTeile,abAufstellen,abZuenden,abWeg,
@@ -51092,7 +51860,9 @@ function updateTarget(){
   belt.forEach(b=>list.push(b.hit));
   sbLanes.forEach((l,i)=>{ if(l.hit&&sbNutzbar(i)&&nahDran(sbPos(i),R)) list.push(l.hit); });
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
+  if(typeof vp2An!=='undefined'&&vp2An) for(const e of vp2Liste) if(e.hit&&nahDran(e.hit.position,R)) list.push(e.hit);
   list.push(lapHit,doorSign,posHit,cardHit);
+  if(typeof pdHits==='function') list.push(...pdHits());   /* Werk West: Leitstand-Pult, gestoerte Zelle (05s) */
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
   if(pultHit) list.push(pultHit);
@@ -51108,6 +51878,8 @@ function updateTarget(){
 }
 function promptFor(t){
   if(t&&t.kind==='ddltel'&&typeof ddlTelPrompt==='function') return ddlTelPrompt();
+  if(t&&t.kind==='vpstueck') return vp2Prompt(t.ref);
+  if(t&&(t.kind==='pdleitstand'||t.kind==='pdstoer')) return pdPrompt(t);
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -51187,6 +51959,8 @@ function doAction(){
   if(sprayOn&&!grabbed){ doSpray(); return; }
   if(!target) return;
   if(target.kind==='ddltel'){ ddlRufen(); return; }
+  if(target.kind==='vpstueck'){ vp2Weiter(target.ref); return; }
+  if(target.kind==='pdleitstand'||target.kind==='pdstoer'){ pdAktion(target); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();
@@ -51728,7 +52502,7 @@ function fixedCosts(){
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
   /* Halle Etappe A: Betrieb je aktiver Hochregal-Gasse */
   if(typeof llGasseAktiv==='function') for(let k=0;k<3;k++) if(llGasseAktiv(k)) f+=WIRT.fix.hochregal;
-  /* Halle Etappe B: Werk erst ab Produktion (im Schau-Betrieb 0, 05r wkFixkosten) */
+  /* Halle Etappe B: Werk erst ab Produktion (05r wkFixkosten, 05s) */
   if(typeof wkFixkosten==='function') f+=wkFixkosten();
   return f;
 }
@@ -51760,14 +52534,16 @@ function endDay(){
   const online=onlineBasis;
   const dispo=dispoZins();
   if(packBereit()&&(S.offen|0)>WIRT.versand.strafe.offenAb){ rep(-Math.min(WIRT.versand.strafe.offenMax,WIRT.versand.strafe.offenJe*(S.offen-WIRT.versand.strafe.offenAb))); }
-  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online;
+  /* Werk West (05s): die Spedition des Grosshandels holt den Ueberschuss der Eigenproduktion ab */
+  const werksverkauf=typeof pdGrosshandel==='function'?pdGrosshandel():0;
+  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online+werksverkauf;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
     S.loan.remaining=r2(S.loan.remaining-(pay-interest)); S.loan.paid=r2(S.loan.paid+pay);
     if(S.loan.remaining<=0.01){ S.loan=null; toast('Kredit vollständig abbezahlt.','money'); } }
   DS.interest=pay;
   S.money=r2(S.money-wages-fix-pay-dispo+extra);
-  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)+(DS.roh||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
   if(typeof onlineTagSchliessen==='function') onlineTagSchliessen(wartend);
   const dayXP=WIRT.xp.tag.grund+Math.round(DS.revenue*WIRT.xp.tag.jeUmsatz)+(DS.angry===0?WIRT.xp.tag.ohneBeschwerde:0);
   addXP(dayXP);
@@ -51776,6 +52552,7 @@ function endDay(){
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
   if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(WIRT.tag.automat)]);
   if(online) rows.push(['Onlineshop (Marktplatz-Pauschale)',eur(online)]);
+  if(werksverkauf) rows.push([`Werksverkauf an den Großhandel (${DS.b2bKartons|0} Kartons)`,eur(werksverkauf)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
   if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
   if(DS.onRabatt) rows.push(['Online-Rabatte (schon abgezogen)',eur(DS.onRabatt)]);
@@ -51783,7 +52560,7 @@ function endDay(){
   if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
   if(packBereit()&&paketeJetzt>0) rows.push(['Pakete warten auf DDL',`${paketeJetzt}${wartend?` · ${wartend} seit gestern`:''}`]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
-  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.ddl?[[`DDL-Abholung (${DS.ddlN|0}× ${eur(typeof DDL_PAUSCHALE!=='undefined'?DDL_PAUSCHALE:0)})`,eur(DS.ddl)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),
+  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.ddl?[[`DDL-Abholung (${DS.ddlN|0}× ${eur(typeof DDL_PAUSCHALE!=='undefined'?DDL_PAUSCHALE:0)})`,eur(DS.ddl)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),...(DS.roh?[['Rohstoffe für das Werk',eur(DS.roh)]]:[]),
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
     ['Ruf',(dr>=0?'+':'')+dr.toFixed(1).replace('.',',')],['Erfahrung',`+${DS.xpGained} XP`],
@@ -51803,6 +52580,8 @@ function endDay(){
     rows.push(['Was jetzt hilft',wege.join(' · ')]);
     if(luft<400) rows.push(['Dringend','Ohne Geld kommt keine Ware ins Regal, und ohne Ware kein Umsatz. Jetzt gegensteuern.']);
   }
+  /* Produktion im Werk West (05s): je Straße Stueck, Ausschuss, Kosten; gebundenes Kapital */
+  if(typeof pdTagesabschluss==='function') rows.push(...pdTagesabschluss());
   /* Marktlage des Tages */
   if(DS.praemien) rows.push(['Prämien aus Herausforderungen',eur(DS.praemien)]);
   rows.push({head:'Markt'},['Preisniveau',marktText()],['Inflation seit Beginn',inflText()]);
@@ -51863,8 +52642,10 @@ let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=fa
    Lager-PC in der Versandecke = Bestellen, Onlineshop (Versandkosten, Aktionen, Statistik)
    und Team; Tablet im Laden = Ware bestellen. Das Handy bleibt, wie es ist. */
 const GERAETE={
-  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','shop'],zu:'Laptop zuklappen'},
-  lager :{name:'Lager-PC',tabs:['order','online','staff'],zu:'Abmelden'},
+  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','prod','shop'],zu:'Laptop zuklappen'},
+  lager :{name:'Lager-PC',tabs:['order','online','staff','prod'],zu:'Abmelden'},
+  /* Werk West (05s): Leitstand auf der Galerie - Produktion (mit "Zelle freigeben") und Team */
+  leitstand:{name:'Leitstand Werk West',tabs:['prod','staff'],zu:'Leitstand verlassen'},
   tablet:{name:'Tablet · Bestellen',tabs:['order'],zu:'Tablet weglegen'}};
 let lapGeraet='buero';
 function geraetTabs(){ return (GERAETE[lapGeraet]||GERAETE.buero).tabs; }
@@ -53309,6 +54090,8 @@ function lapZeichnen(body){
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
+  } else if(ltab==='prod'){
+    const r=pdLaptop(); h=r.h; hint=r.hint;
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:`Kredite gibt es ab Level ${LOANS[0].lvl}.`;
@@ -53349,7 +54132,9 @@ function lapZeichnen(body){
         /* 03.10. (Tom): das Spiel kurz vor dem Ende ansehen - alles gebaut, Personal, Kundschaft, Wirtschaft */
         `<div class="row"><div class="rm"><b>Gameplay-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein fast durchgespielter Laden: alle Flächen ausgebaut, alle Lizenzen, das ganze Team, Regale voller Ware, der Laden läuft von selbst Tag für Tag, morgens wird nachbestellt. Unten siehst du Kontostand, Umsatz, Kunden und den Verlauf; 1–7 springen in die Bereiche, T schaltet den Zeitraffer, B beendet. Dein Spielstand wird vorher gesichert und danach zurückgeholt.</small></div><button data-a="gameplay">Starten</button></div>`+
         /* 02.10. (Tom): alle Verpackungen im Regal auf einen Blick */
-        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`:'')+
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung <span class="warn">(nur Entwicklung)</span></b><small>Ein eigener Ausstellungsraum wie ein Supermarkt – Hauptgang, Quergang und Gänge zwischen allen Regalzeilen: Hochregal, Verkaufsregal, Mittelgondel, kleines Regal, Kühlschrank, Großverbund-Regal, Tische, Gitterboxen und Eckregale. Jedes Produkt füllt genau ein Fach – so sieht man jede Verpackung und wie sie im Regal steht. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung">${vpAn?'Beenden':'Starten'}</button></div>`+
+        /* 15.10. (Tom): jede Verpackung einzeln auf einem Verkaufstisch, mit Nummer und Freigabe */
+        `<div class="row"><div class="rm"><b>Verpackungs-Vorführung 2.0 (Ausstellung) <span class="warn">(nur Entwicklung)</span></b><small>Jedes Produkt genau einmal als Einzelstück auf einem Verkaufstisch, nach Kategorien in Reihen, davor ein Schild mit Nummer und Name. Aktion-Taste (E bzw. Aktion-Knopf) auf ein Stück: offen, passt, passt nicht – das Schild färbt sich grün oder rot. „Liste“ (L) zeigt die nicht freigegebenen zum Kopieren. Beenden: Knopf oben oder B.</small></div><button data-a="verpackung2">${vp2An?'Beenden':'Starten'}</button></div>`:'')+
       `<div class="row"><div class="rm"><b>Spielstand</b><small>Wird automatisch gespeichert.</small></div><button class="ghost" data-a="reset">${resetArm?'Wirklich löschen?':'Spielstand löschen'}</button></div>`;
   }
   body.innerHTML=h;
@@ -53449,6 +54234,7 @@ function lapKlick(e,imHandy){
   else if(a==='einr'){ const [v,g]=b.dataset.v.split(':'), n=STAFF.find(x=>x.id===t).name;
     if(v==='hoch') einrHoch(t,g); else if(v==='runter') einrRunter(t,g); else einrSchalten(t,g);
     const r=einrAktiv(t); toast(r.length?`${n}: zuerst ${AUFGABEN[r[0]].name}.`:`${n}: alle Aufgaben aus - steht nur herum.`); }
+  else if(a&&a.indexOf('pd')===0&&typeof pdKlick==='function') pdKlick(a,b.dataset);
   else if(a==='loan') takeLoan(+b.dataset.v);
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
@@ -53461,6 +54247,7 @@ function lapKlick(e,imHandy){
   else if(a==='vfaenderung'){ vorfuehrungAn(vfAenderungListe(),'VORFÜHRUNG (ÄNDERUNGEN)'); return; }
   else if(a==='vfkugeln'){ vorfuehrungAn(vfKugelListe(),'KUGELBOMBEN-VORFÜHRUNG'); return; }
   else if(a==='verpackung'){ vpSchalten(); return; }
+  else if(a==='verpackung2'){ vp2Schalten(); return; }
   else if(a==='fwtestneu'){ const n=fwTestStapeln(); toast(`${n} Kartons neu gestapelt.`); }
   else if(a==='reset'){ if(!resetArm) resetArm=true; else { try{ localStorage.removeItem(KEY); }catch(err){} location.reload(); return; } }
   renderLaptop();
@@ -53552,8 +54339,8 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
-      else if(id==='fabrik') toast('Das Werk steht: Straße 1 baut Raketen im Schau-Betrieb, der Förderer bringt die Paletten in Gasse 2. Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
-      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} laufen. Vom Leitstand siehst du alle Straßen.`,'money');
+      else if(id==='fabrik') toast('Das Werk steht. Für die Produktion: Werker und Mischer einstellen (Team), Rohstoffe bestellen und einen Auftrag anlegen (Produktion). Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
+      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} stehen bereit – mit eigenem Werker und Auftrag laufen sie los. Vom Leitstand siehst du alle Straßen.`,'money');
       else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
@@ -54406,6 +55193,7 @@ function vpAbbauen(){
 function vpSchalten(){ if(!FW_DEV) return; if(vpAn) vpAus(); else vpStart(); }
 function vpStart(){
   if(vpAn) return;
+  if(typeof vp2An!=='undefined'&&vp2An) vp2Aus();
   if(typeof vfAn!=='undefined'&&vfAn) vorfuehrungAus();
   if(fwTestAn) fwTestSchalten();
   vpVorher={x:pl.x,z:pl.z,yaw,pitch};
@@ -54441,6 +55229,273 @@ function vpZeigen(V,bis){
   k.addEventListener('touchend',e=>{ e.preventDefault(); e.stopPropagation(); vpAus(); },{passive:false});
 }
 function vpTaste(e){ if(e.code==='KeyB'&&!e.repeat){ vpAus(); return true; } return false; }
+/* =========================================================
+   VERPACKUNGS-VORFUEHRUNG 2.0 (AUSSTELLUNG) - NUR FUER DIE ENTWICKLUNG (Tom, 15.10.2026)
+   "Ich moechte jede einzelne Verpackung genau anschauen und freigeben. Stell mir Verkaufstische hin
+   und jedes Produkt EINMAL drauf, ein einziges Stueck als Ausstellungsstueck, mit dem Namen davon.
+   Dann sage ich dir, welche Verpackung nicht passt. Die bisherige Vorfuehrung bleibt drin."
+   Eigener Raum weit ab von Karte und Vorfuehrung 1 (17c): Reihen von Verkaufstischen (Bauteil
+   bk.verkaufstisch, Optik wie die Laden-Tische), nach Kategorien gruppiert, breite Gaenge. Jedes Produkt
+   steht genau 1x als Einzelpackung in natuerlicher Lage auf einem Tisch, davor ein Schild: laufende
+   Nummer, Name, Kategorie, Level (bk.schildAtlas: alle Schilder = 2 Draw-Calls, 1 Bild). Nummern
+   stabil: nach Kategorie, dann Produkt-ID sortiert ("Nr. 47 passt nicht").
+   Freigabe: Aktion-Taste (E / Aktion-Knopf) auf ein Stueck: offen -> passt -> passt nicht -> offen,
+   das Schild faerbt sich blau/gruen/rot. Stand in localStorage. Knopf "Liste" (Taste L): die
+   Nicht-Freigegebenen als Text zum Kopieren. Beenden: Knopf oder B (alles wieder weg).
+   Leistung: Packungen aus den Pools (eine Instanz je Produkt), ausserhalb des Blickfelds und weiter
+   als VP2_SICHT m weg nicht gezeichnet (wie die Regale), Texturen bis VP2_TEX.
+   ========================================================= */
+const VP2_KEY='bb_vp2_freigabe_v1';
+const VP2_TEX=Math.min(GFX_START.tex,0.75);        /* Aufloesung der Packungsbilder (Tom prueft sie genau) */
+const VP2_SICHT=16;                               /* weiter weg wird die Packung nicht gezeichnet */
+const VP2_H=4.0, VP2_WEST=3.6, VP2_OST=2.6, VP2_NORD=3.2, VP2_GANG=2.6, VP2_TISCH=2.0, VP2_FUGE=0.1, VP2_REIHE=8, VP2_MAXN=3;
+const VP2_NAMEN=['offen','✓ passt','✗ passt nicht'];
+/* Kategorien in Reihenfolge der Ausstellung; Name gross auf dem Reihenschild */
+const VP2_KATS=[['bat','Batterien'],['rak','Raketen'],['kug','Kugelbomben'],['fon','Fontänen & Vulkane'],['boe','Böller'],['bod','Bodeneffekte & Sonstiges'],['sor','Sortimente'],['f1','Kleinfeuerwerk F1'],['zub','Zubehör'],['ess','Essen'],['get','Getränke']];
+const VP2_KATNAME={}, VP2_KATIDX={}; VP2_KATS.forEach(([k,n],i)=>{ VP2_KATNAME[k]=n; VP2_KATIDX[k]=i; });
+let vp2An=false, vp2Lauf=0, vp2Fertig=false, vp2Liste=[], vp2Reihen=[], vp2FL=null, vp2G=null, vp2Tische=null, vp2Atlas=null, vp2Cols=[], vp2Neu=new Set();
+let vp2El=null, vp2PanelEl=null, vp2ListeOffen=false, vp2Vorher=null, vp2Stat={}, vp2RaumG=null, vp2RaumCols=[], vp2RaumFL=null, vp2Frame=0, vp2Modus=2, vp2ResetArm=false, vp2Mess={};
+let vp2HitGeo=null, vp2Banner=[];
+/* Farben der Bedienelemente: aus der Palette (MAT.css) */
+const vp2C=()=>({blau:MAT.css('nachtblau',0.88),gold:MAT.css('schildgold'),weiss:MAT.css('weiss'),gruen:MAT.css('signalgruen'),rot:MAT.css('signalrot'),grau:MAT.css('graphit'),dunkel:MAT.css('tiefschwarz'),dunkel2:MAT.css('tiefschwarz',0.97)});
+function vp2Lesen(){ try{ const s=JSON.parse(localStorage.getItem(VP2_KEY)||'{}'); return s&&typeof s==='object'?s:{}; }catch(e){ return {}; } }
+function vp2Speichern(){ try{ localStorage.setItem(VP2_KEY,JSON.stringify(vp2Stat)); }catch(e){} }
+/* Kategorie eines Produkts: Sparte + Form (die Daten haben kein eigenes Feld) */
+function vp2KatVon(t){
+  const p=P[t], sp=sparteVon(t), sh=p.shape;
+  if(sp==='f1') return 'f1';
+  if(sp==='zubehoer') return 'zub'; if(sp==='essen') return 'ess'; if(sp==='getraenke') return 'get';
+  if(sh==='battery'||sh==='fan'||(typeof istBatterie==='function'&&istBatterie(t))) return 'bat';
+  if(sh==='rocketset') return 'rak';
+  if(sh==='shell'||sh==='atombombe'||sh==='fass') return 'kug';
+  if(sh==='fountainset'||sh==='cylinder') return 'fon';
+  if(sh==='tubepack') return 'boe';
+  if(sh==='assort') return 'sor';
+  return 'bod';
+}
+/* Alle Produkte des Spiels mit Verpackung: die der Vorfuehrung 1 (vpProdukte) und die nicht bestellbaren (Gravur-Rakete), ohne eigene Rezepte */
+function vp2Produkte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.rezept&&!p.eigen; }); }
+/* Nummern und Reihenfolge: Kategorie, dann Produkt-ID - stabil, solange das Sortiment gleich bleibt */
+function vp2Sammeln(){
+  const L=vp2Produkte().map(t=>{ const p=P[t]; return {t,kat:vp2KatVon(t),w:p.dims[0],hh:p.dims[1],d:p.dims[2],stat:0,hd:null}; });
+  L.sort((a,b)=>(VP2_KATIDX[a.kat]-VP2_KATIDX[b.kat])||(a.t<b.t?-1:a.t>b.t?1:0));
+  L.forEach((e,i)=>{ e.nr=i+1; e.i=i; e.stat=vp2Stat[e.t]|0; });
+  return L;
+}
+/* Tische und Reihen: je Tisch hoechstens VP2_MAXN Stuecke, jedes mit Platz fuer sein Schild (0,44 m) und 0,2 m Luft */
+function vp2Platz(e){ return Math.max(e.w+0.2,VP2_SCHILD.b+0.08); }
+function vp2Planen(L){
+  const reihen=[], tischArt=e=>e.d>SHELFKIND.tisch.d-0.30?'tischgross':'tisch';
+  VP2_KATS.forEach(([kat])=>{
+    const es=L.filter(e=>e.kat===kat); if(!es.length) return;
+    const tische=[]; let T=null;
+    es.forEach(e=>{ const art=tischArt(e), pl=vp2Platz(e);
+      if(!T||T.art!==art||T.es.length>=VP2_MAXN||T.sum+pl>VP2_TISCH+1e-6){ T={art,es:[],sum:0}; tische.push(T); }
+      T.es.push(e); T.sum+=pl; });
+    /* gleichmaessig auf Reihen verteilen */
+    const n=Math.ceil(tische.length/VP2_REIHE), je=Math.ceil(tische.length/n);
+    for(let r=0;r<n;r++){ const ts=tische.slice(r*je,(r+1)*je); if(ts.length) reihen.push({kat,tische:ts,teil:r,von:n}); }
+  });
+  return reihen;
+}
+/* Grundriss und Lage aller Teile */
+function vp2Anordnen(reihen){
+  const F={x0:VP_URSPRUNG.x,x1:0,z0:0,z1:VP_FL.z0-30};
+  let T=VP2_NORD, lang=0;
+  reihen.forEach(R=>{ R.tiefe=Math.max(...R.tische.map(t=>SHELFKIND[t.art].d)); R.lang=R.tische.length*(VP2_TISCH+VP2_FUGE)-VP2_FUGE; lang=Math.max(lang,R.lang); T+=R.tiefe+VP2_GANG; });
+  F.x1=F.x0+VP2_WEST+lang+VP2_OST; F.z0=F.z1-T;
+  let zF=F.z1-VP2_NORD;
+  reihen.forEach(R=>{ R.zF=zF; R.x0=F.x0+VP2_WEST;
+    R.tische.forEach((tb,k)=>{ const K=SHELFKIND[tb.art]; tb.x=R.x0+VP2_TISCH/2+k*(VP2_TISCH+VP2_FUGE); tb.z=zF-K.d/2; tb.y=K.lv[K.lv.length-1]; tb.K=K;
+      const extra=(VP2_TISCH-tb.sum)/tb.es.length; let xl=tb.x-VP2_TISCH/2;
+      tb.es.forEach(e=>{ const pl=vp2Platz(e)+extra; e.x=xl+pl/2; xl+=pl; e.y=tb.y; e.z=zF-0.20-e.d/2; e.zFront=zF; e.tisch=tb; e.reihe=R; }); });
+    zF-=R.tiefe+VP2_GANG; });
+  return F;
+}
+/* Der Raum: einmal gebaut, danach nur ein- und ausgeblendet (wie 17c) */
+function vp2RaumBauen(F){
+  const gleich=vp2RaumFL&&vp2RaumFL.x0===F.x0&&vp2RaumFL.x1===F.x1&&vp2RaumFL.z0===F.z0&&vp2RaumFL.z1===F.z1;
+  if(vp2RaumG&&gleich){ vp2RaumG.visible=true; vp2RaumCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); }); return; }
+  if(vp2RaumG){ scene.remove(vp2RaumG); vp2RaumCols.forEach(dropCol); vp2RaumG=null; }
+  const vorher=scene.children.length, cv=colliders.length;
+  halle(null,F,{h:VP2_H,aussen:{w:true,e:true,n:true,s:true},ax:3.4,az:3.4});
+  const neu=scene.children.slice(vorher); vp2RaumG=new THREE.Group(); scene.add(vp2RaumG); neu.forEach(o=>vp2RaumG.add(o));
+  vp2RaumCols=colliders.slice(cv); vp2RaumFL={x0:F.x0,x1:F.x1,z0:F.z0,z1:F.z1};
+  if(typeof dachBereiche==='function') dachBereiche().push({x0:F.x0-0.3,x1:F.x1+0.3,z0:F.z0-0.3,z1:F.z1+0.3,h:VP2_H+0.4});
+}
+/* ---------- Schilder ---------- */
+const VP2_ZELLE={w:320,h:116}, VP2_SCHILD={b:0.44,h:0.44*116/320,kipp:0.62};
+const VP2_STATUS={w:320,h:28,hm:VP2_SCHILD.h*28/116};
+function vp2SchildMalen(g,i,w,h){
+  const e=vp2Liste[i], p=P[e.t], nm=String(p.name||e.t), k=nm.indexOf(' · '), a=k>0?nm.slice(0,k):nm, b=k>0?nm.slice(k+3):'';
+  g.textBaseline='middle'; g.textAlign='center'; g.fillStyle=MAT.css('weiss');
+  g.font=BUN(e.nr>99?42:50); g.fillText(String(e.nr),46,41);
+  g.fillStyle=MAT.css('weiss',0.55); g.fillRect(93,12,2,66);
+  g.textAlign='left'; g.fillStyle=MAT.css('weiss'); fitFont(g,a,w-112,36,BAR); g.fillText(a,104,20);
+  g.fillStyle=MAT.css('cremeweiss'); if(b){ fitFont(g,b,w-112,27,BAR); g.fillText(b,104,48); }
+  g.fillStyle=MAT.css('aluminium'); g.font=BAR(24); g.fillText(VP2_KATNAME[e.kat].replace(/ & .*/,'')+(p.lvl!==undefined?` · Level ${p.lvl}`:''),104,74);
+}
+function vp2StatusMalen(art){ return (g,w,h)=>{
+  g.fillStyle=MAT.css(['anthrazit','tannengruen','feuerrot'][art]); g.fillRect(0,0,w,h);
+  g.fillStyle=MAT.css('weiss'); g.strokeStyle=MAT.css('weiss'); g.lineWidth=4; g.lineCap='round'; g.lineJoin='round';
+  if(art===1){ g.beginPath(); g.moveTo(14,15); g.lineTo(21,22); g.lineTo(34,6); g.stroke(); }
+  if(art===2){ g.beginPath(); g.moveTo(16,7); g.lineTo(32,21); g.moveTo(32,7); g.lineTo(16,21); g.stroke(); }
+  g.textBaseline='middle'; g.textAlign='left'; g.font=BAR(20);
+  g.fillText(['OFFEN · Aktion zum Prüfen','PASST','PASST NICHT'][art],art?46:14,15); }; }
+/* ---------- Aufstellen ---------- */
+function vp2Aufstellen(F){
+  vp2G=new THREE.Group(); scene.add(vp2G);
+  /* Tische: alle in einem Mesh */
+  const tl=[]; vp2Reihen.forEach(R=>R.tische.forEach(tb=>{ tl.push({x:tb.x,z:tb.z,kind:tb.art});
+    vp2Cols.push(col(tb.x-VP2_TISCH/2-0.04,tb.x+VP2_TISCH/2+0.04,tb.z-tb.K.d/2-0.04,tb.z+tb.K.d/2+0.04)); }));
+  vp2Tische=bk.verkaufstisch({tische:tl,parent:vp2G});
+  /* Schilder: alle in einem Atlas, schraeg auf dem Tisch vor dem Stueck */
+  const S=VP2_SCHILD, schilde=vp2Liste.map(e=>{ const zc=e.zFront-0.02-S.h/2*Math.cos(S.kipp), yc=e.y+S.h/2*Math.sin(S.kipp)+0.008;
+    return {m:tm(e.x,yc,zc,-S.kipp,0,0),b:S.b,h:S.h}; });
+  vp2Atlas=bk.schildAtlas({schilde,zelle:VP2_ZELLE,spalten:12,malen:vp2SchildMalen,status:{w:VP2_STATUS.w,h:VP2_STATUS.h,hm:VP2_STATUS.hm,ton:['nachtblau','signalgruen','signalrot'],malen:[0,1,2].map(vp2StatusMalen)},start:vp2Liste.map(e=>e.stat),skalaMin:0.75,parent:vp2G});
+  /* Trefferflaechen (unsichtbar): Packung + Schild */
+  if(!vp2HitGeo) vp2HitGeo=new THREE.BoxGeometry(1,1,1);
+  vp2Liste.forEach(e=>{ const hw=Math.max(e.w+0.04,S.b+0.02), hh=Math.max(e.hh,0.22)+0.04, z1=e.zFront, z0=e.z-e.d/2-0.02;
+    const m=new THREE.Mesh(vp2HitGeo,hitM); m.scale.set(hw,hh,z1-z0); m.position.set(e.x,e.y+hh/2,(z0+z1)/2);
+    m.userData={kind:'vpstueck',ref:e}; vp2G.add(m); e.hit=m; });
+  /* Reihenschilder: haengen am westlichen Reihenanfang, von beiden Seiten lesbar */
+  const SM=bk.sammler({klasse:'lackMetall'}), hy=2.85;
+  vp2Reihen.forEach(R=>{ const nr0=R.tische[0].es[0].nr, nr1=R.tische[R.tische.length-1].es[R.tische[R.tische.length-1].es.length-1].nr, n=R.tische.reduce((a,t)=>a+t.es.length,0);
+    const name=VP2_KATNAME[R.kat].toUpperCase()+(R.von>1?`  ${R.teil+1}/${R.von}`:''), zc=R.zF-R.tiefe/2, xs=R.x0-0.55;
+    for(const s of [-1,1]) vp2Banner.push(bk.schild(vp2G,{text:name,unter:`Nr. ${nr0}–${nr1} · ${n} Produkte`,b:2.3,h:0.7,px:1.4,x:xs+s*0.02,y:hy,z:zc,ry:s>0?Math.PI/2:-Math.PI/2}));
+    for(const dz of [-0.9,0.9]) SM.box(0.03,VP2_H-hy-0.35,0.03,xs,hy+(VP2_H-hy-0.35)/2+0.35,zc+dz,MAT.farbe('silbergrau'),'lackMetall'); });
+  SM.fertig(vp2G,{schatten:false});
+}
+/* ---------- Einraeumen (Stueck fuer Stueck, jedes Bild hoechstens ~25 ms) ---------- */
+function vp2Stueck(e){
+  try{
+    if(!poolDa(e.t)){ TEX_FAKTOR=VP2_TEX; let pl; try{ pl=pools[e.t]; } finally { TEX_FAKTOR=GFX_START.tex; }
+      pl.vp=true; vp2Neu.add(e.t); pl.meshes.forEach(m=>{ m.castShadow=false; }); }
+    e.hd=pools[e.t].add(mx(e.x,e.y,e.z,0));
+  }catch(err){ e.fehler=String(err&&err.message||err); console.warn('Ausstellung: Modell fehlt fuer',e.t,e.fehler); }
+}
+function vp2Fuellen(lauf,i){
+  if(!vp2An||lauf!==vp2Lauf) return;
+  const t0=performance.now();
+  while(i<vp2Liste.length&&performance.now()-t0<25){ vp2Stueck(vp2Liste[i]); i++; }
+  if(i<vp2Liste.length){ vp2Zeigen(i); setTimeout(()=>vp2Fuellen(lauf,i),16); return; }
+  vp2Fertig=true; vp2Mess.fertigMs=Math.round(performance.now()-vp2Mess.t0); vp2Sicht(true); vp2Zeigen();
+  toast(`Ausstellung: ${vp2Liste.length} Produkte auf ${vp2Tische.anzahl} Tischen. E prüft, L Liste, B beendet.`,'money');
+}
+/* ---------- Sichtbarkeit: nur zeichnen, was im Bild und nah ist ---------- */
+const _vp2F=typeof THREE.Frustum==='function'?new THREE.Frustum():null, _vp2M=new THREE.Matrix4(), _vp2S=new THREE.Sphere(new THREE.Vector3(),1);
+function vp2Sicht(erzwingen){
+  if(!_vp2F||!vp2An) return;
+  camera.updateMatrixWorld(); _vp2M.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _vp2F.setFromProjectionMatrix(_vp2M);
+  let n=0;
+  for(const e of vp2Liste){ if(!e.hd) continue;
+    _vp2S.center.set(e.x,e.y+e.hh/2,e.z); _vp2S.radius=Math.max(e.w,e.hh,e.d)*0.75+0.15;
+    const sicht=Math.abs(e.x-pl.x)<VP2_SICHT&&Math.abs(e.z-pl.z)<VP2_SICHT&&_vp2F.intersectsSphere(_vp2S), pool=e.hd.pool;
+    if(sicht){ n++; if(e.hd.versteckt) pool.zeige(e.hd); } else if(!e.hd.versteckt) pool.verstecke(e.hd); }
+  vp2Mess.sichtbar=n;
+}
+function vp2Takt(){ if(!vp2An) return; if(++vp2Frame%3===0) vp2Sicht(); }
+/* ---------- Freigabe ---------- */
+function vp2Weiter(e){
+  e.stat=(e.stat+1)%3; if(e.stat) vp2Stat[e.t]=e.stat; else delete vp2Stat[e.t];
+  if(vp2Atlas) vp2Atlas.set(e.i,e.stat); vp2Speichern(); vp2Zeigen();
+  try{ sfx.pop(); }catch(x){}
+  toast(`Nr. ${e.nr} · ${P[e.t].short||P[e.t].name}: ${VP2_NAMEN[e.stat]}`,e.stat===2?'bad':e.stat===1?'money':undefined);
+  if(vp2ListeOffen) vp2PanelFuellen();
+}
+function vp2Zaehlen(){ const z=[0,0,0]; vp2Liste.forEach(e=>z[e.stat]++); return z; }
+function vp2Prompt(e){ const n=(e.stat+1)%3; return {t:`Nr. ${e.nr} · ${P[e.t].name} — ${VP2_NAMEN[e.stat]} · ${COARSE?'Aktion':'E'}: ${VP2_NAMEN[n]}`,a:true}; }
+/* Text zum Kopieren: modus 2 = nicht freigegeben, 1 = passt, 0 = offen */
+function vp2ListeText(modus){
+  const L=vp2Liste.filter(e=>e.stat===modus), kopf=['Noch offen','Freigegeben (passt)','Nicht freigegeben (passt nicht)'][modus];
+  return `${kopf}: ${L.length} von ${vp2Liste.length}\n`+L.map(e=>`Nr. ${e.nr} · ${P[e.t].name} · ${VP2_KATNAME[e.kat]} · ${e.t}`).join('\n');
+}
+/* ---------- Anzeige oben + Listenfenster ---------- */
+function vp2Zeigen(bis){
+  if(!vp2An) return;
+  if(!vp2El){ vp2El=document.createElement('div'); vp2El.id='vp2Info';
+    const c=vp2C(); vp2El.style.cssText=`position:fixed;left:50%;top:${COARSE?'calc(env(safe-area-inset-top) + 50px)':'max(10px,env(safe-area-inset-top))'};transform:translateX(-50%);z-index:30;width:max-content;max-width:94vw;box-sizing:border-box;background:${c.blau};color:${c.weiss};border-radius:10px;padding:5px 6px 5px 10px;font:600 ${COARSE?12:13}px Barlow,Arial,sans-serif;display:flex;${COARSE?'':'flex-wrap:wrap;'}gap:8px 8px;align-items:center;border-top:3px solid ${c.gold}`;
+    document.body.appendChild(vp2El); }
+  const z=vp2Zaehlen(), c=vp2C(), btn=`pointer-events:auto;font:700 ${COARSE?15:13}px Barlow,Arial,sans-serif;border:0;border-radius:8px;padding:${COARSE?'11px 15px':'7px 11px'};cursor:pointer;`;
+  const txt=bis!==undefined?`Aufbau … ${bis} / ${vp2Liste.length}`:`${COARSE?'':vp2Liste.length+' Produkte · '}<span style="color:${c.gruen};filter:brightness(1.5)">✓ ${z[1]}</span> · <span style="color:${c.rot};filter:brightness(1.4)">✗ ${z[2]}</span> · offen ${z[0]}`;
+  vp2El.innerHTML=`<span style="flex:1 1 auto;white-space:nowrap">${COARSE?'':'<b style="letter-spacing:.04em">AUSSTELLUNG 2.0</b> · '}${txt}</span><button id="vp2ListeKnopf" style="${btn}background:${c.grau};color:${c.weiss}">${COARSE?'Liste':'Liste (L)'}</button><button id="vp2AusKnopf" style="${btn}background:${c.gold};color:${c.dunkel}">${COARSE?'Ende':'Beenden (B)'}</button>`;
+  const tipp=(id,f)=>{ const k=vp2El.querySelector(id); k.onclick=e=>{ e.stopPropagation(); f(); }; k.addEventListener('touchend',e=>{ e.preventDefault(); e.stopPropagation(); f(); },{passive:false}); };
+  tipp('#vp2ListeKnopf',vp2ListeSchalten); tipp('#vp2AusKnopf',vp2Aus);
+}
+function vp2ListeSchalten(){ if(vp2ListeOffen) vp2ListeZu(); else vp2ListeAuf(); }
+function vp2ListeAuf(){
+  if(!vp2An||vp2ListeOffen) return;
+  vp2ListeOffen=true; paused=true; vp2ResetArm=false; if(locked) document.exitPointerLock(); for(const k in keys) keys[k]=false; mouseDown=false; touchAct=false;
+  if(!vp2PanelEl){ vp2PanelEl=document.createElement('div'); vp2PanelEl.id='vp2Panel';
+    const c=vp2C(); vp2PanelEl.style.cssText=`position:fixed;inset:0;z-index:45;background:${c.dunkel2};color:${c.weiss};font:600 15px Barlow,Arial,sans-serif;display:flex;flex-direction:column;gap:10px;padding:max(14px,env(safe-area-inset-top)) 14px 14px;box-sizing:border-box`;
+    document.body.appendChild(vp2PanelEl); }
+  vp2PanelFuellen();
+}
+function vp2PanelFuellen(){
+  if(!vp2PanelEl) return;
+  const z=vp2Zaehlen(), c=vp2C(), btn=`font:700 15px Barlow,Arial,sans-serif;border:0;border-radius:8px;padding:${COARSE?'13px 16px':'10px 14px'};cursor:pointer;`, tab=(m,n,t)=>`<button data-m="${m}" style="${btn}background:${vp2Modus===m?c.gold:c.grau};color:${vp2Modus===m?c.dunkel:c.weiss}">${t} ${n}</button>`;
+  vp2PanelEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><b style="letter-spacing:.04em;flex:1 1 200px">AUSSTELLUNG 2.0 · FREIGABE</b>${tab(2,z[2],'✗ passt nicht')}${tab(0,z[0],'offen')}${tab(1,z[1],'✓ passt')}</div>`+
+    `<textarea id="vp2Text" readonly style="flex:1 1 auto;min-height:120px;width:100%;box-sizing:border-box;background:${c.dunkel};color:${c.weiss};border:1px solid ${c.grau};border-radius:8px;padding:10px;font:500 14px/1.45 Barlow,Arial,sans-serif;resize:none"></textarea>`+
+    `<div style="display:flex;flex-wrap:wrap;gap:8px"><button data-a="kopieren" style="${btn}background:${c.gold};color:${c.dunkel}">Kopieren</button><button data-a="reset" style="${btn}background:${c.grau};color:${c.weiss}">${vp2ResetArm?'Wirklich alles zurücksetzen?':'Alles zurücksetzen'}</button><button data-a="zu" style="${btn}background:${c.grau};color:${c.weiss};margin-left:auto">Schließen (L)</button></div>`;
+  vp2PanelEl.querySelector('#vp2Text').value=vp2ListeText(vp2Modus);
+  vp2PanelEl.onclick=ev=>{ const b=ev.target.closest('button'); if(!b) return; ev.stopPropagation();
+    if(b.dataset.m!==undefined){ vp2Modus=+b.dataset.m; vp2ResetArm=false; vp2PanelFuellen(); }
+    else if(b.dataset.a==='zu') vp2ListeZu();
+    else if(b.dataset.a==='kopieren') vp2Kopieren();
+    else if(b.dataset.a==='reset'){ if(!vp2ResetArm){ vp2ResetArm=true; vp2PanelFuellen(); } else { vp2Liste.forEach(e=>{ e.stat=0; if(vp2Atlas) vp2Atlas.set(e.i,0); }); vp2Stat={}; vp2Speichern(); vp2ResetArm=false; vp2PanelFuellen(); vp2Zeigen(); } } };
+}
+function vp2Kopieren(){
+  const ta=vp2PanelEl&&vp2PanelEl.querySelector('#vp2Text'); if(!ta) return;
+  const fertig=()=>toast('Liste kopiert.','money');
+  try{ ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length); if(document.execCommand&&document.execCommand('copy')){ fertig(); return; } }catch(e){}
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(fertig,()=>toast('Kopieren nicht möglich – Text markieren und kopieren.','bad')); return; } }catch(e){}
+  toast('Text ist markiert – bitte kopieren.');
+}
+function vp2ListeZu(){
+  if(!vp2ListeOffen) return;
+  vp2ListeOffen=false; paused=false; if(vp2PanelEl){ vp2PanelEl.remove(); vp2PanelEl=null; } requestLock();
+}
+/* ---------- Start / Ende ---------- */
+function vp2Schalten(){ if(!FW_DEV) return; if(vp2An) vp2Aus(); else vp2Start(); }
+function vp2Start(){
+  if(vp2An) return;
+  if(typeof vpAn!=='undefined'&&vpAn) vpAus();
+  if(typeof vfAn!=='undefined'&&vfAn) vorfuehrungAus();
+  if(typeof fwTestAn!=='undefined'&&fwTestAn) fwTestSchalten();
+  vp2Mess={t0:performance.now()};
+  vp2Vorher={x:pl.x,z:pl.z,yaw,pitch};
+  vp2Stat=vp2Lesen(); vp2Liste=vp2Sammeln(); vp2Reihen=vp2Planen(vp2Liste); vp2FL=vp2Anordnen(vp2Reihen);
+  vp2An=true; vp2Fertig=false; vp2Lauf++; vp2Frame=0;
+  vp2RaumBauen(vp2FL); SPIEL_RAUM=vp2FL;
+  vp2Aufstellen(vp2FL);
+  vp2Mess.aufbauMs=Math.round(performance.now()-vp2Mess.t0);
+  pl.x=vp2FL.x0+VP2_WEST/2+0.4; pl.z=vp2FL.z1-1.4; yaw=0; pitch=-0.22;
+  if(laptopOpen) closeLaptop(true); if(typeof handyOpen!=='undefined'&&handyOpen) closeHandy();
+  vp2Zeigen(0);
+  const lauf=vp2Lauf; setTimeout(()=>vp2Fuellen(lauf,0),30);
+}
+function vp2Aus(){
+  if(!vp2An) return;
+  vp2ListeZu(); vp2Lauf++; vp2Fertig=false; vp2An=false;
+  /* Packungen raus; Modelle, die nur fuer die Ausstellung entstanden sind, ganz weg */
+  vp2Liste.forEach(e=>{ if(e.hd&&e.hd.pool) e.hd.pool.remove(e.hd); e.hd=null; e.hit=null; });
+  vp2Neu.forEach(t=>{ if(poolDa(t)&&pools[t].h.length===0) poolWeg(t); }); vp2Neu=new Set();
+  if(vp2Atlas){ vp2Atlas.dispose(); vp2Atlas=null; }
+  if(vp2Tische){ vp2Tische.dispose(); vp2Tische=null; }
+  vp2Banner.forEach(bk.schildWeg); vp2Banner=[];
+  if(vp2G){ vp2G.traverse(o=>{ if(o.isMesh&&o.geometry&&o.geometry!==vp2HitGeo) o.geometry.dispose(); }); scene.remove(vp2G); vp2G=null; }
+  vp2Cols.forEach(dropCol); vp2Cols=[];
+  SPIEL_RAUM=null; if(vp2RaumG) vp2RaumG.visible=false; vp2RaumCols.forEach(dropCol);
+  if(vp2El){ vp2El.remove(); vp2El=null; }
+  vp2Liste=[]; vp2Reihen=[];
+  if(vp2Vorher){ pl.x=vp2Vorher.x; pl.z=vp2Vorher.z; yaw=vp2Vorher.yaw; pitch=vp2Vorher.pitch; vp2Vorher=null; }
+  toast('Ausstellung beendet.');
+}
+function vp2Taste(e){
+  if(e.code==='KeyB'&&!e.repeat){ vp2Aus(); return true; }
+  if(e.code==='KeyL'&&!e.repeat){ vp2ListeSchalten(); return true; }
+  return false;
+}
 /* =========================================================
    Produktsuche im Laptop (Tom, 03.10.: "beim Bestellen und bei Preise und
    Markt eine Suche ... gibt man STU ein, ploppt schon Sturmfeuerzeug auf
@@ -54622,6 +55677,7 @@ function gpStart(){
   if(laptopOpen) closeLaptop(true);
   if(typeof vfAn!=='undefined'&&vfAn&&typeof vorfuehrungAus==='function') vorfuehrungAus();
   if(typeof vpAn!=='undefined'&&vpAn&&typeof vpAus==='function') vpAus();
+  if(typeof vp2An!=='undefined'&&vp2An&&typeof vp2Aus==='function') vp2Aus();
   DEMO=false;
   gpBau={gen:gpAufbau(),anteil:0,text:'Vorbereitung'};
   gpBauAnzeige();
@@ -54808,6 +55864,8 @@ function* gpAufbau(){
   if(typeof llOffen==='function'&&llOffen()&&typeof hrDaten==='function'){ const D=hrDaten();
     for(let i=0;i<180;i++) if(!D.p[i]&&(i*7)%10<7){ const t=gut[i%gut.length]; D.p[i]=[{t,c:P[t].box,q:1},{t,c:P[t].box,q:1},{t,c:P[t].box,q:1}]; }
     hrSync(); yield [0.985,'Hochregal einlagern']; }
+  /* Werk West (05s): Rohstoffe im Lager, Werker eingearbeitet, Auftraege je Straße - der Sprungpunkt "Werk" zeigt laufende Produktion */
+  if(typeof pdVorfuehrung==='function'){ pdVorfuehrung(); yield [0.99,'Werk: Produktion einrichten']; }
   /* Packmaterial-Regale voll (Erstausstattung) */
   if(typeof vmStand==='function'){ vmStand(0); for(let i=0;i<3;i++) VM_IDS.forEach(id=>{ S.vm[i][id]=VM[id].kap; }); vmRegalZeichnen(); }
   /* Laden auf, Spieler in den Verkauf */
@@ -55014,7 +56072,7 @@ function save(){
         .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
-      hr:S.hr||null, ll:S.ll||null,
+      hr:S.hr||null, ll:S.ll||null, pd:S.pd||null,
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
@@ -55593,6 +56651,7 @@ function frame(now){
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   regaleImBlick();
+  if(vp2An) vp2Takt();
   renderFrame(dt);
 }
 
@@ -55606,7 +56665,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen; }
+function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen; }
 /* =========================================================
    Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
    Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
@@ -55800,6 +56859,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'&&laptopOpen){ closeLaptop(false); return; }
   if(e.code==='Escape'&&cashOpen){ closeCash(false); return; }
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
+  if(vp2ListeOffen){ if(e.code==='Escape'||(e.code==='KeyL'&&e.target!==document.getElementById('vp2Text'))) vp2ListeZu(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
   /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
@@ -55807,6 +56867,7 @@ addEventListener('keydown',e=>{
   if(vfAn&&S&&!overlayOpen()&&vfTaste(e)) return;
   /* Verpackungs-Vorfuehrung (Entwicklung): B beendet */
   if(vpAn&&S&&!overlayOpen()&&vpTaste(e)) return;
+  if(vp2An&&S&&!overlayOpen()&&vp2Taste(e)) return;
   /* Zuendmodus: Ziffern zuenden, alles andere geht normal weiter -
      laufen, umsehen, E. Esc ohne Mauszeiger-Sperre beendet ihn. */
   if(zuendOpen&&S&&!overlayOpen()){
@@ -55994,6 +57055,12 @@ function handbuchHTML(){
       ab(`Im Onlineshop stellst du die Versandkosten (0–${WF.euro(VS_KOSTEN_MAX)}) und die Grenze für kostenlosen Versand ein (0 = immer frei, oder nie), dazu Aktionen: Sale auf alles, Sale auf einzelne Produkte, heute versandkostenfrei. Hohe Versandkosten vertreiben Kunden, Gratisversand lockt viele kleine Bestellungen, die dich Porto kosten. Die Statistik zeigt je Tag, was übrig bleibt. Mehr als ${WIRT.versand.strafe.offenAb} offene Bestellungen am Abend kosten Ruf.`)],
     ['Entwicklungslabor',
       ab(`Ab Level 20 (Kapitel 5) im Laptop unter Entwicklung: Träger, Bruchbild, zwei Farben, Etikett und Name wählen. Du kannst nur Bruchbilder verbauen, die du schon am Himmel gesehen hast. „Prototyp zünden“ ist kostenlos, „In Produktion“ bringt dein Produkt nach ein paar Tagen in den Katalog. Die zweite Zündstufe gibt es ab Level 28.`)],
+    ['Werk West – eigene Produktion',
+      schritte([`Im Team einen Mischer und für jede Straße einen Werker einstellen. Ohne Mischer steht das ganze Werk, ohne Werker seine Straße.`,
+        `Im Laptop, am Lager-PC oder im Leitstand (Pult oben auf der Galerie, ${E}) unter Produktion Rohstoffe bestellen – Standard oder Premium. Der Gefahrgut-LKW bringt sie am nächsten Tag an Tor 6; Inertlager und Chemie-Boxen fassen nur begrenzt viel.`,
+        `Je Straße Produkte in die Auftragsliste legen (Kartons, Reihenfolge) und die Straße einschalten. Produziert wird, solange der Laden offen ist; die Paletten laufen ins Hochregal und von dort wie gekaufte Ware in Laden und Versand. Kugelbomben trocknen bis zum nächsten Tag.`,
+        `Störung (Ampel blinkt rot): zur Station gehen und ${E} oder im Leitstand „Zelle freigeben“ – sonst braucht der Werker lange.`])+
+      ab(`Rechne mit: Werker, Mischer, Strom und Werk kosten jeden Tag, auch wenn eine Straße steht. Nur für den eigenen Laden lohnt sich das selten – mit „Großhandel nimmt Überschuss“ holt eine Spedition abends alles über ${WIRT.produktion.grosshandel.reserveKartons} Kartons je Sorte (${WF.prozent(WIRT.produktion.grosshandel.faktor)} % vom Einkaufspreis, je nach Qualität). Welches Produkt, wie viel, Standard oder Premium – die Statistik in Produktion zeigt Stückkosten, Break-even und was im Hochregal an Kapital gebunden ist.`)],
     ['Musik, Bild und Pause',
       ab(`${PAUSE} öffnet dieses Menü und hält das Spiel an. ${COARSE?'':'<kbd>M</kbd> schaltet die Musik an oder aus, <kbd>N</kbd> spielt das nächste Stück, <kbd>P</kbd> schaltet die Bildeffekte um. '}Unter <b>Musik</b> wählst du jeden Titel und die Lautstärke. „Tutorial einblenden“ zeigt wieder Tipps und Zielpfeile. „Zum Startbildschirm“ speichert und zeigt Weiterspielen und Neues Spiel.`)]
   ];
@@ -56123,11 +57190,12 @@ fontsReady().then(()=>{
   /* Shader fuers Feuerwerk vorab uebersetzen, solange das Startmenue
      steht - dann steht beim Losspielen und beim ersten Schuss nichts */
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
-  window.__bb={MAT,bk,LAMPEN,WK,WK_STR,WK_ALT,wkOffen,wkStrasseOffen,wkBoden,wkFixkosten,wkStrasseSetzen,wkTick,wkSichtTakt,wkWeltX0,bodenHoehe,get WK_T(){return WK_T},get WK_G(){return WK_G},get WK_H(){return WK_H},get WK_D(){return WK_D},get WK_V(){return WK_V},get WK_A(){return WK_A},get WK_COLS(){return WK_COLS},get plBoden(){return plBoden},collide,LL,LL_STELL,LL_GASSEN,get LL_T(){return LL_T},get LL_G(){return LL_G},LL_ALT,llOffen,llGasseAktiv,llSperrt,llSperrRechtecke,llRaeumen,HR,hrDaten,hrSync,hrStock,hrBelegt,hrKapazitaet,hrFreiPlatz,llStellSlot,llStellSicht,llStellBoxen,spawnFloorBox,hrTick,fixedCosts,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
+  window.__bb={MAT,bk,LAMPEN,WK,WK_STR,WK_ALT,wkOffen,wkStrasseOffen,wkBoden,wkFixkosten,wkStrasseSetzen,wkTick,wkSichtTakt,wkWeltX0,pdDaten,pdRezept,pdKlasse,pdHerstellbar,pdProdukte,pdBestellen,pdEinbuchen,pdTick,pdNeuerTag,pdLaeuft,pdGrund,pdStrasseAn,pdKennzahlen,pdImLager,pdReichweite,pdTagesabschluss,pdLaptop,pdKlick,pdBeheben,pdHits,pdPrompt,pdAktion,pdAusschuss,pdQualitaet,pdFixStrasse,pdStueckJeTag,pdVorfuehrung,pdAutoBestellen,pdGrosshandel,pdProStunde,get pdLkw(){return pdLkw},PD_ROH,PD_WERKER,abStichprobe,wkMonitore,wkAmpeln,get lapGeraet(){return lapGeraet},bodenHoehe,get WK_T(){return WK_T},get WK_G(){return WK_G},get WK_H(){return WK_H},get WK_D(){return WK_D},get WK_V(){return WK_V},get WK_A(){return WK_A},get WK_COLS(){return WK_COLS},get plBoden(){return plBoden},collide,LL,LL_STELL,LL_GASSEN,get LL_T(){return LL_T},get LL_G(){return LL_G},LL_ALT,llOffen,llGasseAktiv,llSperrt,llSperrRechtecke,llRaeumen,HR,hrDaten,hrSync,hrStock,hrBelegt,hrKapazitaet,hrFreiPlatz,llStellSlot,llStellSicht,llStellBoxen,spawnFloorBox,hrTick,fixedCosts,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
     regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,kartonBild,kartonAtlasInfo,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,RAUM,raumAn,raumTakt,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
-    vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
+    vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,ldBoden,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
     kameraSetzen:()=>{ camera.position.set(pl.x,1.65+bodenHoehe(pl.x,pl.z),pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); },
+    vp2:{get an(){return vp2An},get fertig(){return vp2Fertig},get liste(){return vp2Liste},get reihen(){return vp2Reihen},get atlas(){return vp2Atlas},get tische(){return vp2Tische},get FL(){return vp2FL},get mess(){return vp2Mess},get stat(){return vp2Stat},get gruppe(){return vp2G},get neu(){return vp2Neu},start:vp2Start,aus:vp2Aus,weiter:vp2Weiter,listeText:vp2ListeText,listeAuf:vp2ListeAuf,listeZu:vp2ListeZu,sicht:vp2Sicht,KATS:VP2_KATS,get listeOffen(){return vp2ListeOffen},get paused(){return paused},get flags(){return {schild:schildOpen,start:startOpen,laptop:laptopOpen,handy:handyOpen,summary:summaryOpen,pause:pauseOpen,cash:cashOpen,level:levelOpen,deal:dealOpen,grav:gravOpen,pda:pdaOpen,liste:vp2ListeOffen}}},
     stoppSchleife:()=>{ noLoop=true; },
     shot:()=>{ noLoop=true; camera.position.set(pl.x,1.65+bodenHoehe(pl.x,pl.z),pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); updateInnenlicht(1); updateInnenlicht(1); renderFrame(0.016); return canvas.toDataURL('image/jpeg',0.85); },
     run:(sec,dt)=>{ noLoop=true; const n=Math.round(sec/(dt||0.05)); for(let i=0;i<n;i++) step(dt||0.05); }};

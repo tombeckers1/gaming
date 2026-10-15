@@ -61,6 +61,7 @@ Stilregeln §8 neu. Offen/später: Abschnitt „Grenzen“ in licht-1510.md.
 Schild mit Nr./Name/Kategorie/Level (`bk.schildAtlas`: alle Schilder = 2 Draw-Calls). Nummern stabil = Kategorie, dann Produkt-ID. **Freigabe:** E bzw. Aktion-Knopf auf ein Stück:
 offen → ✓ passt → ✗ passt nicht (Schild blau/grün/rot), Stand in localStorage `bb_vp2_freigabe_v1`; Knopf „Liste“ (Taste L) = Text zum Kopieren (Nr · Name · Kategorie · ID).
 Beenden: Knopf oder B. Test `src/tests/ausstellung.js` (`BILDER=<ordner>` schreibt Bilder), Doku `docs/fundament/baukasten.md` §2d, Bilder `docs/bilder/ausstellung-1510/`.
+**Zusammenführung (15.10., Branch `claude/zusammen`, nicht veröffentlicht):** ddl-fix (Hubwagen/DDL-Fahrer), verpackung2 (Ausstellung), produktion (Werk-Produktion, Wirtschaft, Personal) und Licht-Endstand a7eb4f8 per Merge-Commit vereint; Wirtschafts-Snapshot und Laufzeit-Ausgangswerte (`bk.hubwagen` neu) nach dem Merge neu erzeugt. Tests grün: versandtor, verpackung, ausstellung, produktion, werk, hochregal, material, waechter, gameplay (1. Lauf PACKMATERIAL-Zufall, 2. Lauf grün). Licht-Test: Drehschwelle 30 ist zu knapp, siehe Bericht in der Hauptsitzung (Erstbild nach Ortswechsel flackert vereinzelt).
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 

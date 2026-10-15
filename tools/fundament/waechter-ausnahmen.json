@@ -138,7 +138,7 @@
   ],
   "laufzeit": {
     "stand": "2026-10-15",
-    "grund": "Feinschliff Werk West 15.10.: Zellenwaende aus Beton in den Vertexfarben-Sammler (Paneel), Glas des Werks in einem Mesh (bauteil glas) - weniger Meshes in leitstand/werkraum/strasse1-3",
+    "grund": "Merge DDL/Ausstellung/Produktion: bk.hubwagen, Ausstellung, Produktion",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
@@ -189,50 +189,51 @@
       "portalgreifer": 39,
       "werkstueck": 6,
       "mischhaus": 6,
-      "erdwall": 2
+      "erdwall": 2,
+      "hubwagen": 6
     },
     "sechsMaterial": 25,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 2613,
-      "materialien": 513,
+      "meshes": 2606,
+      "materialien": 510,
       "texturen": 299
     },
     "ansichten": {
       "laden": {
-        "calls": 695,
-        "schatten": 370,
-        "mats": 249,
+        "calls": 688,
+        "schatten": 377,
+        "mats": 246,
         "texs": 139
       },
       "lager": {
-        "calls": 593,
-        "schatten": 377,
-        "mats": 227,
+        "calls": 586,
+        "schatten": 388,
+        "mats": 223,
         "texs": 133
       },
       "lagerDock": {
-        "calls": 782,
-        "schatten": 384,
-        "mats": 225,
-        "texs": 129
+        "calls": 781,
+        "schatten": 390,
+        "mats": 224,
+        "texs": 130
       },
       "dockHof": {
-        "calls": 931,
-        "schatten": 392,
-        "mats": 244,
+        "calls": 928,
+        "schatten": 377,
+        "mats": 242,
         "texs": 141
       },
       "testfeld": {
-        "calls": 471,
-        "schatten": 360,
-        "mats": 199,
+        "calls": 464,
+        "schatten": 386,
+        "mats": 195,
         "texs": 118
       },
       "strasse": {
-        "calls": 122,
-        "schatten": 365,
-        "mats": 104,
+        "calls": 120,
+        "schatten": 381,
+        "mats": 102,
         "texs": 81
       }
     }

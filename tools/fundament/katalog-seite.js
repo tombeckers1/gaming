@@ -396,21 +396,14 @@ const VORHER=[
   {kat:'Tore & Türen',id:'tor-v1',titel:'V1 Versandhof – Rolltor',baut:'buildVersandhof',datei:'11e-palette.js',blick:180,sel:{own:'buildVersandhof',box:[V1.x-V1.w/2-0.7,0,V1.wz-0.9,V1.x+V1.w/2+0.7,4.8,V1.wz+0.5]}},
   {kat:'Tore & Türen',id:'tor-ost',titel:'Logistikzentrum Ost – Doppeltor im Zaun',baut:'buildLogistik',datei:'05h-ausbau.js',blick:-90,sel:{own:'buildLogistik',nth:1}},
   {kat:'Tore & Türen',id:'tor-hof',titel:'Schiebetor Hof (Dock)',baut:'buildDock',datei:'05g-dock.js',blick:-90,sel:{own:'buildDock',box:[-34.5,0,0.8,-33.2,2.6,5.6]}},
-  {kat:'Tore & Türen',id:'schiebetuer',titel:'Schiebetür Haupteingang / Eingang 2',baut:'buildSchiebetuer',datei:'05f-facade.js',blick:0,sel:{own:'buildSchiebetuer'}},
-  {kat:'Tore & Türen',id:'eingang2',titel:'Eingang 2 – Achse mit Festfeldern',baut:'eingangsAchse',datei:'05l-eingang2.js',blick:0,sel:{own:'eingangsAchse'}},
-  {kat:'Tore & Türen',id:'streifenvorhang',titel:'Streifenvorhang',baut:'streifenvorhang',datei:'05h-ausbau.js',blick:90,sel:{own:'streifenvorhang',minN:2}},
+  /* Schiebetuer, Eingang-2-Festfelder, Streifenvorhang, Schaufenster, Lagerfenster, Ladenregal, Lagerregal, Kassenplatz: seit 15.10.
+     im Baukasten (bk.tuer, bk.fenster, bk.regal, bk.kasse - Schritt Einheit, docs/fundament/einheit.md) - erscheinen unter den Bauteilen */
   /* ---- Fenster ---- */
-  {kat:'Fenster',id:'fenster-schau',titel:'Schaufenster Laden (Front)',baut:'buildWorld / wall',datei:'05c-buildworld.js',blick:0,sel:{owns:['wall','buildWorld','buildFacade'],box:[-7.4,0.5,5.2,-1.8,2.7,6.8],gross:true}},
-  {kat:'Fenster',id:'fenster-lager',titel:'Lager-Fensterwand (Doppelfenster)',baut:'lagerFensterWand',datei:'05h-ausbau.js',blick:0,sel:{own:'lagerFensterWand',minN:10}},
-  {kat:'Fenster',id:'fenster-nachbar',titel:'Nachbar-Fassade (Fensterfeld)',baut:'nachbarFassade',datei:'05f-facade.js',blick:0,sel:{owns:['wall','nachbarFassade','buildWorld'],box:[9,0.5,5.2,13.6,2.8,6.8],gross:true}},
   {kat:'Fenster',id:'fenster-laeden',titel:'Läden gegenüber (Schaufenster-Innenraum)',baut:'ladenFront',datei:'05e2-laeden-innen.js',blick:180,sel:{own:'ladenFront'}},
   /* ---- Regale (heute nachgebaut, neues Spiel hat keine) ---- */
-  {kat:'Regale',id:'shelf',titel:'Ladenregal',baut:'createShelf',datei:'06-fixtures.js',blick:0,erzeugeShelf:true},
-  {kat:'Regale',id:'rack',titel:'Lagerregal',baut:'createRack',datei:'06-fixtures.js',blick:0,erzeugeRack:true},
   {kat:'Regale',id:'packwagen',titel:'Packwagen (Rollwagen, Packstation)',baut:'buildPackstation',datei:'11c-versand.js / 11d-packmaterial.js',blick:0,sel:{own:'buildPackstation',nth:1}},
   {kat:'Kassen',id:'packstation',titel:'Packstation komplett (Tisch, Regal, Gitterkäfig)',baut:'buildPackstation',datei:'11c-versand.js',blick:0,sel:{own:'buildPackstation',nth:0}},
   /* ---- Kassen ---- */
-  {kat:'Kassen',id:'kasse-platz',titel:'Kassenplatz (Kasse, Band)',baut:'buildCheckout',datei:'06-fixtures.js',blick:0,sel:{own:'buildCheckout'}},
   {kat:'Kassen',id:'kasse-pult',titel:'Schreibtisch (Büro)',baut:'buildDesk',datei:'06-fixtures.js',blick:0,sel:{own:'buildDesk',nth:1}},
   /* ---- Lampen ---- */
   {kat:'Lampen',id:'lampe-decke',titel:'Deckenleuchte Laden',baut:'buildWorld',datei:'05c-buildworld.js',blick:0,hoehe:-30,sel:{own:'buildWorld',box:[-7.1,3.5,-4.2,-5.3,3.75,-3.0]}},

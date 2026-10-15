@@ -604,7 +604,7 @@ function createShelf(i,data){
   const R=bk.regal({art:'laden',K,g,farben:regalFarben(K),px:REGAL_TEX});
   sh.gestelle=R.gestelle; sh.headTex=R.headTex; sh.headY=R.headY; if(R.kopfG) sh.kopfG=R.kopfG; if(R.gitterM) sh.gitterM=R.gitterM;
   if(R.leiste){ if(shelfStrips.indexOf(R.leiste)<0) shelfStrips.push(R.leiste); R.leiste.emissiveIntensity=(S&&S.up&&S.up.regallicht)?1.5:0; }
-  for(const f of R.faecher){ const lv={sh,li:f.li,face:f.face,type:null,count:0,q:1,items:[],tex:f.tex,hit:f.hit}; f.hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); }
+  for(const f of R.faecher){ const lv={sh,li:f.li,face:f.face,type:null,count:0,q:1,items:[],tex:f.tex,zelle:f.zelle,hit:f.hit}; f.hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); }
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
@@ -653,11 +653,15 @@ function updateHead(sh){
 }
 /* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */
 function repaintSchilder(){ shelves.forEach(updateHead); }
+/* Preisschild eines Fachs: eine Zeile im Preisbild des Moebels (lv.zelle, bk.regal) */
 function updateLabel(lv){
-  redraw(lv.tex,(g,W,H)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/300,H/34); W=300; H=34;
-    g.fillStyle=lv.type?'#ffd23f':'#39405a'; g.fillRect(0,0,W,H); g.textBaseline='middle';
+  const Z=lv.zelle; if(!Z) return;
+  const bg=lv.type?MAT.css('schildgold'):'#39405a';
+  redraw(lv.tex,(g,W0)=>{ g.setTransform(1,0,0,1,0,0); g.fillStyle=bg; g.fillRect(0,Z.y-2,W0,Z.h+4); g.save(); g.beginPath(); g.rect(0,Z.y,W0,Z.h); g.clip(); g.translate(0,Z.y); g.scale(W0/300,Z.h/34); const W=300, H=34;
+    g.fillStyle=bg; g.fillRect(0,0,W,H); g.textBaseline='middle';
     if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText((S.prices[lv.type]||marketOf(lv.type)).toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
-    else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
+    else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); }
+    g.restore(); });
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
 /* Schildaufloesung (1 = Laden). Die Verpackungs-Vorfuehrung stellt 50
@@ -727,7 +731,7 @@ function regaleImBlick(){
   /* Preisschild je Fach (eigenes Bild, eigener Zeichenaufruf) ab 9 m: die
      Schrift ist am Handy dort ohnehin nicht lesbar */
   for(const sh of shelves) for(const lv of sh.levels){
-    if(lv.schildM===undefined){ lv.schildM=null; sh.g.traverse(o=>{ if(o.material&&o.material.map===lv.tex) lv.schildM=o; }); }
+    if(lv.schildM===undefined){ lv.schildM=null; sh.g.traverse(o=>{ if(o.material&&o.material.map===lv.tex&&o.parent===lv.hit.parent) lv.schildM=o; }); }
     if(!lv.schildM) continue; lv.schildM.getWorldPosition(_blickV);
     const zeig=_blickV.distanceTo(camera.position)<9;
     if(zeig!==(lv.schildM.layers.mask===1)) lv.schildM.layers.set(zeig?0:1); }

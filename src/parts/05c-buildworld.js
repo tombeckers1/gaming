@@ -217,8 +217,9 @@ function buildWorld(){
   }
   buildCheckout(); buildDesk();
   // Türschild
-  doorSignTex=tex(360,150,()=>{});
-  doorSign=plane(0.62,0.26,new THREE.MeshBasicMaterial({map:doorSignTex,side:THREE.DoubleSide,toneMapped:false}),1.6,1.55,5.875,Math.PI);
+  /* Tuerschild (Oeffnungszeiten, malt 16-day): Leuchtschild aus dem Baukasten, eigenes Bild */
+  doorSign=bk.schild(scene,{malen:()=>{},pw:360,ph:150,b:0.62,h:0.26,x:1.6,y:1.55,z:5.875,ry:Math.PI,leucht:true,doppel:true});
+  doorSignTex=doorSign.material.map;
   doorSign.userData={kind:'sign'};
   // Hof & Testfeld
   buildZaun();

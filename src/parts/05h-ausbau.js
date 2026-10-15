@@ -873,9 +873,9 @@ function buildPackstation(){
   { const P=ppW(0,0,-0.36), st=MAT.eigen('silbergrau','stahl');
     for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
     bbox(1.3,0.36,0.05,MAT.get('schildBlau'),P.x,2.3,P.z,g,false);
-    packSchildTex=tex(1024,256,()=>{});
-    const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
-    plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
+    /* Statusanzeige (Leuchtschild, beidseitig; Inhalt malt drawPackSchild) */
+    const vorn=bk.schild(g,{malen:()=>{},pw:1024,ph:256,b:1.24,h:0.31,x:P.x,y:2.3,z:P.z+0.03,leucht:true});
+    packSchildTex=vorn.material.map; const hinten=new THREE.Mesh(vorn.geometry,vorn.material); hinten.position.set(P.x,2.3,P.z-0.03); hinten.rotation.y=Math.PI; hinten.userData.bauteil='schild'; g.add(hinten);
     drawPackSchild(); }
   versandFlaeche(g);
   packSperre(id,g);

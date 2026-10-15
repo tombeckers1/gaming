@@ -68,7 +68,7 @@ function wkAltHof(neu,cols){ for(const o of neu) WK_ALT.hof.push(o); for(const c
 
 /* Gruppen: WK_G Rohbau (immer sichtbar), WK_H Werk-Inhalt (nur mit Blick ins Werk), WK_D bewegte Teile (wie WK_H, nicht in die
    Laufzeit-Buendelung), WK_A Aussenanlagen (nur von aussen) */
-let WK_G=null, WK_H=null, WK_D=null, WK_A=null, WK_COLS=[], WK_T=null;
+let WK_G=null, WK_H=null, WK_V=null, WK_D=null, WK_A=null, WK_COLS=[], WK_T=null;
 function buildWerk(){
   for(const s of WK_STR){ zone(s.up); zHook(s.up,wkAnwenden); }
   zHook('lagerlogistik',wkAnwenden);
@@ -76,10 +76,10 @@ function buildWerk(){
 function wkAnwenden(){
   const an=wkOffen();
   if(an&&!WK_G) wkBauen();
-  if(WK_G){ WK_G.visible=an; if(!an){ WK_H.visible=WK_D.visible=WK_A.visible=false; } }
+  if(WK_G){ WK_G.visible=an; if(!an){ WK_H.visible=WK_V.visible=WK_D.visible=WK_A.visible=false; } }
   for(const c of WK_COLS){ const d=colliders.indexOf(c)>=0; if(an&&!d) colliders.push(c); else if(!an&&d) dropCol(c); }
   if(an) for(let i=0;i<3;i++) if(wkStrasseOffen(i)&&!WK_T.str[i]) wkStrasseBauen(i);
-  if(WK_T) WK_T.str.forEach((st,i)=>{ if(!st) return; const ja=wkStrasseOffen(i); st.g.visible=ja; st.d.visible=ja;
+  if(WK_T) WK_T.str.forEach((st,i)=>{ if(!st) return; const ja=wkStrasseOffen(i); st.g.visible=ja; st.d.visible=ja; st.v.visible=ja;
     for(const c of st.cols){ const d=colliders.indexOf(c)>=0; if(ja&&!d) colliders.push(c); else if(!ja&&d) dropCol(c); }
     WK.zustand[i].laeuft=ja; if(WK_T.blende[i]) for(const b of WK_T.blende[i]) b.visible=!ja; });
   /* alte Westwand der Halle, Westzaun und Zufahrt des LKW-Hofs */
@@ -96,7 +96,7 @@ function wkAnwenden(){
 /* ---------- Bau (einmal, beim ersten Oeffnen) ---------- */
 function wkBauen(){
   const grp=(n,bnd)=>{ const g=new THREE.Group(); g.name=n; g.userData.inventar=true; if(bnd) g.userData._bnd=true; scene.add(g); return g; };
-  WK_G=grp('werk'); WK_H=grp('werkInnen'); WK_D=grp('werkBewegt',true); WK_A=grp('werkAussen');
+  WK_G=grp('werk'); WK_H=grp('werkInnen'); WK_V=grp('werkVerbindungsbau'); WK_D=grp('werkBewegt',true); WK_A=grp('werkAussen');
   WK_T={str:[null,null,null],tueren:[],blende:[[],[],[]],monitor:null,lichtband:null,trommeln:[],zeit:0};
   const vorC=colliders.length, vorL=LAMPEN.length;
   const fang=(ziel,fn)=>{ const vorS=new Set(scene.children); fn(); for(const o of scene.children.filter(o=>!vorS.has(o))){ scene.remove(o); ziel.add(o); } };
@@ -104,12 +104,18 @@ function wkBauen(){
   fang(WK_H,()=>{ wkInnen(); wkRaeume(); wkBoden2(); wkLicht(); });
   fang(WK_A,()=>{ wkAussen(); });
   /* unter dem Dach kein Sonnenschatten (spart den Schattendurchgang): Inhalt nie, Rohbau nur Waende und Dach */
-  WK_H.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
+  wkVerbTeilen(WK_H,WK_V);
+  WK_H.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); WK_V.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
   WK_G.traverse(o=>{ if(o.isMesh&&o.userData.bauteil!=='wand'&&o.userData.bauteil!=='werkdach') o.castShadow=false; });
   WK_COLS=colliders.slice(vorC); for(const c of WK_COLS) dropCol(c);
   for(let i=vorL;i<LAMPEN.length;i++) LAMPEN[i].id=WK.id;
   bk.wandbild();
 }
+/* Was in den Verbindungsbau reicht (Sammelfoerderer, Ausgangsfoerderer, Uebergaben, Schilder), kommt in eine eigene Gruppe: aus dem
+   Verbindungsbau und durch die Tuer der Halle sieht man nur sie, nicht das ganze Werk (Instanzen und Sammler ueber das Werk bleiben) */
+const _wkVb=new THREE.Box3();
+function wkVerbTeilen(von,nach){ for(const o of von.children.slice()){ if(o.isInstancedMesh) continue; _wkVb.setFromObject(o);
+  if(!_wkVb.isEmpty()&&_wkVb.max.x>-70.1&&_wkVb.min.x>-73.0){ von.remove(o); nach.add(o); } } }
 /* Wandstueck (Kollision nur, wenn es am Boden steht); fi/fa = Flaeche innen/aussen (Art oder Material) */
 function wkW(x0,x1,z0,z1,y0,y1,innen,fi,fa,still,ohneKol){
   if(x1-x0<0.01||z1-z0<0.01||y1-y0<0.01) return null;
@@ -446,7 +452,8 @@ function wkStrasseBauen(i){
   const s=WK_STR[i], F=MAT.farbe, L=bk.lod(), B=WK.band, zc=s.zc, p=B.p, zT=wkGasseZ(s.gasse);
   const g=new THREE.Group(); g.name='werkStrasse'+s.nr; g.userData.inventar=true; WK_H.add(g);
   const d=new THREE.Group(); d.name='werkStrasseBewegt'+s.nr; d.userData._bnd=true; WK_D.add(d);
-  const st={g,d,cols:[],portale:[],traeger:null,pal:null,ampel:null,zyklus:-1,tAlt:-1};
+  const v=new THREE.Group(); v.name='werkStrasseVerb'+s.nr; v.userData.inventar=true; WK_V.add(v);
+  const st={g,d,v,cols:[],portale:[],traeger:null,pal:null,ampel:null,zyklus:-1,tAlt:-1};
   const vorC=colliders.length;
   const fang=(ziel,fn)=>{ const vorS=new Set(scene.children); fn(); for(const o of scene.children.filter(o=>!vorS.has(o))){ scene.remove(o); ziel.add(o); } };
   fang(g,()=>{
@@ -490,7 +497,8 @@ function wkStrasseBauen(i){
     const la=bk.inst(wkLageGeo(),MAT.vc('stumpf'),[0,1,2,3].map(k=>tm(0,bk.PALETTE.euro.h+k*0.3,0)),{parent:pg,schatten:false,bauteil:'werkstueck',art:'lage'});
     st.pal={g:pg,lagen:la,weg:[[WK.pal.x,zc],[WK.sammel.x,zc],[WK.sammel.x,zT],[-66.15,zT]]}; }
   st.cols=colliders.slice(vorC); for(const c of st.cols) dropCol(c);
-  g.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); d.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
+  wkVerbTeilen(g,v);
+  g.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); d.traverse(o=>{ if(o.isMesh) o.castShadow=false; }); v.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
   WK_T.str[i]=st;
   if(typeof bk.wandbild==='function') bk.wandbild();
 }
@@ -522,14 +530,16 @@ const _wkFr=new THREE.Frustum(), _wkM=new THREE.Matrix4(), _wkBox=new THREE.Box3
 function wkSichtTakt(){
   if(!WK_H||!WK_G||!WK_G.visible) return;
   const c=camera.position, x=c.x, z=c.z, oben=c.y>7.5, Wr=WK.werk;
-  const imWerk=x>Wr.x0-LW&&x<-65.9&&z>Wr.z0-LW&&z<Wr.z1+LW;
-  let v=oben||imWerk;
-  if(!v&&x>-66&&x<-26&&z>-34&&z<-6.8){ camera.updateMatrixWorld(); _wkM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _wkFr.setFromProjectionMatrix(_wkM);
-    const P=(x0,y0,z0,x1,y1,z1)=>_wkFr.intersectsBox(_wkBox.set(_wkA.set(x0,y0,z0),_wkB.set(x1,y1,z1)));
-    v=P(-66.3,0,-10,-65.9,2.2,-8)||[0,1,2].some(k=>P(-66.3,0,wkGasseZ(k)-0.6,-65.9,1.9,wkGasseZ(k)+0.6)); }
-  WK_H.visible=v; WK_D.visible=v;
+  const imWerk=x>Wr.x0-LW&&x<-70.1&&z>Wr.z0-LW&&z<Wr.z1+LW, imVerb=x>=-70.1&&x<-65.9&&z>Wr.z0&&z<Wr.z1;
+  let P=null; const sieht=(x0,y0,z0,x1,y1,z1)=>{ if(!P){ camera.updateMatrixWorld(); _wkM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse); _wkFr.setFromProjectionMatrix(_wkM); P=true; }
+    return _wkFr.intersectsBox(_wkBox.set(_wkA.set(x0,y0,z0),_wkB.set(x1,y1,z1))); };
+  /* Werk-Inhalt: im Werk; aus dem Verbindungsbau nur durch Tuer/Foerderoeffnungen der Brandwand x −70 */
+  const h=oben||imWerk||(imVerb&&(sieht(-70.2,0,-10,-69.8,2.2,-8)||WK_STR.some(s=>sieht(-70.2,0,s.zc-0.65,-69.8,1.9,s.zc+0.65))));
+  /* Verbindungsbau: dazu aus der Halle, aber nur vom Hauptgang Nord (Blick durch die Tuer x −66, z −9) */
+  const v=h||imVerb||(x>-66&&x<-40&&z>-13.6&&z<-6.8&&sieht(-66.3,0,-10,-65.9,2.2,-8));
+  WK_H.visible=h; WK_V.visible=v; WK_D.visible=v;
   /* Aussenanlagen nicht aus Werk, Halle, Lager und Laden */
-  WK_A.visible=oben||!(imWerk||(x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6)||(x>-7.9&&x<37.9&&z>-21.9&&z<5.9));
+  WK_A.visible=oben||!(imWerk||imVerb||(x>-66&&x<-8.1&&z>-34.1&&z<-6.0)||(x>-26&&x<-8.1&&z>-30&&z<-6)||(x>-7.9&&x<37.9&&z>-21.9&&z<5.9));
 }
 
 /* ---------- Takt: Tueren (immer), Lichtbaender, Schau-Betrieb (nur wenn sichtbar), Ausgabe an die Gasse (immer, zeitbasiert) ---------- */

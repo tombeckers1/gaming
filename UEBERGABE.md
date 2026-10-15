@@ -42,6 +42,13 @@ gleichzeitig, besser einer** (material braucht ~11 GB).
 Hochregal 3 Gassen (Gasse 1 mit RBG), I/O, Anbruch, Stellplätze, FTS-Logik (Einlagern, Anbruch, Nachschub ③), Bodenmarkierungen,
 Hallenlicht, Sprinkler, Tank/Parkplatz/Pforte. Doku `docs/halle/etappe-a.md`, Bauteile `bk.hochregal/rbg/foerderer/fts/lampe/
 bodenmarkierung` (baukasten.md), Test `src/tests/hochregal.js`, Bilder `docs/halle/bilder-1410/`. Etappe B (Werk West) offen.
+**Halle Etappe B gebaut (15.10., Agent):** Werk West (Kapitel 8/8.2/8.3, Ausbauten `fabrik`, `fabrik2`, `fabrik3`; Kapitel 8 nicht mehr
+„geplant“): Werk + Verbindungsbau mit zwei Brandwänden, alle Räume der Skizze, Leitstand auf Galerie +3,2 m (Treppe, begehbar über
+`wkBoden`), 3 Straßen × 7 Stationen im **Schau-Betrieb** (ohne Wirtschaft, Werk-Fixkosten erst ab Produktion), Paletten laufen über den
+Sammelförderer in die Gassen 2/3/1 (RBG Gasse 2/3 mit fabrik/fabrik2), Mischhaus im Erdwall, Hof West mit Werkszaun, Straße bis x −130.
+Restfehler A erledigt: N1 PVC-Schnelllauftor, Personaltür x −40 begehbar. Doku `docs/halle/etappe-b.md`, Bauteile `bk.zelle/drehtuer/
+treppe/portalgreifer/rohrraster/maschine/erdwall` (baukasten.md §2c), Test `src/tests/werk.js`, Bilder `docs/halle/bilder-1510/`.
+Offen: Produktions-Gameplay (Konzept freigegeben, `produktion-konzept.md`) auf den Schnittstellen `WK.zustand`, `wkAusgabe`, `WK.produktion`.
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 
@@ -428,7 +435,7 @@ flock /tmp/bb-testlock timeout 3600 node -r ./ladezeit-preload.js /home/user/gam
 - **Wichtige Tests nach Bereich:**
   - **Laden/Personal:** personen, kasse, kartonauf, einraeumer, regalsicht, pause.
   - **Versand:** packer, packband, packmaterial, versand, versandtor, tourplan, pakete, karre, kartonlogik, durchgang.
-  - **Ausbau/Lager:** ausbau, stufen, lager, online.
+  - **Ausbau/Lager:** ausbau, stufen, lager, online, hochregal, werk (Halle Etappe B).
   - **Feuerwerk:** lochschuss, themen (+R4=1), abschussklang, kugelknall, bodenfontaene, ursprung (test.html), steigerung (test.html), hoehen, anomalie, neuware, sortiment, vfrohr, vfgrafik, vorfuehrung, mblast, kleinfeuer06, verpackung.
   - **Leistung/Gesamt:** leistung, gameplay, H:gameplay (=HANDY=1), baum.
 - **Test-Harness seit 14.10. (Testsanierung, Branch claude/test-sanierung):**

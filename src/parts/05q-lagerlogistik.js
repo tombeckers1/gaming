@@ -329,8 +329,8 @@ function llSichtTakt(){
     const P=(x0,y0,z0,x1,y1,z1)=>_llFr.intersectsBox(_llBox.set(_llA.set(x0,y0,z0),_llB.set(x1,y1,z1)));
     const imLager=x>-26&&x<-8.1&&z>-30&&z<-15, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;   /* Durchgang nur aus Schleuse und ② Sued (von ① aus verdecken Sturz und Waende) */
     v=(imLager&&P(-26.3,0,LL.durchgang[0],-25.7,3.0,LL.durchgang[1]))||(imDritten&&LL_T.n1t>0.04&&P(-36.3,0,LL.n1.z0,-35.7,LL.n1.h,LL.n1.z1));
-    /* Etappe B: aus Verbindungsbau und Werk durch die Tuer und die Uebergaben der Brandwand x −66 */
-    if(!v&&x>-100.2&&x<-66&&z>-34.2&&z<-6.8&&typeof wkOffen==='function'&&wkOffen()) v=P(-66.3,0,-10,-65.9,2.2,-8)||[0,1,2].some(k=>P(-66.3,0,LL.hr.z0(k)+1.4,-65.9,1.9,LL.hr.z0(k)+2.6));
+    /* Etappe B: aus dem Verbindungsbau durch die Tuer und die Uebergaben der Brandwand x −66 */
+    if(!v&&x>-70.1&&x<-66&&z>-34.2&&z<-6.8&&typeof wkOffen==='function'&&wkOffen()) v=P(-66.3,0,-10,-65.9,2.2,-8)||[0,1,2].some(k=>P(-66.3,0,LL.hr.z0(k)+1.4,-65.9,1.9,LL.hr.z0(k)+2.6));
     if(!v&&z<-34&&typeof WTORE!=='undefined') for(const T of WTORE) if(T&&T.t>0.04&&P(T.x-1.75,0,-34.3,T.x+1.75,3.1,-33.7)){ v=true; break; } }
   LL_H.visible=v; LL_D.visible=v;
   /* Aussenanlagen (Tank, Parkplatz, Pforte): nicht aus Halle, ③, Schleuse und dem Lager-Sueden (dort nur Waende dazwischen) */

@@ -461,7 +461,7 @@ function wkStrasseBauen(i){
     /* Band (Rollenbahn, Alu wie im Referenzfoto) durch alle Stationen bis zum Palettierer */
     bk.foerderer({von:[B.x0-0.25,zc],bis:[-72.85,zc],breite:B.b,hoehe:B.y,teilung:L?0.1:0.2});
     s.st.forEach((q,j)=>{ const x0=B.x0+j*p, x1=x0+p, xm=(x0+x1)/2;
-      if(q[2]){ bk.zelle({S,x0,x1,z0:zc-WK.tief,z1:zc+WK.tief,h:4.0,band:{z:zc,y0:0.45,y1:1.4,b:0.9},tueren:[{seite:1,x:x0+0.72},{seite:-1,x:x1-0.72}],leuchten:Lz,schild:{text:q[0],unter:q[1]+' · Zelle'},parent:scene}); return; }
+      if(q[2]){ bk.zelle({S,x0,x1,z0:zc-WK.tief,z1:zc+WK.tief,h:4.0,band:{z:zc,y0:0.45,y1:1.4,b:0.9},tueren:[{seite:1,x:x0+0.72},{seite:-1,x:x1-0.72}],leuchten:Lz,schild:L?{text:q[0],unter:q[1]+' · Zelle'}:null,parent:scene}); return; }
       if(q[3]==='portal'){ const P=bk.portalgreifer({x:xm,z:zc,laenge:p-0.2,breite:2.0,hoehe:2.3,greifer:i===2?'sauger':'zange',hub:1.0,parent:d});
         st.portale.push({P,art:'station'});
         if(i===2){ /* Rohrmagazin hinter dem Portal (hohe Pappe-Rohre wie im Referenzfoto) und Rohr-Raster neben dem Band */
@@ -474,7 +474,7 @@ function wkStrasseBauen(i){
       /* Stationsschild an einem Alu-Pfosten am Gangrand (nicht frei schwebend) */
       S.box(0.05,2.75,0.05,xm+0.55,1.375,zc+WK.tief-0.06,F('aluminium'),'stahl'); bk.fuss(S,xm+0.55,zc+WK.tief-0.06,0.12);
       S.box(1.04,0.34,0.03,xm,2.55,zc+WK.tief-0.025,F('anthrazit'),'lackMetall');
-      bk.schild(scene,{text:q[0],unter:q[1],b:1.0,h:0.3,px:0.7,x:xm,y:2.55,z:zc+WK.tief-0.008,ry:0}); });
+      if(L) bk.schild(scene,{text:q[0],unter:q[1],b:1.0,h:0.3,px:0.7,x:xm,y:2.55,z:zc+WK.tief-0.008,ry:0}); });   /* Ultra Low: Tafel ohne Schrift (21 Zeichenaufrufe weniger) */
     /* Abwurf vom Ueberkopf-Foerderer auf Station 1 */
     S.box(0.36,2.6,0.36,-90.4,2.95,zc,F('lichtgrau'),'lackMetall'); S.box(0.5,0.3,0.5,-90.4,1.55,zc,F('lichtgrau'),'lackMetall');
     /* Palettierer: Portal ueber der Ausgangspalette, Ausgangsfoerderer durch die Brandwand auf den Sammelfoerderer, Uebergabe in die Gasse */

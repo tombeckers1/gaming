@@ -464,7 +464,10 @@ function wkStrasseBauen(i){
         else { S.box(0.9,0.75,0.45,xm,0.375,zc-0.75,F('lichtgrau'),'lackMetall');
           for(let a=0;a<6;a++) S.zyl(0.0,0.03,0.08,[6,8,10][L],xm-0.3+a*0.12,0.79,zc-0.75,F('feuerrot'),'stumpf'); } }
       else bk.maschine(S,{art:q[3],x:xm,z:zc,y:B.y,laenge:p,breite:2.2});
-      bk.schild(scene,{text:q[0],unter:q[1],b:1.0,h:0.3,px:0.7,x:xm,y:2.55,z:zc+WK.tief+0.01,ry:0}); });
+      /* Stationsschild an einem Alu-Pfosten am Gangrand (nicht frei schwebend) */
+      S.box(0.05,2.75,0.05,xm+0.55,1.375,zc+WK.tief-0.06,F('aluminium'),'stahl'); bk.fuss(S,xm+0.55,zc+WK.tief-0.06,0.12);
+      S.box(1.04,0.34,0.03,xm,2.55,zc+WK.tief-0.025,F('anthrazit'),'lackMetall');
+      bk.schild(scene,{text:q[0],unter:q[1],b:1.0,h:0.3,px:0.7,x:xm,y:2.55,z:zc+WK.tief-0.008,ry:0}); });
     /* Abwurf vom Ueberkopf-Foerderer auf Station 1 */
     S.box(0.36,2.6,0.36,-90.4,2.95,zc,F('lichtgrau'),'lackMetall'); S.box(0.5,0.3,0.5,-90.4,1.55,zc,F('lichtgrau'),'lackMetall');
     /* Palettierer: Portal ueber der Ausgangspalette, Ausgangsfoerderer durch die Brandwand auf den Sammelfoerderer, Uebergabe in die Gasse */

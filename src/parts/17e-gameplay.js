@@ -36,9 +36,9 @@ const GP_ORTE=[
   ['Hochregal',   -43.2,-25.6, Math.PI/2, 0.14],
   ['Testfeld',      0.3,-8.5, 0, 0.05],
   /* 15.10. (Halle Etappe B): Werk West - mehrmals druecken = Rundgang: Leitstand-Blick, Straße 1, 2, 3, Verbindungsbau */
-  ['Werk',        -82.0,-9.6, 0, -0.3]
+  ['Werk',        -83.0,-9.2, 0, -0.32]
 ];
-const GP_WERK=[[-82.0,-9.6,0,-0.3],[-91.3,-11.7,-Math.PI/2+0.25,-0.12],[-91.3,-16.6,-Math.PI/2+0.22,-0.12],[-91.3,-22.1,-Math.PI/2+0.22,-0.12],[-68.6,-11.0,0.05,-0.08]];
+const GP_WERK=[[-83.0,-9.2,0,-0.32],[-91.3,-11.7,-Math.PI/2+0.25,-0.12],[-91.3,-16.6,-Math.PI/2+0.22,-0.12],[-91.3,-22.1,-Math.PI/2+0.22,-0.12],[-68.6,-11.0,0.05,-0.08]];
 let gpWerkI=-1;
 /* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
    nichts - massive Renderprobleme; mach, dass das langsam laedt"):

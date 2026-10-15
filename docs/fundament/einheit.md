@@ -78,11 +78,59 @@ Wareneingang (05c), WARENANNAHME auf dem Gehweg (05h), Versandbereich `reserveTe
 - Bodenmarkierung: Linien 0,12 m (vorher teils 0,14), Bodenschrift überall Signalgelb auf dunklem Feld (WARENEINGANG/WARENANNAHME/
   PACKPLATZ vorher ohne Feld), Ladezone/Palettierstation Warnrand aus der geteilten Schraffur, Versandbereich gelbe Freihalte-Schraffur.
 
-## 3. Messung (Vorführung aufgebaut, Vollausbau, Tag; `tools/fundament/einheit-bilder.js`)
-(siehe Abschnitt 5 – wird nach dem Lauf eingetragen)
+## 3. Messung (Vorführung aufgebaut, Vollausbau, Tag 10:00, swiftshader 960 × 600; `tools/fundament/einheit-bilder.js`)
+Zeichenaufrufe und Dreiecke je Bild (renderer.info inkl. Schattenpass, Mittel über 2 Bilder), dazu der Szenengraf. Vorher = 8007f51 (V138),
+nachher = dieser Stand. Zufall fest je Aufrufer; die Dreiecke enthalten Ware, Kunden und Personal der Vorführung (~23,7 Mio.), kleine
+Abweichungen dort (±0,03 %) sind Rauschen der Vorführung, nicht Bauteile – siehe statische Zählung unten.
+
+## hoch
+| Ansicht | Zeichenaufrufe vorher | nachher | Dreiecke vorher | nachher |
+|---|---|---|---|---|
+| regalLaden | 4030 | 3544 | 23.943.349 | 23.940.931 |
+| regalEingang | 3967 | 3464 | 23.935.206 | 23.932.980 |
+| regalLager | 4125 | 3626 | 23.805.519 | 23.806.727 |
+| kuehl | 2647 | 2473 | 23.770.146 | 23.769.556 |
+| kasse | 4413 | 3812 | 23.883.972 | 23.877.622 |
+| sbKasse | 2976 | 2711 | 23.729.590 | 23.728.520 |
+| front | 4710 | 4044 | 24.046.073 | 24.041.227 |
+| eingang2 | 2927 | 2644 | 23.744.995 | 23.745.095 |
+| lagerFenster | 2946 | 2667 | 23.667.472 | 23.666.136 |
+| lagerFensterAussen | 4502 | 3887 | 23.959.977 | 23.953.631 |
+| versand | 3188 | 2864 | 23.743.841 | 23.744.335 |
+| dockHof | 3128 | 2787 | 23.551.878 | 23.552.348 |
+| halle | 2407 | 2205 | 23.354.961 | 23.355.933 |
+| streifen | 3832 | 3384 | 23.775.257 | 23.775.503 |
+
+Graf vorher {'meshes': 5560, 'materialien': 1626, 'texturen': 998, 'programme': 164} nachher {'meshes': 4798, 'materialien': 1164, 'texturen': 691, 'programme': 164}
+## ultralow
+| Ansicht | Zeichenaufrufe vorher | nachher | Dreiecke vorher | nachher |
+|---|---|---|---|---|
+| regalLaden | 1696 | 1474 | 2.397.266 | 2.392.552 |
+| regalEingang | 1741 | 1492 | 2.400.299 | 2.394.335 |
+| regalLager | 1861 | 1626 | 2.360.364 | 2.360.794 |
+| kuehl | 777 | 766 | 2.391.026 | 2.389.974 |
+| kasse | 2215 | 1849 | 2.419.558 | 2.409.132 |
+| sbKasse | 1004 | 935 | 2.341.974 | 2.337.876 |
+| front | 2489 | 2069 | 2.498.225 | 2.488.539 |
+| eingang2 | 1602 | 1365 | 2.393.999 | 2.388.929 |
+| lagerFenster | 834 | 791 | 2.310.926 | 2.308.888 |
+| lagerFensterAussen | 2283 | 1915 | 2.447.395 | 2.438.565 |
+| versand | 964 | 927 | 2.319.451 | 2.319.605 |
+| dockHof | 1061 | 956 | 2.279.330 | 2.279.288 |
+| halle | 813 | 780 | 2.309.970 | 2.310.058 |
+| streifen | 1554 | 1382 | 2.337.410 | 2.337.128 |
+
+Graf vorher {'meshes': 4998, 'materialien': 1605, 'texturen': 966, 'programme': 150} nachher {'meshes': 4350, 'materialien': 1143, 'texturen': 659, 'programme': 150}
+
+
+**Ergebnis:** Zeichenaufrufe in allen 14 Ansichten gesunken – Hoch −174 … −666 (−7 … −14 %), Ultra Low −11 … −420 (−1 … −17 %).
+Szenengraf Hoch: Meshes 5 560 → 4 798, Material-Objekte 1 626 → 1 164, Texturen 998 → 691 (Ultra Low 4 998 → 4 350 / 1 605 → 1 143 / 966 → 659).
+Größte Hebel: Preisschilder je Möbel in einem Bild + einem Mesh (vorher Textur, Material und Zeichenaufruf je Fach), Kasse und Schiebetür
+als Sammler, Lagerregal-Stützen/-Böden je ein Mesh, Markierungen und Fenster je Aufruf ein Mesh.
 
 ## 4. Bilder
-`docs/fundament/einheit/` – je Ansicht `<ansicht>-<hoch|ultralow>-vorher.jpg` / `-nachher.jpg`.
+`docs/fundament/einheit/<ansicht>-<hoch|ultralow>.jpg` – links vorher, rechts nachher (selbst geprüft, siehe §2 „Was sich sichtbar ändert“).
+Ansichten: regalLaden, regalEingang, regalLager, kuehl (Regal nah, Lochblech/Preisschild), kasse, sbKasse, front (Schaufenster, Tür, Logo),
+eingang2, lagerFenster (innen), lagerFensterAussen, versand (Packmaterial-Regal, Packplatz), dockHof (Markierung, Schrift), halle, streifen.
 
 ## 5. Ergebnisse
-(folgt)

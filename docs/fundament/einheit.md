@@ -123,6 +123,10 @@ Graf vorher {'meshes': 5560, 'materialien': 1626, 'texturen': 998, 'programme': 
 Graf vorher {'meshes': 4998, 'materialien': 1605, 'texturen': 966, 'programme': 150} nachher {'meshes': 4350, 'materialien': 1143, 'texturen': 659, 'programme': 150}
 
 
+**Statische Zählung** (deterministisch, ohne Vorführung: neues Spiel, Vollausbau, je eine Möbelart und Lagerregalart aufgestellt, alle Meshes
+ohne Instanzen/Figuren; Skript im Scratchpad `tris.js`): Dreiecke Hoch 974 168 → 958 604 (−1,6 %), Ultra Low 626 078 → 611 406 (−2,3 %);
+Meshes 2 620 → 2 303 bzw. 2 593 → 2 276.
+
 **Ergebnis:** Zeichenaufrufe in allen 14 Ansichten gesunken – Hoch −174 … −666 (−7 … −14 %), Ultra Low −11 … −420 (−1 … −17 %).
 Szenengraf Hoch: Meshes 5 560 → 4 798, Material-Objekte 1 626 → 1 164, Texturen 998 → 691 (Ultra Low 4 998 → 4 350 / 1 605 → 1 143 / 966 → 659).
 Größte Hebel: Preisschilder je Möbel in einem Bild + einem Mesh (vorher Textur, Material und Zeichenaufruf je Fach), Kasse und Schiebetür

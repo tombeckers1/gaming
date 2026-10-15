@@ -49,6 +49,11 @@ Sammelförderer in die Gassen 2/3/1 (RBG Gasse 2/3 mit fabrik/fabrik2), Mischhau
 Restfehler A erledigt: N1 PVC-Schnelllauftor, Personaltür x −40 begehbar. Doku `docs/halle/etappe-b.md`, Bauteile `bk.zelle/drehtuer/
 treppe/portalgreifer/rohrraster/maschine/erdwall` (baukasten.md §2c), Test `src/tests/werk.js`, Bilder `docs/halle/bilder-1510/`.
 Offen: Produktions-Gameplay (Konzept freigegeben, `produktion-konzept.md`) auf den Schnittstellen `WK.zustand`, `wkAusgabe`, `WK.produktion`.
+**Licht-Paket gebaut (15.10., Agent, nicht veröffentlicht):** Tom: „immer so dunkel, in eine Richtung wird es hell, Boden glänzt komisch“.
+Ursachen: Augenanpassung (Belichtung 0,74 + Gamma je Kameraort), 3 Punktlichter, die dem Blick folgten, Ladenstrahler, Glanzbahnen.
+Neu: **Raumlicht im Shader** (`RAUM` in 05p, Räume aus `dachBereiche()`), feste Belichtung 1,05, **Deckenlicht mit Schatten** ab Mittel
+(`DECKE`), Boden matt über `MAT.bodenGlanz`. Doku `docs/uebergabe/licht-1510.md`, Bilder `docs/bilder/licht-1510/`, Test `src/tests/licht.js`
+(neu), Werkzeug `tools/licht/bilder.js` (Bilder, Zeichenaufrufe, Helligkeits-Lauf). Stilregeln §8 neu.
 **Beiseite (Tom 14.10.):** Feuerwerk-Fragen F1–F4, Feuerwerk wird jetzt nicht geändert.
 **Wochenlimit:** Tom 14.10. ~16 Uhr 41 %; Ziel höchstens ~1 %/h, Sa 14 Uhr ≤ 85 %. Ein Agent nach dem anderen, Sonnet für Routine.
 

@@ -3,7 +3,8 @@
 // zaehlen: Zeichenaufrufe (inkl. Schattenkarten und Bildeffekte) und Bildzeit je Ansicht. Modi kombinierbar: bilder,zaehlen,lauf
 // bilder: feste Kameras (Laden vom Eingang/von der Kasse erhoeht wie das Referenzbild, Gang, Lager, Versand, Halle, Werk, Sued)
 //         je Tag (10:00) und Nacht (22:00) -> <ordner>/<ansicht>-<tag|nacht>-<gfx><tag>.jpg; Mittelwert je Bild in mittel.json
-// lauf:   Gang durch die Raeume (ein Bild je 1,5 m, 480 x 270) mit Kameradrehung (8 Blicke je Wegpunkt), mittlere Bildhelligkeit je Bild -> <ordner>/lauf-<gfx><tag>.json
+// lauf:   Gang durch die Raeume (ein Bild je 3 m, 480 x 270) mit Kameradrehung (6 Blicke je Wegpunkt), mittlere Bildhelligkeit je Bild
+//         (bild) und dasselbe mit grauem Einheitsmaterial (nurLicht: nur die Beleuchtung, ohne Inhalt) -> <ordner>/lauf-<gfx><tag>.json
 // Laden wie im Spiel: Gameplay-Vorfuehrung aufgebaut (Regale voll, Kunden), Bildeffekte wie die Stufe sie hat.
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs'), path=require('path');
@@ -20,7 +21,7 @@ const ANS={
   werk:{p:[-91.3,2.0,-11.7],t:[-81.6,0.8,-14.2]}
 };
 /* Weg: Punkte [x,z]; zwischen den Punkten gehen (4 m/s), an jedem Punkt einmal ganz umdrehen */
-const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[-4,2],[-7.4,1.0],[-12,0],[-14,-8],[-14,-19],[-14,-26],[-22,-20],[-30,-16],[-40,-20]];
+const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-30,-16]];
 (async()=>{
   const html=process.argv[2], out=process.argv[3], gfx=process.argv[4]||'hoch', modus=process.argv[5]||'bilder', tag=process.argv[6]||'';
   fs.mkdirSync(out,{recursive:true});
@@ -31,8 +32,9 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
   await H.laden(p,html);
   await p.evaluate(g=>{ localStorage.clear(); localStorage.setItem('bb_gfx',g); },gfx);
   await H.neuladen(p); await H.neuesSpiel(p,{stoppen:true});
-  await p.evaluate(()=>{ const bb=window.__bb; bb.gpStart(); });
-  await H.stuecke(p,(st,aus)=>{ const bb=window.__bb; let n=0; while(!bb.gpFertig&&!aus()){ bb.gpBauSchritt(50); n++; } return {fertig:bb.gpFertig,info:n}; },{name:'Vorfuehrung'});
+  /* OHNE_VORF=1: ohne Gameplay-Vorfuehrung (Laden fast leer) - fuer den Helligkeits-Lauf (Licht haengt nicht am Inhalt, Bilder 5-10x schneller) */
+  if(!process.env.OHNE_VORF){ await p.evaluate(()=>{ const bb=window.__bb; bb.gpStart(); });
+  await H.stuecke(p,(st,aus)=>{ const bb=window.__bb; let n=0; while(!bb.gpFertig&&!aus()){ bb.gpBauSchritt(50); n++; } return {fertig:bb.gpFertig,info:n}; },{name:'Vorfuehrung'}); }
   await p.evaluate(()=>{ const bb=window.__bb; bb.stoppSchleife(); bb.S.level=99; for(const u of bb.UPGRADES) if(!u.geplant) bb.S.up[u.id]=true; try{ bb.applyZonen(); }catch(e){} bb.run(4,0.05); });
   const hell=`(()=>{ const gl=window.__bb.renderer.getContext(), W=gl.drawingBufferWidth, H=gl.drawingBufferHeight, a=new Uint8Array(W*H*4);
     gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a); let s=0, n=0, weiss=0; for(let i=0;i<a.length;i+=16){ const l=0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2]; s+=l; n++; if(l>=250) weiss++; }
@@ -56,13 +58,13 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
   if(MOD.includes('zaehlen')){
     /* Zeichenaufrufe je Bild (alles: Schattenkarten, Szene, Bildeffekte) und Bildzeit (swiftshader, nur als Vergleichswert) */
     const r=await p.evaluate(({ANS})=>{ const bb=window.__bb, R=bb.renderer, cam=bb.camera, o={};
-      for(const k in ANS){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
+      for(const k of ['ladenEingang','lager','halle','werk']){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
         bb.setView(v.p[0],v.p[2],yaw,0); bb.clock=600; bb.run(0.4,0.05); bb.clock=600; bb.applyTOD();
         const f=()=>{ bb.kameraSetzen(); cam.position.set(v.p[0],v.p[1],v.p[2]); cam.lookAt(v.t[0],v.t[1],v.t[2]); cam.updateMatrixWorld(); };
         for(let i=0;i<2;i++){ f(); bb.renderFrame(0.05); }
         const gl=R.getContext(), px=new Uint8Array(4); let calls=0, tris=0, ms=0;
-        for(let i=0;i<3;i++){ f(); R.info.autoReset=false; R.info.reset(); const t=performance.now(); bb.renderFrame(0.05); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms+=performance.now()-t; calls+=R.info.render.calls; tris+=R.info.render.triangles; R.info.autoReset=true; }
-        o[k]={calls:Math.round(calls/3),tris:Math.round(tris/3),ms:Math.round(ms/3)}; }
+        for(let i=0;i<2;i++){ f(); R.info.autoReset=false; R.info.reset(); const t=performance.now(); bb.renderFrame(0.05); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); ms+=performance.now()-t; calls+=R.info.render.calls; tris+=R.info.render.triangles; R.info.autoReset=true; }
+        o[k]={calls:Math.round(calls/2),tris:Math.round(tris/2),ms:Math.round(ms/2)}; }
       return o; },{ANS});
     fs.writeFileSync(path.join(out,'zaehlen-'+gfx+tag+'.json'),JSON.stringify(r,null,1));
     console.log('ZAEHLEN',gfx,JSON.stringify(r));
@@ -72,16 +74,22 @@ const WEG=[[0,4],[0,-3],[6,-3],[14,1],[24,0],[22,-10],[22,-18],[12,-14],[4,-3],[
     for(const zeit of [['tag',600],['nacht',1320]]){
       const r=await p.evaluate(({WEG,zeit,hell})=>{ const bb=window.__bb, werte=[]; bb.clock=zeit; bb.applyTOD();
         const dt=1/30; let yaw=0;
-        const bild=(x,z,y)=>{ bb.setView(x,z,y,-0.05); bb.run(dt,dt); bb.clock=zeit; bb.kameraSetzen(); bb.renderFrame(dt); const m=(0,eval)(hell); werte.push([+x.toFixed(1),+z.toFixed(1),+y.toFixed(2),m.mittel]); };
-        for(let i=0;i<WEG.length-1;i++){ const [x0,z0]=WEG[i], [x1,z1]=WEG[i+1], d=Math.hypot(x1-x0,z1-z0), n=Math.max(1,Math.round(d/1.5));
+        /* zweites Bild nur Licht: alles in einem grauen Einheitsmaterial (Albedo 0,5) - zeigt die Beleuchtung ohne Texturen/Inhalt */
+        const grau=new THREE.MeshStandardMaterial({color:0x808080,roughness:1,metalness:0});
+        const bild=(x,z,y)=>{ bb.setView(x,z,y,-0.05); bb.run(dt,dt); bb.clock=zeit; bb.kameraSetzen(); bb.renderFrame(dt); const m=(0,eval)(hell);
+          const LIM=[]; bb.scene.traverse(o=>{ if(o.userData&&o.userData._licht&&o.visible){ LIM.push(o); o.visible=false; } }); bb.scene.overrideMaterial=grau; bb.renderFrame(dt); const l=(0,eval)(hell); bb.scene.overrideMaterial=null; for(const o of LIM) o.visible=true;
+          werte.push([+x.toFixed(1),+z.toFixed(1),+y.toFixed(2),m.mittel,l.mittel]); };
+        for(let i=0;i<WEG.length-1;i++){ const [x0,z0]=WEG[i], [x1,z1]=WEG[i+1], d=Math.hypot(x1-x0,z1-z0), n=Math.max(1,Math.round(d/3));
           yaw=Math.atan2(-(x1-x0),-(z1-z0));
           for(let k=0;k<n;k++){ const t=k/n; bild(x0+(x1-x0)*t,z0+(z1-z0)*t,yaw); }
-          /* am Punkt umdrehen: 8 Blickrichtungen */
-          for(let k=1;k<=8;k++) bild(x1,z1,yaw+k*Math.PI/4); }
+          /* am Punkt umdrehen: 6 Blickrichtungen */
+          for(let k=1;k<=6;k++) bild(x1,z1,yaw+k*Math.PI/3); }
         return werte; },{WEG,zeit:zeit[1],hell});
       /* Spruenge: groesste Aenderung zwischen zwei Nachbarbildern, getrennt nach Gehen/Drehen am selben Ort */
-      let maxDreh=0, maxGeh=0, summe=0; for(let i=1;i<r.length;i++){ const d=Math.abs(r[i][3]-r[i-1][3]); if(r[i][0]===r[i-1][0]&&r[i][1]===r[i-1][1]) maxDreh=Math.max(maxDreh,d); else maxGeh=Math.max(maxGeh,d); summe+=d; }
-      const ms=r.map(q=>q[3]), aus={zeit:zeit[0],bilder:r.length,min:Math.min(...ms),max:Math.max(...ms),mittel:+(ms.reduce((a,b)=>a+b,0)/ms.length).toFixed(1),maxSprungDrehen:+maxDreh.toFixed(1),maxSprungGehen:+maxGeh.toFixed(1),mittlereAenderung:+(summe/(r.length-1)).toFixed(2),werte:r};
+      const stat=(j)=>{ let maxDreh=0, maxGeh=0, summe=0; const d=[]; for(let i=1;i<r.length;i++){ const x=Math.abs(r[i][j]-r[i-1][j]); d.push(x); if(r[i][0]===r[i-1][0]&&r[i][1]===r[i-1][1]) maxDreh=Math.max(maxDreh,x); else maxGeh=Math.max(maxGeh,x); summe+=x; }
+        d.sort((a,b)=>a-b); const ms=r.map(q=>q[j]);
+        return {min:Math.min(...ms),max:Math.max(...ms),mittel:+(ms.reduce((a,b)=>a+b,0)/ms.length).toFixed(1),maxSprungDrehen:+maxDreh.toFixed(1),maxSprungGehen:+maxGeh.toFixed(1),p95:+d[Math.floor(d.length*0.95)].toFixed(1),mittlereAenderung:+(summe/(r.length-1)).toFixed(2)}; };
+      const aus={zeit:zeit[0],bilder:r.length,bild:stat(3),nurLicht:stat(4),werte:r};
       fs.writeFileSync(path.join(out,'lauf-'+zeit[0]+'-'+gfx+tag+'.json'),JSON.stringify(aus));
       console.log('LAUF',zeit[0],gfx,JSON.stringify(Object.assign({},aus,{werte:undefined}))); }
   }

@@ -41,7 +41,7 @@ const RAUM={n:24, staerke:0.5, decke:0.5, hemi:0.2, spec:0.32, werte:null, sig:'
    den Boden, untere Regalboeden liegen im Schatten der oberen. Die Schattenkarte deckt 32 x 32 m um den Spieler,
    das Licht sitzt 3,3 m hoch: Decken und Daecher liegen darueber und werfen keinen Schatten. Ohne Schattenkarte
    (Niedrig) ist es aus, das Raumlicht uebernimmt seinen Anteil (gleich hell). */
-const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9};
+const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9, n:0};
 (function raumShader(){
   const C=THREE.ShaderChunk;
   /* Test-Attrappe von three (Node, test.html): keine Shader - nichts zu tun */
@@ -56,10 +56,10 @@ const DECKE={l:null, h:3.3, neig:0.21, halb:16, x:1e9, z:1e9};
 #define RAUM_N ${N}
 uniform vec4 raumL[ ${N*2+1} ];
 /* x: Raumlicht-Staerke (0 = draussen), y: Sonnenanteil drinnen */
-vec2 raumAn( vec3 p ){
+vec2 raumAn( vec3 p, float t ){
   for( int i = 0; i < RAUM_N; i ++ ){
     vec4 b = raumL[ 1 + i * 2 ]; vec4 q = raumL[ 2 + i * 2 ];
-    if( q.z > 0.0 && p.x > b.x && p.x < b.z && p.z > b.y && p.z < b.w && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
+    if( q.z > 0.0 && p.x > b.x - t && p.x < b.z + t && p.z > b.y - t && p.z < b.w + t && p.y > q.x && p.y < q.y ) return vec2( q.z, q.w );
   }
   return vec2( 0.0, 1.0 );
 }
@@ -67,13 +67,14 @@ vec3 raumIrr( float st, vec3 nW ){ return st * ( 0.8 + 0.2 * nW.y ) * vec3( 1.0,
 `;
   /* Fragment (Standard, Physical, Phong, Toon) */
   let f=C.lights_fragment_begin;
-  f=f.replace('IncidentLight directLight;','IncidentLight directLight;\nvec3 raumP = cameraPosition + ( vec4( geometry.position, 0.0 ) * viewMatrix ).xyz;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( raumP );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  f=f.replace('IncidentLight directLight;','IncidentLight directLight;\nvec3 raumP = cameraPosition + ( vec4( geometry.position, 0.0 ) * viewMatrix ).xyz;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( raumP, 0.0 );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
   const dir=f.indexOf('#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )'), dirE=f.indexOf('#if ( NUM_RECT_AREA_LIGHTS');
   f=f.slice(0,dir)+f.slice(dir,dirE).replace('RE_Direct( directLight, geometry, material, reflectedLight );','directLight.color *= ( vec4( directLight.direction, 0.0 ) * viewMatrix ).y > 0.95 ? ( raumA.x > 0.0 ? 1.0 : 0.0 ) : raumSo;\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );')+f.slice(dirE);
   f=f.replace(/(#if defined\( RE_IndirectSpecular \)\s*vec3 radiance = vec3\( 0\.0 \);)/,'#if defined( RE_IndirectDiffuse )\n\tif( raumA.x > 0.0 ) irradiance = irradiance * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#endif\n$1\n#ifndef USE_ENVMAP\n\tradiance += raumA.x * raumL[ 0 ].y * vec3( 1.0, 0.965, 0.91 );\n#endif');
-  /* Lambert (Ultra Low): Licht je Ecke */
+  /* Lambert (Ultra Low): Licht je Ecke. Boden- und Deckenplatten enden oft unter der Wand (Ecke 10-20 cm ausserhalb
+     des Raums) - waagrechte Flaechen bekommen darum 0,3 m Luft */
   let l=C.lights_lambert_vertex;
-  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( cameraPosition + ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
+  l=l.replace('backGeometry.viewDir = geometry.viewDir;','backGeometry.viewDir = geometry.viewDir;\nvec3 raumN = ( vec4( geometry.normal, 0.0 ) * viewMatrix ).xyz;\nvec2 raumA = raumAn( cameraPosition + ( vec4( mvPosition.xyz, 0.0 ) * viewMatrix ).xyz, abs( raumN.y ) > 0.9 ? 0.3 : 0.0 );\nfloat raumSo = raumA.x > 0.0 ? raumA.y : 1.0;');
   const ld=l.indexOf('#if NUM_DIR_LIGHTS > 0'), ldE=l.indexOf('#if NUM_HEMI_LIGHTS > 0');
   l=l.slice(0,ld)+l.slice(ld,ldE).replace('directLightColor_Diffuse = PI * directLight.color;','directLightColor_Diffuse = PI * directLight.color * raumSo;')+l.slice(ldE)
     +'\nif( raumA.x > 0.0 ){ vIndirectFront = vIndirectFront * raumL[ 0 ].x + raumIrr( raumA.x, raumN );\n#ifdef DOUBLE_SIDED\n\tvIndirectBack = vIndirectBack * raumL[ 0 ].x + raumIrr( raumA.x, -raumN );\n#endif\n}\n';
@@ -97,6 +98,9 @@ if(RAUM.werte&&HIQ&&GFX!=='ultralow'&&renderer.shadowMap.enabled){
   const l=new THREE.DirectionalLight(MAT.farbe('lampeWarm'),0); l.castShadow=true; const c=l.shadow.camera;
   c.left=-DECKE.halb; c.right=DECKE.halb; c.top=DECKE.halb; c.bottom=-DECKE.halb; c.near=0.05; c.far=DECKE.h+0.6;
   l.shadow.bias=-0.0008; l.shadow.normalBias=0.03; l.userData.decke=true;
+  /* Leistung: die Karte wird nur jedes 2. Bild neu gezeichnet (und sofort nach einem Schritt) - Regale stehen still,
+     Personen laufen langsam; das spart die Haelfte der zusaetzlichen Zeichenaufrufe */
+  l.shadow.autoUpdate=false; l.shadow.needsUpdate=true;
   scene.add(l); scene.add(l.target); DECKE.l=l;
 }
 function deckeTakt(){
@@ -104,11 +108,12 @@ function deckeTakt(){
   const an=raumSchatten();
   l.intensity=an?RAUM.decke:0; l.shadow.bias=an?-0.0008:-10;
   const g=GFX_PROFIL[GFX]||GFX_PROFIL.hoch, gr=Math.min(2048,g.sch,renderer.capabilities.maxTextureSize||2048);
-  if(l.shadow.mapSize.x!==gr){ l.shadow.mapSize.set(gr,gr); if(l.shadow.map){ l.shadow.map.dispose(); l.shadow.map=null; } }
+  if(l.shadow.mapSize.x!==gr){ l.shadow.mapSize.set(gr,gr); if(l.shadow.map){ l.shadow.map.dispose(); l.shadow.map=null; } l.shadow.needsUpdate=true; }
   l.shadow.radius=g.rad*1.6;
+  if(an&&(++DECKE.n)%2===0) l.shadow.needsUpdate=true;
   /* dem Spieler in 2-m-Schritten folgen (ganze Texel - die Schatten flimmern beim Gehen nicht) */
   const r=2, tx=Math.round(pl.x/r)*r, tz=Math.round(pl.z/r)*r;
-  if(tx===DECKE.x&&tz===DECKE.z) return; DECKE.x=tx; DECKE.z=tz;
+  if(tx===DECKE.x&&tz===DECKE.z) return; DECKE.x=tx; DECKE.z=tz; l.shadow.needsUpdate=true;
   l.target.position.set(tx,0,tz); l.position.set(tx-DECKE.h*DECKE.neig*0.6,DECKE.h,tz+DECKE.h*DECKE.neig*0.8);
   l.target.updateMatrixWorld(); l.updateMatrixWorld();
 }

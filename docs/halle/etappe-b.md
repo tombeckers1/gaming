@@ -92,3 +92,34 @@ Leitstand-Leinwand, Rasen), Meshes +420. Wegenetz unverändert (23 320 Zellen, A
 
 ## Bilder
 `docs/halle/bilder-1510/` (selbst angesehen, Befunde im Bericht).
+
+## Feinschliff Optik und Licht (15.10., nach Toms Befund „dunkler Beton-Bunkergang“)
+- **Zellen** (`bk.zelle`, neue Parameter statt Kopie): `wand:'paneel'` = beschichtet Lichtgrau mit Paneelfugen (Hellgrau), Sockel Steingrau
+  30 cm; Höhe 3,1 m (`WK.zelleH`, vorher 4,0) – das Ausblasdach ist als Deckel sichtbar, über den Zellen sieht man die Halle.
+  `fenster` = Panzerglas-Sichtfenster 0,6 × 0,42 m je Längswand (gegenüber der Tür versetzt, Rahmen Anthrazit), `kamera` = Kamera über
+  der Durchreiche West. Durchreiche-Rahmen jetzt Signalgelb (bewegte Klappe), Klappe Feuerrot. In jeder Zelle steht die Maschine
+  (`bk.maschine` Presse für R2, sonst Dosierer) – durchs Fenster sichtbar. Chemie-Boxen, Satz-Bunker, Mischhaus bleiben Sichtbeton.
+- **Offene Stationen**: `bk.maschine` mit `schutz` (Alu-Profil-Schutzumhausung mit Polycarbonat 0,2–1,9 m an beiden Gangseiten,
+  Stirnseiten offen für das Band), Portal-Stationen mit Art `schutz` – die Straße liest sich als Linie aus Alu-Gestellen wie im Foto.
+- **Glas** des Werks (Leitstand-Front, Labor, Sichtfenster, Umhausungen) ist **ein** Mesh (`wkGlas`, bei jedem Ausbau neu, nur offene
+  Straßen) – sonst kostete jede Straße einen Zeichenaufruf mehr (durchsichtig wird nie gebündelt).
+- **Licht**: Hallenleuchten (`bk.lampe` art halle, Leuchtfläche `MAT.vc('leucht')`), Leitstand-Bildschirme (emissiv) und Zellenampeln
+  (`MAT.neu('ampelRot/Gruen')`) leuchten schon; das Innenlicht (03-scene `innenLichter`, 3 Punktlichter an den nächsten `LAMPEN`, Werk
+  zählt über `dachBereiche` als „unter Dach“) und die Augenanpassung 05p greifen im Werk. **Ehrlicher Befund:** das fast schwarze
+  Nachtbild (`nachher-nacht-werk-innen.jpg`) entstand vor allem, weil das Bild 0,2 s nach dem Kamerasprung aufgenommen wurde (Innenlicht
+  blendet mit dt × 4 auf) und die Betonwände (Steingrau × Betontextur) kaum Licht zurückwerfen. Mit eingeschwungenem Licht (1,5 s) ist
+  der Gang auch vorher lesbar, aber grau; nachher sind die Wände hell. Ein zusätzliches Licht wurde **nicht** angelegt (Leistung, Regel 8);
+  das Westende des Gangs bleibt nachts dunkler (außerhalb der 3 Punktlichter).
+- **Prallwand** vor der Erdwall-Lücke ist an (`bk.erdwall` deckt die Lücke jetzt ganz und je 1 m daneben; vorher nur den Ostteil, im Werk
+  abgeschaltet). Zugang versetzt: Gefahrstoffweg läuft zwischen Wallfuß und Prallwand (2 m) und biegt in die Lücke.
+- **RBG an Feld 0 ragte 0,55 m durch die Brandwand x −66** (gemessen: Westkante −66,55 bei Platz x −65,15; Bild `fein-vorher-rbg-oben.jpg`).
+  `bk.rbg` jetzt Einmast-Bauweise: Mast, Antrieb, Schaltschrank im Osten, im Westen schmale Fahrkatze mit Puffer (0,80 m über Gabelmitte)
+  → Westkante −65,95. Test `werk.js` prüft das (Box3 des RBG am westlichsten Platz ≥ −66,0); Gegenprobe mit dem alten Stand schlägt an.
+- **Leistung** (Zeichenaufrufe je Bild, alle Ausbauten, gleiche Ansichtsfolge wie `messen.js`, vorher = 31d479e; Zähler je Draw
+  `tools/halle/zaehlen.js`, Werte = `renderer.info`): **Ultra Low** Laden 438 → 438, Werk S1 207 → 205, S3 204 → 203, Leitstand 259 → 258,
+  Verbindungsbau 228 → 226; **Hoch** Laden 488 → 488, Werk S1 234 → 232, S3 241 → 240, Leitstand 314 → 313, Verbindungsbau 265 → 263;
+  übrige Ansichten gleich (±1 Fahrzeuge). Dreiecke Werk +10 k (Ultra Low) / +32 k (Hoch): Maschinen in den Zellen, Umhausungen, Fugen.
+  Hinweis: `messen.js` zeigte im Werk auf Ultra Low +12…+23 – dieselbe Ansicht lieferte vorher je Lauf 193 oder 207 (Stand der
+  Laufzeit-Bündelung); der Zähler je Draw zeigt die Ursache (Beton der Zellen fällt weg, Glas 4 → 1 Mesh).
+- Tests: `waechter.js` (node) grün, `src/tests/waechter.js` grün (Ausgangswerte neu: weniger Meshes, Bauteil `glas`), `werk`, `hochregal`,
+  `gameplay` grün. Bilder `bilder-1510/fein-vorher-*` / `fein-nachher-*` (Gang Tag/Nacht, Zelle, Leitstand Tag/Nacht, Erdwall, RBG oben).

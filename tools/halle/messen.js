@@ -7,7 +7,8 @@ const fs=require('fs'), path=require('path');
 const H=require(path.join(__dirname,'../test/start-hilfe.js'));
 (async()=>{
   const html=process.argv[2], out=process.argv[3], stufen=(process.argv[4]||'ultralow,niedrig,hoch,max').split(',');
-  const V={laden:[0,3,0,0],lager:[-14,-2,0,0],halleW:[-46,-10,0,0],hochregal:[-43.2,-25.6,Math.PI/2,0.1],wareneingang:[-30,-24,Math.PI*0.75,-0.1],lager3:[-21,-12,Math.PI/2,0],schleuse:[-16,-23,Math.PI/2*1.05,0],dockHof:[-27,3,-Math.PI/2,0],strasse:[0,12,Math.PI,0.05]};
+  const V={laden:[0,3,0,0],lager:[-14,-2,0,0],halleW:[-46,-10,0,0],hochregal:[-43.2,-25.6,Math.PI/2,0.1],wareneingang:[-30,-24,Math.PI*0.75,-0.1],lager3:[-21,-12,Math.PI/2,0],schleuse:[-16,-23,Math.PI/2*1.05,0],dockHof:[-27,3,-Math.PI/2,0],strasse:[0,12,Math.PI,0.05],
+    /* Etappe B (15.10.): Werk West */ werkS1:[-71.5,-13.75,Math.PI/2,0],werkS3:[-71.5,-24.75,Math.PI/2,0],leitstand:[-82,-9.6,0,-0.25],verbindung:[-67.5,-9,Math.PI/2,0],hofWest:[-87,-48,Math.PI,0.05],mischhaus:[-100,-40,2.45,0]};
   const res={};
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:960,height:600}});

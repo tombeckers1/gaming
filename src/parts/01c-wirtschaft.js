@@ -195,7 +195,15 @@ const WIRT={
       /* Halle Etappe A (14.10.): Hochregal Gasse 1 + RBG + I/O + ③ + Schleuse. Amortisation in docs/halle/etappe-a.md:
          geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
          kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
-      lagerlogistik:18500
+      lagerlogistik:18500,
+      /* Halle Etappe B (15.10.): Werk West. Noch Schau-Betrieb (Straßen laufen sichtbar, produzieren aber nichts) -
+         Preise passen zur spaeteren Produktion (docs/halle/produktion-konzept.md, etappe-b.md §Preis):
+         eine Straße spart 40-55 % vom Einkauf der Klasse, die sie baut (Konzept: variable Kosten 45-60 %),
+         bei ~1.200 € Einkauf je Tag und Klasse in Kapitel 8 sind das ~550 €, minus Werker und Strom ~250 € = ~+300 €/Tag.
+         fabrik (Werk + Straße 1 + Gasse 2 mit RBG, 180 Palettenplaetze sofort nutzbar): ~+300 + ~60 (Lagerplatz) -> ~130 Tage;
+         bewusst laenger als 7.3 (38 Tage): groesste Investition, lohnt erst mit Menge (Finanzbildung: Fixkosten gegen Marge).
+         fabrik2/fabrik3 nutzen das Werk mit: je ~+300 €/Tag -> ~85 bzw. ~75 Spieltage. Messen im Balancing-Paket, wenn die Produktion laeuft. */
+      fabrik:46000, fabrik2:26000, fabrik3:23000
     }
   },
   lizenz:{
@@ -308,7 +316,11 @@ const WIRT={
     jeLevel:4,          // ... 4 € je Tag ("Level-Steuer", keine Miete/Flaeche - Luecke fuers Balancing)
     regalArt:{klein:4,standard:9,hoch:12,kuehl:18,gondel:14,eck:11,gross:13,gitter:3,gitter2:4,gitter3:5,tisch:6,tischgross:8},  // € je Verkaufsregal
     regalStandard:9,    // € fuer Regalarten ohne Eintrag (z. B. Kassenregal)
-    hochregal:35        // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
+    hochregal:35,       // € je Tag und aktiver Hochregal-Gasse (Strom und Wartung RBG, Foerderer, FTS) - ab Ausbau lagerlogistik
+    /* Werk West (Etappe B, 15.10.): Betrieb erst, wenn die Straßen produzieren (Produktions-Gameplay, WK.produktion in 05r) -
+       im Schau-Betrieb kein Betrieb, keine Kosten. Danach je Tag: Werk (Heizung, Versicherung, Brandschutz-Wartung, Druckluft) */
+    werk:45,            // € je Tag fuer das Werk ab Produktion (05r wkFixkosten)
+    werkStrasse:30      // € je Tag und laufender Fertigungsstraße (Strom, Verschleiss) ab Produktion
   },
   tag:{
     automat:45          // € je Tag mit Deko "Getraenkeautomat"
@@ -509,6 +521,13 @@ const WIRT_KETTEN=[
      {text:'Bestand im Hochregal zaehlt fuer Onlinebestellungen; das RBG lagert in den Anbruch aus, die FTS bringen Nachschub nach ③ und ①, Packer picken auch im Anbruch.',ort:'11f-hochregal.js:hrTick',werte:[]}],
    warum:'Fixkosten gegen Skaleneffekt: Ein automatisches Lager lohnt sich erst mit Menge - wer wenig umschlaegt, zahlt jeden Tag Betrieb fuer leere Plaetze.',
    luecken:['Ersparnis (Staffel, Wege) ist geschaetzt, nicht im Balancing-Lauf gemessen - der Bot erreicht Kapitel 7 nicht.']},
+  {id:'fabrik',entscheidung:'Werk West bauen (Pyro-Fabrik, Kapitel 8 / 8.2 / 8.3)',
+   folgen:[
+     {text:'Einmalig {ausbau.preis.fabrik|€} (Werk, Straße 1 Raketen, Hochregal-Gasse 2 mit RBG), {ausbau.preis.fabrik2|€} (Straße 2 Kugelbomben, Gasse 3) und {ausbau.preis.fabrik3|€} (Straße 3 Batterien).',ort:'02-data.js:UPGRADES',werte:['ausbau.preis.fabrik','ausbau.preis.fabrik2','ausbau.preis.fabrik3']},
+     {text:'Jede neue Gasse kostet sofort {fix.hochregal|€} am Tag Betrieb (Fixkosten) und bringt 180 Palettenplaetze.',ort:'16-day.js:fixedCosts',werte:['fix.hochregal']},
+     {text:'Ab Produktion: Werk {fix.werk|€} und je laufender Straße {fix.werkStrasse|€} am Tag; im Schau-Betrieb (heute) 0.',ort:'05r-werk.js:wkFixkosten',werte:['fix.werk','fix.werkStrasse']}],
+   warum:'Eigenproduktion = Fixkosten gegen Marge: lohnt erst ab Menge, Break-even sichtbar (produktion-konzept.md).',
+   luecken:['Produktion (Rohstoffe, Rezepte, Takt, Qualität) fehlt noch - die Straßen laufen als Schau-Betrieb ohne Ertrag; Amortisation geschaetzt, nicht gemessen.']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},

@@ -24,7 +24,8 @@ const LL={id:'lagerlogistik',
   packmat:{x0:-41.5,x1:-33,z0:-27.5,z1:-23}, schnell:{x0:-63.4,x1:-43.9,z0:-9.6,z1:-7.4},
   aufgabe:{x:-47.4,z0:-29.7,z1:-27.2}, auslager:{z:-24.4,x0:-47.75,x1:-45.7},
   spur:-29.15,                                   /* Fahrweg FTS vor den Stellplaetzen */
-  park:{x0:-58,x1:-38,z0:-5,z1:4}, pforte:{x0:-38,x1:-34,z0:0,z1:5}, tank:{x:-62.5,z:-0.5,r:3.6,h:9.0}
+  park:{x0:-58,x1:-38,z0:-5,z1:4}, pforte:{x0:-38,x1:-34,z0:0,z1:5}, tank:{x:-62.5,z:-0.5,r:3.6,h:9.0},
+  tuer:{x:-40,b:1.1,h:2.15}                    /* Personaltuer (Notausgang) in der Nordwand */
 };
 /* Gassen: Gasse 1 mit Kapitel 7.3, Gasse 2 mit Kapitel 8 (fabrik), Gasse 3 mit Kapitel 8.2 (fabrik2) - die
    Ausbauten der Fertigung kommen in Etappe B; bis dahin stehen Gasse 2 und 3 als Regal ohne RBG. */
@@ -67,8 +68,10 @@ function llAltHalle(g,cols){
     const ao=o.material===aoMatF&&Math.abs(p.x+26.2)<0.35;
     const schild=o.isMesh&&o.geometry&&o.geometry.type==='PlaneGeometry'&&Math.abs(p.x+26.13)<0.05&&p.y>3;
     const sockel=o.userData&&o.userData.bauteil==='wand'&&Math.abs(p.x+26)<0.4&&!o.userData.aabb;
-    if(wand||ao||schild||sockel){ g.remove(o); alt.add(o); } }
-  for(const c of cols) if(c.minX>-26.4&&c.maxX<-25.6) LL_ALT.halleCols.push(c);
+    /* Nordwand (z −7): kommt mit Personaltuer x −40 neu (Etappe B, Restfehler aus Etappe A: Tuer war nur aufgemalt) */
+    const nord=o.userData&&o.userData.aabb&&o.userData.aabb.z0>-7.05&&o.userData.aabb.z1<-6.75&&o.userData.aabb.x1-o.userData.aabb.x0>30;
+    if(wand||ao||schild||sockel||nord){ g.remove(o); alt.add(o); } }
+  for(const c of cols) if((c.minX>-26.4&&c.maxX<-25.6)||(c.minZ>-7.05&&c.maxZ<-6.75&&c.maxX-c.minX>30)) LL_ALT.halleCols.push(c);
   /* Lampen der Stufe 3 ueber ③ (x −36…−26, z −17…−7) und die ganze alte Rasterbeleuchtung: aus mit dem Ausbau */
   for(const L of LAMPEN) if(L.y>10&&L.x>-66&&L.x<-26&&L.z>-34&&L.z<-7&&!L.id) L.aus=LL.id;
   for(const o of g.children.slice()) if(o.userData&&o.userData.bauteil==='lampe'&&o.userData.bauteilArt==='raster'){ g.remove(o); alt.add(o); }
@@ -90,7 +93,8 @@ function llAnwenden(){
   if(an&&!LL_G) llBauen();
   if(LL_G) LL_G.visible=an;
   if(LL_H&&!an){ LL_H.visible=false; LL_D.visible=false; LL_A.visible=false; }
-  for(const c of LL_COLS){ const d=colliders.indexOf(c)>=0; if(an&&!d) colliders.push(c); else if(!an&&d) dropCol(c); }
+  const wk=typeof wkOffen==='function'&&wkOffen();
+  for(const c of LL_COLS){ const soll=an&&!(c.wkZaun&&wk), d=colliders.indexOf(c)>=0; if(soll&&!d) colliders.push(c); else if(!soll&&d) dropCol(c); }
   if(LL_ALT.g) LL_ALT.g.visible=!an;
   for(const c of LL_ALT.cols){ const d=colliders.indexOf(c)>=0; if(!an&&!d) colliders.push(c); else if(an&&d) dropCol(c); }
   if(!LL_AO) LL_AO=llAltAO();
@@ -157,6 +161,13 @@ function llRohbau(){
   llW(-26-W,-26+W,S2.z0,L3.z0-W,hs,H,'-x','lager','blech',true);
   /* Ostwand der Halle ueber ③ (ab 5 m) */
   llW(-26-W,-26+W,L3.z0-W,L3.z1+LW,h3,H,'-x','lager','blech',true);
+  /* Nordwand der Halle (z −7) mit Personaltuer x −40 zum Mitarbeiter-Parkplatz (ersetzt die Wand der Stufe 3, LL_ALT) */
+  { const T=LL.tuer, z0=L3.z1, z1=L3.z1+LW;
+    llW(-66-LW,T.x-T.b/2,z0,z1,0,H,'-z','lager','blech'); llW(T.x+T.b/2,-26+LW,z0,z1,0,H,'-z','lager','blech');
+    llW(T.x-T.b/2,T.x+T.b/2,z0,z1,T.h,H,'-z','lager','blech',true);
+    LL_T.tuer=bk.drehtuer({x:T.x,z:z0+LW/2,ry:0,breite:T.b,hoehe:T.h,dicke:LW,art:'stahl',anschlag:1,auf:1});
+    /* Wegenetz: zu (Personal und Kunden laufen nicht hinaus), der Spieler geht durch (15-player collide) */
+    const c=col(T.x-T.b/2,T.x+T.b/2,z0,z1); c.nurNav=true; }
   /* Schleuse: Suedwand, Sturz zu ③, Sturz und Pfeiler zu ② (breit offen) */
   llW(S2.x0+W,S2.x1-W,S2.z0-LW,S2.z0,0,hs,'+z','lager','blech');
   llW(S2.x0+W,S2.x1-W,L3.z0-W,L3.z0+W,3.0,hs,'+z','lager','lager',true);
@@ -181,7 +192,7 @@ function llRohbau(){
     bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); }
   streifenvorhang(null,false,-26,d0,d1,3.0);
   /* Schnelllauftor N1 in der gelben Wand */
-  LL_T.n1=bk.tor({art:'roll',breite:N.z1-N.z0,hoehe:N.h,wand:[-W,W],blatt:0,nr:null,bedien:1,ampel:false,vordach:false,dichtung:false,poller:false,x:-36,z:(N.z0+N.z1)/2,ry:0});
+  LL_T.n1=bk.tor({art:'schnelllauf',breite:N.z1-N.z0,hoehe:N.h,wand:[-W,W],blatt:0,nr:null,bedien:1,ampel:false,vordach:false,dichtung:false,poller:false,x:-36,z:(N.z0+N.z1)/2,ry:0});
   LL_T.n1.set(0); LL_T.n1t=0;
   bk.schild(scene,{text:'N1',unter:'Kartonlager',b:0.9,h:0.4,x:-36-W-0.03,y:N.h+0.75,z:(N.z0+N.z1)/2,ry:-Math.PI/2});
   bk.schild(scene,{text:'KARTONLAGER',unter:'③',b:1.6,h:0.5,x:-36-W-0.03,y:6.2,z:-12,ry:-Math.PI/2});
@@ -299,7 +310,6 @@ function llLicht(){
       for(let x=-64;x<=xe-1;x+=3){ S.zyl(0.025,0.025,0.35,seg,x,10.37,z,F('feuerrot'),'lackMetall'); S.zyl(0.03,0.02,0.05,seg,x,10.17,z,F('messing'),'blank'); } }
     S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
     S.fertig(scene,{fest:true,schatten:false}); }
-  llTuer([1]);
   /* Fluchtweg-Schilder (gruen) */
   const fw={bg:MAT.css('signalgruen'),fg:MAT.css('weiss')};
   bk.schild(scene,Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-40,y:2.55,z:-7.03,ry:Math.PI},fw));
@@ -308,14 +318,6 @@ function llLicht(){
   llHaengend(Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-48,y:3.2,z:-12.0,ry:-Math.PI/2},fw));
 }
 /* Aussen an der Strasse: Sprinkler-Tank, Mitarbeiter-Parkplatz, Pforte, Zaun */
-/* Personaltuer (Notausgang) in der Nordwand x −40: Stahltuer mit Panikstange; seite 1 = innen (Halle), −1 = aussen */
-function llTuer(seiten){
-  const S=bk.sammler({form:{fase:0.008,faseMin:0.03,lod0Kasten:true},bauteil:'notausgang'}), F=MAT.farbe;
-  for(const s of seiten){ const z=-7+s*-0.025+(s>0?0:LW+0.05);
-    S.box(1.1,2.12,0.04,-40,1.06,z,F('anthrazit'),'lackMetall'); S.box(1.0,2.04,0.03,-40,1.04,z+s*-0.02,F('lichtgrau'),'lackMetall');
-    if(s>0){ S.box(0.86,0.06,0.06,-40,1.05,z-0.07,F('silbergrau'),'stahl'); for(const x of [-0.4,0.4]) S.box(0.06,0.1,0.08,-40+x,1.05,z-0.05,F('anthrazit'),'lackMetall'); } }
-  S.fertig(scene,{fest:true});
-}
 /* Portale der Halle: Durchgang Schleuse, N1 (wenn offen), Ladetore R2-R5 (wenn offen) */
 const _llFr=new THREE.Frustum(), _llM=new THREE.Matrix4(), _llBox=new THREE.Box3(), _llA=new THREE.Vector3(), _llB=new THREE.Vector3();
 function llSichtTakt(){
@@ -327,6 +329,8 @@ function llSichtTakt(){
     const P=(x0,y0,z0,x1,y1,z1)=>_llFr.intersectsBox(_llBox.set(_llA.set(x0,y0,z0),_llB.set(x1,y1,z1)));
     const imLager=x>-26&&x<-8.1&&z>-30&&z<-15, imDritten=x>-36&&x<-8.1&&z>-17.2&&z<5.9;   /* Durchgang nur aus Schleuse und ② Sued (von ① aus verdecken Sturz und Waende) */
     v=(imLager&&P(-26.3,0,LL.durchgang[0],-25.7,3.0,LL.durchgang[1]))||(imDritten&&LL_T.n1t>0.04&&P(-36.3,0,LL.n1.z0,-35.7,LL.n1.h,LL.n1.z1));
+    /* Etappe B: aus Verbindungsbau und Werk durch die Tuer und die Uebergaben der Brandwand x −66 */
+    if(!v&&x>-100.2&&x<-66&&z>-34.2&&z<-6.8&&typeof wkOffen==='function'&&wkOffen()) v=P(-66.3,0,-10,-65.9,2.2,-8)||[0,1,2].some(k=>P(-66.3,0,LL.hr.z0(k)+1.4,-65.9,1.9,LL.hr.z0(k)+2.6));
     if(!v&&z<-34&&typeof WTORE!=='undefined') for(const T of WTORE) if(T&&T.t>0.04&&P(T.x-1.75,0,-34.3,T.x+1.75,3.1,-33.7)){ v=true; break; } }
   LL_H.visible=v; LL_D.visible=v;
   /* Aussenanlagen (Tank, Parkplatz, Pforte): nicht aus Halle, ③, Schleuse und dem Lager-Sueden (dort nur Waende dazwischen) */
@@ -367,9 +371,16 @@ function llAussen(){
   Sp.fertig(scene,{fest:true});
   bk.schild(scene,{text:'PFORTE',unter:'Werk · Logistik',b:1.3,h:0.4,x:(Pf.x0+Pf.x1)/2,y:2.75,z:Pf.z1+0.02,ry:0});
   col(Pf.x0,Pf.x1,Pf.z0,Pf.z1);
-  llTuer([-1]);
   /* Zaun zur Strasse mit Einfahrt (x −42…−38) und Westseite um den Tank */
   bk.zaun({art:'doppelstab',von:[-66.2,5.9],bis:[Pf.x0,5.9],hoehe:2.0,luecke:[[66.2-42,66.2-38.2]]});
-  bk.zaun({art:'doppelstab',von:[-66.2,-6.9],bis:[-66.2,5.9],hoehe:2.0});
-  col(-66.2,-42,5.84,5.96); col(-66.3,-66.1,-6.9,5.9);
+  /* Westseite: weicht mit dem Werk (Etappe B) - dann geht der Weg aussen herum zum Werkseingang */
+  { const vorS=new Set(scene.children); bk.zaun({art:'doppelstab',von:[-66.2,-6.9],bis:[-66.2,5.9],hoehe:2.0});
+    LL_T.zaunW={meshes:scene.children.filter(o=>!vorS.has(o)),col:col(-66.3,-66.1,-6.9,5.9)}; LL_T.zaunW.col.wkZaun=true; }
+  col(-66.2,-42,5.84,5.96);
 }
+/* Westzaun des Mitarbeiter-Parkplatzes ein/aus (Werk West oeffnet den Weg aussen herum, 05r) */
+function llZaunWest(sichtbar){ if(!LL_T||!LL_T.zaunW) return; for(const m of LL_T.zaunW.meshes) m.visible=sichtbar;
+  const c=LL_T.zaunW.col, d=colliders.indexOf(c)>=0; if(sichtbar&&llOffen()&&!d) colliders.push(c); else if(!sichtbar&&d) dropCol(c); }
+/* Personaltuer: oeffnet, wenn der Spieler nah ist */
+function llTuerTakt(dt){ const T=LL_T&&LL_T.tuer; if(!T) return; const ziel=Math.hypot(pl.x-LL.tuer.x,pl.z+7)<1.8?1:0;
+  if(T.t!==ziel) T.set(T.t+Math.sign(ziel-T.t)*Math.min(Math.abs(ziel-T.t),dt*2.4)); }

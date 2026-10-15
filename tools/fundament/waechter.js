@@ -91,10 +91,19 @@ const BAUTEILE=[
   {bk:'rbg',woerter:['rbg','regalbediengeraet'],wofuer:'Regalbediengeraet'},
   {bk:'foerderer',woerter:['foerderer','rollenfoerderer','kettenfoerderer'],wofuer:'Paletten-Foerderer (Rollen)'},
   {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Gehweg, Sperrflaeche, Stellplatz)'},
-  {bk:'fts',woerter:['fts'],wofuer:'Fahrerloses Transportfahrzeug (Paletten)'}
+  {bk:'fts',woerter:['fts'],wofuer:'Fahrerloses Transportfahrzeug (Paletten)'},
+  /* Halle Etappe B (15.10.) - Woerter bewusst eng: alte Tuer-/Zellen-Bauten (hausTuer, buildSchiebetuer, Atlas-zelle) stellt der
+     Schritt Tueren/Fenster um, dann werden die Woerter breiter */
+  {bk:'drehtuer',woerter:['drehtuer','stahltuer','brandschutztuer','feuerschutztuer'],wofuer:'Drehfluegeltueren (Stahl, Brandschutz, Glas) - Werk West; Schiebe-/Haustueren folgen im Schritt Tueren (bk.tuer)'},
+  {bk:'treppe',woerter:['treppe','treppen','stiege'],wofuer:'Treppen (Stahl, Gelaender gelb)'},
+  {bk:'portalgreifer',woerter:['portalgreifer','greifer'],wofuer:'Portalgreifer aus Alu-Profil (Fertigung)'},
+  {bk:'rohrraster',woerter:['rohrraster'],wofuer:'Batterie-Rohr-Raster (Fertigung)'},
+  {bk:'maschine',woerter:['maschine','maschinen'],wofuer:'Stationsmaschinen der Fertigung (Arten statt Kopien)'},
+  {bk:'erdwall',woerter:['erdwall','schutzwall'],wofuer:'Erdwall um das Mischhaus'},
+  {bk:'zelle',woerter:['betonzelle','sicherheitszelle','fuellzelle'],wofuer:'Betonzelle (mannlose Station, Mischhaus, Chemie-Box)'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

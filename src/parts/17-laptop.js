@@ -471,7 +471,9 @@ function planFlaechen(){
     shopO:{x0:SHOP_HALB,x1:B.x1,z0:B.z0,z1:B.z1},
     ost1:LAY.ost1, ost2:LAY.ost2, sued:LAY.sued, test:LAY.test,
     lbas:{x0:L.x0,x1:L.x1,z0:L.z0,z1:L.z1},
-    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lw1:LAY.lw1, lw2:LAY.lw2, lwest:LAY.lwest
+    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lw1:LAY.lw1, lw2:LAY.lw2, lwest:LAY.lwest,
+    /* Halle Etappe B: Werk West, Verbindungsbau und die drei Straßen */
+    werk:{x0:WK.werk.x0,x1:-66,z0:WK.werk.z0,z1:WK.werk.z1}, s1:{x0:-91,x1:-70,z0:-15.4,z1:-12.1}, s2:{x0:-91,x1:-70,z0:-20.9,z1:-17.6}, s3:{x0:-91,x1:-70,z0:-26.4,z1:-23.1}
   };
 }
 const PLAN={
@@ -496,7 +498,10 @@ const PLAN={
   rampe2:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-31.0,z:-34,r:3.0}},
   rampe3:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-38.5,z:-34,r:3.0}},
   rampe4:{alt:['lbas','lnord','ls1','ls2','ls3','lw2'],neu:[],marke:{x:-47.5,z:-34,r:3.0}},
-  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-57.5,z:-34,r:3.0}}
+  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-57.5,z:-34,r:3.0}},
+  fabrik:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:['werk']},
+  fabrik2:{alt:['lwest','werk','s1'],neu:['s2']},
+  fabrik3:{alt:['lwest','werk','s1','s2'],neu:['s3']}
 };
 function planZeichnen(g,W,H,def){
   const F=planFlaechen();
@@ -1691,6 +1696,8 @@ function buyUp(id){
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
       else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
+      else if(id==='fabrik') toast('Das Werk steht: Straße 1 baut Raketen im Schau-Betrieb, der Förderer bringt die Paletten in Gasse 2. Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
+      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} laufen. Vom Leitstand siehst du alle Straßen.`,'money');
       else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
       else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');

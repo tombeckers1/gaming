@@ -263,7 +263,7 @@ function hrTick(dt){
   HR.tick+=dt;
   for(const R of HR.rbg) if(R&&R.g.visible) rbgTick(R,dt);
   for(const f of HR.fts) ftsTick(f,dt);
-  hrBandTick(dt); hrAusTick(dt); hrN1Tick(dt);
+  hrBandTick(dt); hrAusTick(dt); hrN1Tick(dt); llTuerTakt(dt);
   /* Lichtbaender: Tageslicht */
   if(LL_T.lichtband&&typeof sun!=='undefined'){ const v=Math.max(0.05,Math.min(1,sun.intensity/1.6)); LL_T.lichtband.material.emissiveIntensity=0.15+0.85*v; }
 }

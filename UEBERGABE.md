@@ -53,7 +53,8 @@ Offen: Produktions-Gameplay (Konzept freigegeben, `produktion-konzept.md`) auf d
 Ursachen: Augenanpassung (Belichtung 0,74 + Gamma je Kameraort), 3 Punktlichter, die dem Blick folgten, Ladenstrahler, Glanzbahnen.
 Neu: **Raumlicht im Shader** (`RAUM` in 05p, Räume aus `dachBereiche()`), feste Belichtung 1,05, **Deckenlicht mit Schatten** ab Mittel
 (`DECKE`), Boden matt über `MAT.bodenGlanz`. Doku `docs/uebergabe/licht-1510.md`, Bilder `docs/bilder/licht-1510/`, Test `src/tests/licht.js`
-(neu), Werkzeug `tools/licht/bilder.js` (Bilder, Zeichenaufrufe, Helligkeits-Lauf). Stilregeln §8 neu.
+(neu), Werkzeuge `tools/licht/bilder.js` (Bilder, Zeichenaufrufe) + `vergleich.py`. Kontaktschatten jetzt auf allen Stufen.
+Stilregeln §8 neu. Offen/später: Abschnitt „Grenzen“ in licht-1510.md.
 **Verpackungs-Vorführung 2.0 / Ausstellung (15.10., Agent, Branch claude/verpackung2):** Laptop → Entwicklung → „Verpackungs-Vorführung 2.0 (Ausstellung)“. Eigener Raum
 (`17f-ausstellung.js`, weit ab von der Karte und von Vorführung 1): Reihen von Verkaufstischen (`bk.verkaufstisch`, Optik wie die Ladentische), nach Kategorien
 (Batterien, Raketen, Kugelbomben, Fontänen, Verbund, Kleinfeuerwerk F1, Zubehör, Essen, Getränke), jedes Produkt genau 1× als Einzelpackung, davor ein

@@ -40,16 +40,43 @@ helles Licht im Laden, gute Schatten. Keine Unreal-Grafik.“
   three lädt `cameraPosition` für Lambert nicht hoch; je Ecke blieben große Bodenplatten über mehrere Räume dunkel).
 - **Entfernt:** 3 wandernde Punktlichter, Ladenstrahler (+ Schattendurchgang), Lichtflecken, Glanzbahnen, Augenanpassung.
 - Stilregeln §8 entsprechend neu.
+- **three-r128-Fehler behoben (Ultra Low):** `cube_uv_reflection_fragment` definiert `v1 0.276` usw. und steht im Lambert-Fragment vor
+  `bsdfs` – jedes Lambert-Material mit PMREM-Umgebungsbild brach beim Übersetzen ab und blieb unsichtbar (gefunden über den
+  Licht-Test, der Shaderfehler jetzt meldet). Die Makros werden nach dem Einbinden mit `#undef` freigegeben.
 
 ## Messung (tools/licht/bilder.js, Gameplay-Vorführung aufgebaut, 1280 × 720, swiftshader)
-MESSWERTE
+Zeichenaufrufe je Bild (inkl. Schattenkarten und Bildeffekte), Ansichten Laden vom Eingang / Lager / Halle / Werk:
+
+| Stufe | vorher | nachher | Bildzeit swiftshader (nur Vergleich, schwankt ±15 %) |
+|---|---|---|---|
+| Ultra Low | 1824 / 1898 / 808 / 3271 | 1823 / 1909 / 815 / 3174 (+1 Kontaktschatten) | Szene gleich; Werk-Ansicht in 2 von 3 Läufen +20 % (siehe offen) |
+| Niedrig | 1856 / 1938 / 834 / 3239 | 1850 / 1932 / 834 / 3237 | 25,5→22,4 s · 14,3→12,4 · 13,5→11,4 · 34,9→31,4 (schneller) |
+| Mittel (6 Bilder) | 2754 / 2808 / 1497 / 3789 | 2831 / 2901 / 1485 / 3750 | gleich (±3 %) |
+| Hoch | 4257 / 4355 / 2742 / 4609 | 3919–4058 / 4168 / 2399 / 4232–4396 | gleich; Dreiecke 28,3 → 23,9 Mio. (−16 %) |
+
+Hoch: weniger, weil Ladenstrahler-Schattenkarte und 3 Punktlichter weg sind; das Deckenlicht zeichnet seine Karte nur jedes
+2. Bild. Laufzeit-Wächter (Budget je Ansicht inkl. Schattenpass): grün.
+
+Helligkeit (Bildmittel 0–255, Hoch, Gameplay-Vorführung), nachts: vorher Laden 72–137, Lager 36, Halle 47, Werk 60, Versand 65 →
+nachher Laden 155–157, Lager 96, Halle 115, Werk 129, Versand 117 (Unterschiede = Inhalt: braune Kartons, dunkle Regale).
+Tagsüber reines Weiß < 1 % in allen Ansichten. Ultra Low nachts vorher 32–92 → nachher 111–180.
+
+Springen beim Drehen/Gehen: siehe Test `licht.js` (DREHEN: Beleuchtung im Einheitsmaterial, 12 Blicke je Ort, Tag/Nacht);
+Zahlen im Bericht. Der lange Helligkeits-Lauf (`bilder.js lauf`) bricht auf Hoch an der Speichergrenze ab (ein langes evaluate
+mit Hunderten Bildern lässt den Browserprozess wachsen) – nur Ultra Low vorher gemessen; später in Stücken (H.stuecke) bauen.
 
 ## Bilder
 `docs/bilder/licht-1510/` – `<ansicht>-<tag|nacht>-<stufe>-<vorher|nachher>.jpg` für Laden vom Eingang und von der Kasse
 (erhöht wie das Referenzbild), Gang, Laden Ost, Laden Süd, Lager, Versand, Halle, Werk; Hoch und Ultra Low.
 
-## Grenzen / offen
+## Grenzen / offen (später)
 - Das Raumlicht kennt nur Rechtecke aus `dachBereiche()`; ein neuer Raum ohne Dach-Eintrag bleibt draußen-hell (Regel in
   stilregeln §8). Schräge/runde Räume gibt es nicht.
 - Ultra Low rechnet je Ecke (Lambert): Flächen, die über eine Raumgrenze reichen, mischen innen/außen.
 - Deckenlicht-Schatten nur 32 × 32 m um den Spieler; dahinter nur Kontaktschatten (in der Ferne kaum sichtbar).
+- Halle-Boden auf Ultra Low dunkel (Textur der Stufe, auch vorher so) – nicht Licht, eigener Schritt.
+- Ultra Low Bildzeit Werk: im swiftshader-Vergleich teils +20 % (Raum-Entscheidung je Pixel im Lambert-Shader + Kontaktschatten);
+  auf echter Grafikkarte prüfen (Tom). Falls nötig: Raum je Ecke + Unterteilung großer Bodenplatten.
+- Wandstreifen: das geneigte Deckenlicht lässt an Wänden zur Straßenseite einen ~1 m breiten weichen Schattenstreifen.
+- Sonnenflecken nur ab Mittel (Schattenkarte); Halle/Werk werfen keine Schatten (castShadow aus) – nur Kontaktschatten.
+- Helligkeits-Lauf in Stücken neu bauen (siehe oben).

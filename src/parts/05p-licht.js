@@ -96,9 +96,11 @@ function raumListe(){
 function raumAktiv(d){ return (!d.zone||(typeof zoneOffen==='function'&&zoneOffen(d.zone)))&&(d.stufe===undefined||typeof logiZeige!=='function'||logiZeige()===d.stufe); }
 /* Werte setzen, wenn sich Zonen, Ausbaustufe oder Grafikstufe aendern (sonst nichts zu tun) */
 function raumSchatten(){ return !!(renderer.shadowMap.enabled&&sun.castShadow&&!gfxNiedrig(GFX)&&sun.shadow.bias>-1); }
-/* Deckenlicht beim Laden anlegen (vor dem ersten Shader - die Zahl der Lichter steht dann fest), gleiche Bedingung
-   wie die Sonnenschatten: so bleibt der Wechsel Niedrig <-> Hoch ohne Shader-Neubau */
-if(RAUM.werte&&HIQ&&GFX!=='ultralow'&&renderer.shadowMap.enabled){
+/* Deckenlicht beim Laden anlegen (vor dem ersten Shader - die Zahl der Lichter steht dann fest), nur ab Mittel:
+   Niedrig spart sich das zweite Richtungslicht samt Schattenabfrage je Pixel (gemessen: sonst nicht schneller als
+   vorher). Wer auf Niedrig startet und zur Laufzeit hochschaltet, hat bis zum Neuladen nur das Raumlicht (gleich hell,
+   raumTakt rechnet den Anteil des Deckenlichts dann ins Raumlicht). Von Mittel nach Niedrig: Licht 0, Karte ruht. */
+if(RAUM.werte&&HIQ&&!gfxNiedrig(GFX)&&renderer.shadowMap.enabled){
   const l=new THREE.DirectionalLight(MAT.farbe('lampeWarm'),0); l.castShadow=true; const c=l.shadow.camera;
   c.left=-DECKE.halb; c.right=DECKE.halb; c.top=DECKE.halb; c.bottom=-DECKE.halb; c.near=0.05; c.far=DECKE.h+0.6;
   l.shadow.bias=-0.0008; l.shadow.normalBias=0.03; l.userData.decke=true;

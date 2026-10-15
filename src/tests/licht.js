@@ -1,14 +1,14 @@
 /* Licht und Schatten innen (05p, Licht-Paket 15.10., Tom: "immer so dunkel, in eine Richtung wird es hell, Boden glaenzt komisch"):
    - RAUM: Raumlicht im Shader angelegt (Chunks gepatcht, Raeume aus dachBereiche aktiv), keine wandernden Punktlichter, kein Ladenstrahler
    - BELICHTUNG: fest 1,05 drinnen wie draussen (keine Augenanpassung), keine Innen-Abdunklung in der Bildzusammenfuehrung
-   - DREHEN: an drei Orten (Laden, Laden Sued, Lager) einmal ganz umdrehen (12 Blicke) - Nachbarbilder springen nicht (< 12 Grauwerte),
-     Tag und Nacht
-   - GLEICH: nachts sind Laden, Sued und Lager gleich hell (mittlere Helligkeit des Blicks auf den Boden, Abweichung < 18 %)
-   - HELL: nachts ist der Laden innen hell (Bodenblick > 120 von 255), tagsueber nichts ausgebrannt (< 3 % reines Weiss)
+   - DREHEN: an drei Orten (Laden, Laden Sued, Lager) einmal ganz umdrehen (12 Blicke) - die Beleuchtung (Bild in grauem Einheits-
+     material, ohne Inhalt) springt zwischen Nachbarbildern um < 12 Grauwerte, Tag und Nacht
+   - GLEICH: nachts liegt auf dem Boden in Laden, Sued und Lager gleich viel Licht (Einheitsmaterial, Abweichung < 15 %)
+   - HELL: nachts ist der Laden innen hell (Bodenblick > 120 von 255, Licht ueberall > 110), tagsueber nichts ausgebrannt (< 3 % reines Weiss)
    - MATT: Ladenboden matt (Rauheit >= 0,6, Spiegelung <= 0,12) fuer jeden Belag
    - KONTAKT / PERSON: Kontaktschatten unter der Kasse (Boden sichtbar dunkler) und unter einer Person, EIN Zeichenaufruf
    - NIEDRIG: nur Kontaktschatten; ULTRALOW: keine Licht-Meshes, Raumlicht aber an (gleich hell)
-   Gegenprobe: GEGENPROBE=1 schaltet Raumlicht und Kontaktschatten ab -> HELL, GLEICH und KONTAKT melden.
+   Gegenprobe: GEGENPROBE=1 schaltet Raumlicht und Kontaktschatten ab (Himmelslicht drinnen voll) -> HELL und KONTAKT melden.
    Aufruf: node -r ./ladezeit-preload.js licht.js real.html */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const H=require(require('path').join(__dirname,'../../tools/test/start-hilfe.js'));
@@ -27,17 +27,21 @@ const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), o
   const px=()=>{ const W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,a=new Uint8Array(W*H*4); gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a); return a; };
   const hell=()=>{ const a=px(); let s=0,n=0,w=0; for(let i=0;i<a.length;i+=16){ const l=0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2]; s+=l; n++; if(l>=250) w++; } return {m:s/n,w:w/n}; };
   const calls=()=>{ R.info.autoReset=false; R.info.reset(); bb.renderFrame(0.016); R.info.autoReset=true; return R.info.render.calls; };
-  const bild=(x,z,yaw,pitch,uhr)=>{ bb.setView(x,z,yaw,pitch); bb.clock=uhr; bb.run(0.05,0.05); bb.clock=uhr; bb.kameraSetzen(); bb.renderFrame(0.05); return hell(); };
+  /* nurLicht: dasselbe Bild in grauem Einheitsmaterial (Albedo 0,5) - Beleuchtung ohne Inhalt/Belag */
+  const grau=new THREE.MeshStandardMaterial({color:0x808080,roughness:1,metalness:0});
+  const bild=(x,z,yaw,pitch,uhr)=>{ bb.setView(x,z,yaw,pitch); bb.clock=uhr; bb.run(0.05,0.05); bb.clock=uhr; bb.kameraSetzen(); bb.renderFrame(0.05); const h=hell();
+    const L=[]; bb.scene.traverse(o=>{ if(o.userData&&o.userData._licht&&o.visible){ L.push(o); o.visible=false; } });
+    bb.scene.overrideMaterial=grau; bb.renderFrame(0.05); h.l=hell().m; bb.scene.overrideMaterial=null; for(const o of L) o.visible=true; return h; };
   let licht=0; bb.scene.traverse(o=>{ if(o.userData&&o.userData._licht) licht++; });
   let punkt=0, spot=0; bb.scene.traverse(o=>{ if(o.isPointLight) punkt++; if(o.isSpotLight) spot++; });
   out.an=LI.an; out.fehler=LI.fehler; out.licht=licht; out.punkt=punkt; out.spot=spot; out.raumOk=!!bb.RAUM.ok; out.raeume=bb.RAUM.nAktiv; out.raumListe=bb.RAUM.nListe;
   /* Drehen an drei Orten, Tag und Nacht */
   out.dreh={}; out.boden={};
   for(const [uhr,tz] of [[600,'tag'],[1320,'nacht']]) for(const [k,x,z] of [['laden',-2,1],['sued',22,-13],['lager',-14,-2]]){
-    const w=[]; for(let i=0;i<=12;i++) w.push(bild(x,z,i*Math.PI/6,-0.1,uhr).m);
-    let mx=0; for(let i=1;i<w.length;i++) mx=Math.max(mx,Math.abs(w[i]-w[i-1]));
-    out.dreh[k+'-'+tz]={sprung:+mx.toFixed(1),min:+Math.min(...w).toFixed(1),max:+Math.max(...w).toFixed(1)};
-    const b=bild(x,z,0,-0.75,uhr); out.boden[k+'-'+tz]={m:+b.m.toFixed(1),weiss:+(b.w*100).toFixed(2)};
+    const w=[], wl=[]; for(let i=0;i<=12;i++){ const q=bild(x,z,i*Math.PI/6,-0.1,uhr); w.push(q.m); wl.push(q.l); }
+    let mx=0, ml=0; for(let i=1;i<w.length;i++){ mx=Math.max(mx,Math.abs(w[i]-w[i-1])); ml=Math.max(ml,Math.abs(wl[i]-wl[i-1])); }
+    out.dreh[k+'-'+tz]={sprungLicht:+ml.toFixed(1),sprungBild:+mx.toFixed(1),minLicht:+Math.min(...wl).toFixed(1),maxLicht:+Math.max(...wl).toFixed(1)};
+    const b=bild(x,z,0,-0.75,uhr); out.boden[k+'-'+tz]={m:+b.m.toFixed(1),l:+b.l.toFixed(1),weiss:+(b.w*100).toFixed(2)};
     if(tz==='tag'){ const q=bild(x,z,0,-0.05,uhr); out.boden[k+'-'+tz].weissBlick=+(q.w*100).toFixed(2); } }
   out.exp=+R.toneMappingExposure.toFixed(3);
   /* draussen am Testfeld: gleiche Belichtung */
@@ -60,10 +64,10 @@ const zustand=()=>{ const bb=__bb, LI=bb.LI, R=bb.renderer, gl=R.getContext(), o
   const allgemein=(t,h)=>{
     pruef('RAUM_'+t,h.raumOk&&h.raeume>=8&&h.punkt<=2&&h.spot===0,'Raumlicht '+h.raumOk+', aktive Raeume '+h.raeume+'/'+h.raumListe+', Punktlichter '+h.punkt+', Spots '+h.spot);
     pruef('BELICHTUNG_'+t,h.exp===1.05&&h.expAussen===1.05,'drinnen '+h.exp+', draussen '+h.expAussen);
-    for(const k in h.dreh) pruef('DREHEN_'+t,h.dreh[k].sprung<12,k+' springt beim Drehen um '+h.dreh[k].sprung);
-    const n=['laden','sued','lager'].map(k=>h.boden[k+'-nacht'].m), mn=Math.min(...n), mx=Math.max(...n);
-    pruef('GLEICH_'+t,mx/mn<1.18,'nachts Boden Laden/Sued/Lager '+n.join(' / '));
-    pruef('HELL_'+t,h.boden['laden-nacht'].m>120,'Laden nachts Bodenblick nur '+h.boden['laden-nacht'].m);
+    for(const k in h.dreh) pruef('DREHEN_'+t,h.dreh[k].sprungLicht<12,k+' Licht springt beim Drehen um '+h.dreh[k].sprungLicht);
+    const n=['laden','sued','lager'].map(k=>h.boden[k+'-nacht'].l), mn=Math.min(...n), mx=Math.max(...n);
+    pruef('GLEICH_'+t,mx/mn<1.15,'nachts Licht auf dem Boden Laden/Sued/Lager '+n.join(' / '));
+    pruef('HELL_'+t,h.boden['laden-nacht'].m>120&&mn>110,'nachts Laden Bodenblick '+h.boden['laden-nacht'].m+', Licht min '+mn);
     for(const k of ['laden','sued','lager']) pruef('WEISS_'+t,h.boden[k+'-tag'].weiss<3&&h.boden[k+'-tag'].weissBlick<3,k+' tagsueber ausgebrannt: '+JSON.stringify(h.boden[k+'-tag']));
     pruef('MATT_'+t,h.bodenRau>=0.6&&h.bodenEnv<=0.12,'Boden Rauheit min '+h.bodenRau+', Spiegelung max '+h.bodenEnv);
   };

@@ -93,3 +93,13 @@ regelmäßig bestellen (Liquidität!).
 - Großhandel nimmt unbegrenzt ab (keine Nachfrage-Grenze) – die Kapazität der Straße ist die Grenze.
 - Eigenproduktion ist im Hochregal markiert (`e:1`), im Regal/Laden nicht mehr (die Qualität geht mit).
 - Mischer hat keine Figur (Mischhaus ist geschlossen).
+
+## Tests (15.10.)
+- `src/tests/produktion.js` (test.html, ~1 min): Bestellen (Preis, Kapazitätsgrenze) → LKW an R6 → Plan → Produktion → Hochregal Gasse 2
+  (Eigenproduktion, `stockOf`/`vsBestand`) → Fixkosten erst ab Einschalten (+45 +30) → Kosten je Stück = Rezept, Band 45–60 %, Ausschuss
+  plausibel, QS einmal am Tag → ohne Rohstoffe steht die Straße, Lohn läuft → Störung + Freigabe an der Station → Leitstand-Laptop →
+  Kugelbomben trocknen bis morgen → Tagesabschluss → Spielstand. **Gegenprobe** `GEGENPROBE=1` (Rezept ohne Rohstoffe) schlägt an. Grün.
+- real.html unter der Sperre: `werk` (angepasst: ohne Auftrag steht die Straße, mit Werker/Mischer/Rohstoffen/Auftrag läuft sie), `hochregal`,
+  `ausbau`, `gameplay` grün; `test.html`-Gameplay grün. Laufzeit-`waechter`: BUDGET Testfeld knapp über der Toleranz (398 > 393 Schatten) –
+  **schon auf dem Ausgangsstand db8c425** rot (Testfeld 512 > 510 Aufrufe, Licht-Zwischenstand), nicht durch die Produktion; nicht neu geschrieben.
+- `tools/test/three-stub.js` ergänzt (Box3, Matrix3, InstancedMesh-Matrizen/Farben, Index der Box): test.html lud seit den Paletten (14.10.) nicht mehr.

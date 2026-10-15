@@ -19,11 +19,15 @@ const [,,HTML,OUT,PRE='nachher']=process.argv;
       bb.pdBestellen('huelsen',false,5); bb.pdBestellen('schwarzpulver',true,1); }
     if(bb.phase!=='open'){ bb.phase='closed'; bb.clock=600; bb.openShop(); }
     for(let i=0;i<40;i++) bb.run(1,0.05); });
-  const bild=async(n,x,z,yaw,pitch,y)=>{ await p.evaluate(([x,z,yaw,pitch,y])=>{ const bb=window.__bb; bb.setView(x,z,yaw,pitch); bb.kameraSetzen(); if(y) window.__bb.camera.position.y=y;
+  /* Aufstieg/Kapitel-Banner weg (der Kauf hebt das Level) */
+  const frei=()=>p.evaluate(()=>{ for(let i=0;i<30;i++){ const lu=document.getElementById('levelup'); if(lu&&lu.classList.contains('show')) document.getElementById('luBtn').click(); else break; }
+    const k=document.getElementById('kapBanner'); if(k) k.classList.remove('show'); });
+  const bild=async(n,x,z,yaw,pitch,y)=>{ await frei(); await p.evaluate(([x,z,yaw,pitch,y])=>{ const bb=window.__bb; bb.setView(x,z,yaw,pitch); bb.kameraSetzen(); if(y) window.__bb.camera.position.y=y;
       for(let i=0;i<8;i++){ bb.run(0.1,0.05); bb.renderFrame(0.05); } },[x,z,yaw,pitch,y]);
-    await p.screenshot({path:`${OUT}/${PRE}-${n}.jpg`,quality:82}); };
+    await frei(); await p.screenshot({path:`${OUT}/${PRE}-${n}.jpg`,quality:82}); };
   await bild('leitstand-monitore',-82.2,-9.0,0,-0.12);
   await bild('strasse1',-91.3,-11.7,-Math.PI/2+0.25,-0.12);
+  await bild('werker',-79.0,-19.2,Math.PI*0.96,-0.06);
   /* Stoerung: Zelle R3, Ampel blinkt, Leitstand zeigt STOERUNG */
   await p.evaluate(()=>{ const bb=window.__bb; if(bb.pdDaten){ const D=bb.pdDaten(); D.s[0].stoer={art:'zelle',st:'R3',j:2,t:0}; } });
   await bild('stoerung-leitstand',-82.2,-9.0,0,-0.12);
@@ -34,7 +38,7 @@ const [,,HTML,OUT,PRE='nachher']=process.argv;
   await bild('r6-lkw',-80.5,-52,Math.PI*0.97,0.02);
   /* Laptop-Tab */
   if(await p.evaluate(()=>!!window.__bb.pdLaptop)){ await p.evaluate(()=>{ window.__bb.openLaptop('prod','leitstand'); });
-    await p.screenshot({path:`${OUT}/${PRE}-laptop-produktion.jpg`,quality:82}); }
+    await frei(); await p.screenshot({path:`${OUT}/${PRE}-laptop-produktion.jpg`,quality:82}); }
   console.log('BILDER',PRE,'lkw',lkw,errs.length?'ERR '+errs.slice(0,3).join(' | '):'');
   await b.close();
 })();

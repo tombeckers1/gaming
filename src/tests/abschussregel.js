@@ -166,7 +166,7 @@ function einmal(){
   const erg={};
   for(const t of vorab.ids){ erg[t]={}; for(const ort of ['station','vorf']){ const r=await lauf(t,ort); erg[t][ort]=r; } }
   /* Werkbank-Vorschau je Groesse (nur im vollen Lauf) */
-  const protos=nur?[]:['0','1','2','3','4'];   /* Werkbank-Vorschau, fuenf Groessen (25 ... 500 Schuss) */
+  const protos=nur&&!process.env.WB?[]:['0','1','2','3','4'];   /* Werkbank-Vorschau, fuenf Groessen (25 ... 500 Schuss) */
   for(const tr of protos){ const r=await lauf(null,'station',tr); erg['proto:'+tr]={station:r}; }
   /* Auswertung */
   for(const [t,v] of Object.entries(erg)){

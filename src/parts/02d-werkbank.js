@@ -108,7 +108,15 @@ const WB_STUFEN=[
   {name:'Großverbund',dims:[0.90,0.32,0.43],box:1,grid:[2,1,1],show:{pw:1.5,sz:1.15},hoeheM:30},
   {name:'Monster', dims:[0.98,0.50,0.62],box:1,grid:[2,1,1],show:{pw:2.5, sz:1.25},hoeheM:33}
 ];
-function wbStufe(i){ return Object.assign({nr:i+1},WB_STUFEN[i],WIRT.werkbank.stufen[i]); }
+function wbStufe(i){ return Object.assign({nr:i+1},WB_STUFEN[i],WIRT.werkbank.stufen[i],{box:wbBox(i)}); }
+/* Stueck je Karton: so, wie die Kartonwahl (06-fixtures kartonWahl) sie fuer jede Batterie dieser Groesse festlegt -
+   damit Serie (Mindestmenge in Kartons), Lieferung und Regal dieselbe Zahl kennen */
+const _wbBox={};
+function wbBox(i){ if(_wbBox[i]) return _wbBox[i]; const st=WB_STUFEN[i]; let b=st.box;
+  if(typeof kartonWahl==='function'&&typeof SHELFKIND!=='undefined'){ const id='__wbbox'+i;
+    P[id]={name:'',shape:'battery',cat:2,lvl:1,dims:st.dims.slice(),grid:st.grid.slice(),box:st.box};
+    try{ kartonWahl(id); b=P[id].box||b; }catch(e){ b=st.box; } delete P[id]; }
+  return _wbBox[i]=b; }
 function wbStufeOffen(i){ const W=WIRT.werkbank.stufen[i]; return !!W&&!!S&&!!S.up[W.up]&&S.level>=W.lvl; }
 
 /* Abfolge-Muster: wie die Rohre eines Abschnitts nacheinander zuenden.
@@ -137,7 +145,7 @@ function wbEntwurfNeu(stufe){
   const W=WIRT.werkbank.stufen[stufe], N=W.schuss, eff=bruchListe(), e0=eff[0]||'kugel', e1=eff[1]||e0, e2=eff[2]||e1;
   const a=Math.round(N*0.4), b=Math.round(N*0.4);
   return {stufe,name:'',abschnitte:[
-    wbAbschnitt({e:e0,A:'gold',B:'weiss',n:a,takt:2,muster:'lr',hoehe:1,kal:1}),
+    wbAbschnitt({e:e0,A:'gold',B:'weiss',n:a,takt:3,muster:'lr',hoehe:1,kal:1,pause:1.5}),
     wbAbschnitt({e:e1,A:'rot',B:'gold',n:b,takt:2,muster:'z',hoehe:2,kal:1}),
     wbAbschnitt({e:e2,A:'gold',B:'blau',n:N-a-b,takt:0,muster:'finale',hoehe:2,kal:2})]};
 }
@@ -147,13 +155,15 @@ function wbRest(e){ return WIRT.werkbank.stufen[e.stufe].schuss-wbSchuss(e); }
 /* Abstand im Drehbuch, der nach 04c zuendAbstand den gewuenschten Takt ergibt */
 function wbGap(takt){ const g=1/WB_TAKT[clamp(takt|0,0,WB_TAKT.length-1)]; return clamp((g-ZUEND_MIN)/(ZUEND_MAX-ZUEND_MIN),0,1)*0.6; }
 function wbIntervall(x){ return x.muster==='finale'?ZUEND_MIN:1/WB_TAKT[clamp(x.takt|0,0,WB_TAKT.length-1)]; }
-/* Dauer (s) wie zuendFolge (04c) sie plant: Takt je Schuss, Pausen ab VERZ_MIN als Verzoegerung (hoechstens 6 s),
-   dazu Zuendschnur 0,7 s und Steigzeit des letzten Schusses */
-function wbDauer(e){ let t=0, erst=true;
-  e.abschnitte.forEach((x,ai)=>{ const n=Math.max(0,x.n|0); if(!n) return; const d=wbIntervall(x);
-    if(!erst){ const p=(e.abschnitte[ai-1]&&e.abschnitte[ai-1].pause)||0; t+=p>=VERZ_MIN?Math.min(p+d,6):d; }
-    t+=d*(n-1); erst=false; });
-  return Math.round(t+0.7+2.6); }
+/* Dauer (s) wie zuendFolge (04c) sie plant: je Schuss der Takt des Abschnitts (0,2-0,4 s); zwischen zwei Abschnitten
+   der Abstand im Drehbuch (Takt des vorigen + Pause) - ab VERZ_MIN als Verzoegerung (hoechstens 6 s), sonst wieder
+   0,2-0,4 s; zum Schluss 0,6 s wie zuendPlan(t).dauer (= Angabe auf der Verpackung) */
+function wbGapDreh(x){ return x.muster==='finale'?0:wbGap(x.takt); }
+function wbDauer(e){ let t=0, vor=null;
+  e.abschnitte.forEach(x=>{ const n=Math.max(0,x.n|0); if(!n) return;
+    if(vor){ const d=wbGapDreh(vor)+(vor.pause||0); t+=d>=VERZ_MIN?Math.min(d,6):zuendAbstand(d); }
+    t+=wbIntervall(x)*(n-1); vor=x; });
+  return Math.round(t+0.6); }
 function wbGueltig(e){
   if(!e||!e.abschnitte||!e.abschnitte.length||e.abschnitte.length>WB_MAX_ABSCHNITTE) return false;
   if(wbRest(e)!==0) return false;
@@ -205,10 +215,10 @@ function wbMarkt(e,b){ const W=WIRT.werkbank; b=b||wbBewertung(e); return r2(W.s
 function wbGewicht(e,b){ const W=WIRT.werkbank; b=b||wbBewertung(e); return +(W.stufen[e.stufe].gewicht*(W.nachfrage.grund+W.nachfrage.spanne*b.gesamt)).toFixed(2); }
 function wbHype(e,b){ const W=WIRT.werkbank; b=b||wbBewertung(e); return Math.round(W.stufen[e.stufe].hype*(W.hypeF.grund+W.hypeF.spanne*b.gesamt)); }
 function wbEntwicklung(e){ const W=WIRT.werkbank; return Math.round(W.stufen[e.stufe].entwicklung+e.abschnitte.length*W.kosten.entwicklungJeAbschnitt); }
-function wbMindestStueck(stufe){ return WIRT.werkbank.stufen[stufe].mindest*WB_STUFEN[stufe].box; }
+function wbMindestStueck(stufe){ return WIRT.werkbank.stufen[stufe].mindest*wbBox(stufe); }
 /* Serie: n Kartons, Rabatt ab Vielfachen der Mindestmenge, Vorkasse */
 function wbRabatt(stufe,kartons){ const m=WIRT.werkbank.stufen[stufe].mindest; let d=0; for(const r of WIRT.werkbank.rabatt) if(kartons>=m*r.ab) d=r.d; return d; }
-function wbSerie(e,kartons){ const stk=kartons*WB_STUFEN[e.stufe].box, d=wbRabatt(e.stufe,kartons);
+function wbSerie(e,kartons){ const stk=kartons*wbBox(e.stufe), d=wbRabatt(e.stufe,kartons);
   return {kartons,stueck:stk,rabatt:d,preis:r2(stk*e.cost*(1-d)),tage:WIRT.werkbank.stufen[e.stufe].liefertage}; }
 /* Break-even: so viele Stueck, bis die Entwicklung wieder drin ist */
 function wbBreakEven(e,preis){ const db=(preis||e.market)-e.cost; return db>0?Math.ceil(e.entw/db):Infinity; }
@@ -217,7 +227,7 @@ function wbBreakEven(e,preis){ const db=(preis||e.market)-e.cost; return db>0?Ma
 function wbShow(e){
   const st=WB_STUFEN[e.stufe], ph=[];
   e.abschnitte.forEach(x=>{ const n=x.n|0; if(n<=0) return; const f=wbEffekt(x.e)||{art:'bruch'};
-    const p={n,gap:x.muster==='finale'?0:wbGap(x.takt),A:x.A,B:x.B,pw:[-3,0,3][clamp(x.hoehe|0,0,2)],sz:[0.82,1,1.18][clamp(x.kal|0,0,2)],pause:x.pause||0};
+    const p={n,gap:wbGapDreh(x),A:x.A,B:x.B,pw:[-3,0,3][clamp(x.hoehe|0,0,2)],sz:[0.82,1,1.18][clamp(x.kal|0,0,2)],pause:x.pause||0};
     if(f.art==='licht') p.licht=x.e.slice(6); else p.eff=x.e;
     ph.push(p); });
   return show({basis:{pw:st.show.pw,sz:st.show.sz,th:null},rampe:{kurve:'flach'},verzoegerung:true},ph);
@@ -250,7 +260,7 @@ function wbProdukt(e){
   const st=wbStufe(e.stufe);
   const effekte=[...new Set(e.abschnitte.map(x=>(wbEffekt(x.e)||{name:x.e}).name))];
   return {name:e.name, short:e.name.length>16?e.name.slice(0,15)+'.':e.name,
-    cat:2, lvl:1, shape:'battery', dims:st.dims.slice(), grid:st.grid.slice(), box:st.box,
+    cat:2, lvl:1, shape:'battery', dims:st.dims.slice(), grid:st.grid.slice(), box:wbBox(e.stufe),
     cost:e.cost, market:e.market, weight:e.weight, hype:e.hype, risk:7, kal:st.kal, hoeheM:st.hoeheM,
     eigen:true, gruppe:'eigene', werk:e,
     folgeVon:(rohre)=>{ const v=wbVerdrahtung(e,rohre); e._neig=v.neig; return v.folge; },
@@ -338,7 +348,8 @@ function wbTick(){
 /* ---------- Altbestand: geloeschte Batterien und alte Rezepturen (Raketen, Kugeln, Fontaenen) ----------
    Die Ware bleibt verkaufbar, bis sie weg ist; nachbestellen geht nicht mehr. */
 function wbAltMerken(id,p){ if(!p) return; S.eigeneAlt=(S.eigeneAlt||[]).filter(a=>a.id!==id);
-  const q={id,name:p.name,shape:p.shape,dims:p.dims,grid:p.grid,box:p.box,cost:p.cost,market:p.market,art:p.art,werk:p.werk||null};
+  const q={id,name:p.name,shape:p.shape,dims:p.dims,grid:p.grid,box:p.box,cost:p.cost,market:p.market,art:p.art,
+    werk:p.werk?JSON.parse(JSON.stringify(p.werk,(k,v)=>k==='_neig'?undefined:v)):null};
   S.eigeneAlt.push(q); P[id]=wbAltProdukt(q); }
 function wbAltProdukt(a){ const p=a.werk?wbProdukt(a.werk):{shape:a.shape,dims:a.dims,grid:a.grid,box:a.box,art:a.art,hype:20,risk:6,cat:2,lvl:1,eigen:true,gruppe:'eigene'};
   return Object.assign(p,{name:a.name,short:a.name.length>16?a.name.slice(0,15)+'.':a.name,cost:a.cost,market:a.market,weight:2,noOrder:true,alt:true,

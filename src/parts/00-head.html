@@ -246,9 +246,9 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .wbstufe b{display:block;font-family:var(--display);font-weight:400;font-size:17px}
 .wbstufe small{display:block;color:var(--muted);font-size:14px;line-height:1.3}
 .wbstufe button{margin-top:6px;font-size:15px;padding:7px 10px}
-.wbsterne b{color:rgba(242,245,255,.25);font-size:18px}
-.wbsterne b.an{color:var(--signal)}
-.wbsterne b.halb{color:var(--signal);opacity:.55}
+.wbsterne b,.wbkenn .wbsterne b{display:inline;font-family:var(--ui);color:rgba(242,245,255,.25);font-size:18px}
+.wbsterne b.an,.wbkenn .wbsterne b.an{color:var(--signal)}
+.wbsterne b.halb,.wbkenn .wbsterne b.halb{color:var(--signal);opacity:.55}
 .wbleiste{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .wbleiste button{background:rgba(242,245,255,.1);color:var(--snow);font-size:16px;padding:8px 12px}
 .wbleiste button.on,.wbwahl button.on{background:var(--signal);color:var(--ink)}
@@ -272,7 +272,7 @@ small.no,.wbwert.no b{color:var(--fire)}
 .wbab>b{font-family:var(--display);font-weight:400;min-width:22px}
 .wbab>span{flex:1;min-width:0}
 .wbab em{display:flex;gap:3px;font-style:normal}
-.wbab em button{padding:5px 9px;font-size:14px;min-width:34px;background:rgba(242,245,255,.12);color:var(--snow)}
+.wbab em button{padding:5px 9px;font-size:15px;min-width:38px;min-height:34px;background:rgba(242,245,255,.12);color:var(--snow)}
 .wbab.neu{background:transparent;cursor:default}
 .wbab.neu button{background:rgba(242,245,255,.12);color:var(--snow);font-size:15px;padding:7px 12px}
 .wbfp{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.4)}
@@ -315,6 +315,7 @@ body.wbvs #hud,body.wbvs #touch{display:none}
   .wbab>span{flex-basis:calc(100% - 80px)}
   .wbkopf em{display:none}
   .wbwahl button{padding:9px 11px}
+  .wbab em button{min-width:42px;min-height:40px}
 }
 body.compact .spark{width:74px;height:24px}
 body.compact .mkcol{min-width:74px}

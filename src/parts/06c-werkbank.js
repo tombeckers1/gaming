@@ -30,6 +30,7 @@ function wbBauen(pos){
   wbG=B.g; wbSchirm=B.schirm;
   wbHit=bbox(B.laenge,1.9,B.tiefe+0.1,hitM,0,0.95,0.05,wbG,false); wbHit.userData={kind:'werkbank'};
   wbMov=addMovable({kind:'werkbank',name:'Werkbank',g:wbG,fw:B.laenge,fd:B.tiefe});
+  wbG.updateMatrixWorld(true);   /* sofort ansprechbar, auch bevor das naechste Bild gezeichnet ist */
 }
 function wbStand(){ return localToWorld(wbG,0,0.9); }
 function wbPrompt(){

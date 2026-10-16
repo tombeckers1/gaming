@@ -29,7 +29,7 @@ const H=require(path.join(__dirname,'../../tools/test/start-hilfe.js'));
         st.soll=bb.wbDauer(d); bb.wbVorschauStart(d); }
       else { const T=bb.WB_VS.tisch; bb.clock=1300; bb.applyTOD(); bb.setView(bb.WB_VS.auge[0],bb.WB_VS.auge[2],0,0); bb.igniteType('b7_ragnaroek',{x:T.x,y:0.95,z:T.z}); st.soll=bb.zuendPlan('b7_ragnaroek').dauer; } }
     /* beide aus derselben Abendansicht der Vorschau (WB_VS) gezeichnet */
-    const kam=()=>{ const a=bb.WB_VS.auge, z=bb.WB_VS.ziel, c=bb.camera; c.position.set(a[0],a[1],a[2]); c.fov=bb.WB_VS.fov; c.updateProjectionMatrix(); c.lookAt(z[0],z[1],z[2]); c.updateMatrixWorld(); };
+    const kam=()=>{ const a=bb.WB_VS.auge, z=bb.WB_VS.zielHimmel, c=bb.camera; c.position.set(a[0],a[1],a[2]); c.fov=bb.WB_VS.fovHimmel; c.updateProjectionMatrix(); c.lookAt(z[0],z[1],z[2]); c.updateMatrixWorld(); };
     const lebend=()=>{ const o={}; let s=0; for(const [n,ps] of [['huge',bb.psHuge],['big',bb.psBig],['mid',bb.psMid],['small',bb.psSmall]]){ let k=0; for(let i=0;i<ps.max;i++) if(ps.life[i]>0) k++; o[n]=k; s+=k; st.max[n]=Math.max(st.max[n]||0,k); st.max[n+'Max']=ps.max; } o.s=s; return o; };
     while(!aus()&&st.t<st.soll+6&&(was!=='monster'||bb.wbVs||st.t<2)){
       const t0=performance.now(); bb.run(0.25,0.05); const t1=performance.now(); st.logik.push((t1-t0)/5); st.t+=0.25;

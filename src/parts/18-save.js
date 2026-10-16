@@ -136,6 +136,17 @@ function startGame(fresh){
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
+  /* Eigene Batterien (Werkbank) VOR dem Abgleich der Preise ins Sortiment - sonst fielen ihre Preise als "unbekannte Sorte" heraus */
+  S.gesehen=(Array.isArray(S.gesehen)?S.gesehen:[]).filter(e=>!!wbEffekt(e));
+  /* Labor -> Werkbank (16.10.): alte Rezepturen umwandeln, alte zweite Zuendstufe erstatten (02d wbMigration) */
+  if(d&&!d.wbv&&S.up.labor2) S.up.labor2_alt=true;
+  if(S.up.labor&&!S.up.lager_nord) S.up.lager_nord=true;   /* die Werkbank steht in Lager Nord */
+  const wbm=wbMigration();
+  S.eigene=(Array.isArray(S.eigene)?S.eigene:[]).filter(e=>e&&e.id&&Array.isArray(e.abschnitte)&&WIRT.werkbank.stufen[e.stufe]).slice(0,WIRT.werkbank.slots);
+  S.eigene.forEach(e=>{ e.serien=Array.isArray(e.serien)?e.serien.filter(x=>x&&x.kartons>0):[]; });
+  S.eigeneAlt=(Array.isArray(S.eigeneAlt)?S.eigeneAlt:[]).filter(a=>a&&a.id&&a.dims);
+  eigeneAlleEintragen();
+  if(wbm) later(3,()=>toast(wbMigrationText(wbm),'money'));
   const F=freshState();
   S.prices=Object.assign(F.prices,S.prices||{}); for(const t in S.prices) if(!P[t]) delete S.prices[t]; /* aus dem Sortiment genommene Sorten */ S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,WIRT.markt.ladeMktMin,WIRT.markt.ladeMktMax); S.comp=clamp(+S.comp||1,WIRT.markt.konkurrenz.ladeMin,WIRT.markt.konkurrenz.ladeMax); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;
@@ -160,16 +171,6 @@ function startGame(fresh){
   /* Herausforderungen und eigene Batterien (Werkbank) wiederherstellen */
   statInit();
   S.gutschrift=Math.max(0,r2(+S.gutschrift||0));
-  S.gesehen=S.gesehen.filter(e=>!!wbEffekt(e));
-  /* Labor -> Werkbank (16.10.): alte Rezepturen umwandeln, alte zweite Zuendstufe erstatten (02d wbMigration) */
-  if(d&&!d.wbv&&S.up.labor2) S.up.labor2_alt=true;
-  if(S.up.labor&&!S.up.lager_nord) S.up.lager_nord=true;   /* die Werkbank steht in Lager Nord */
-  const wbm=wbMigration();
-  S.eigene=(Array.isArray(S.eigene)?S.eigene:[]).filter(e=>e&&e.id&&Array.isArray(e.abschnitte)&&WIRT.werkbank.stufen[e.stufe]).slice(0,WIRT.werkbank.slots);
-  S.eigene.forEach(e=>{ e.serien=Array.isArray(e.serien)?e.serien.filter(x=>x&&x.kartons>0):[]; });
-  S.eigeneAlt=(Array.isArray(S.eigeneAlt)?S.eigeneAlt:[]).filter(a=>a&&a.id&&a.dims);
-  eigeneAlleEintragen();
-  if(wbm) later(3,()=>toast(wbMigrationText(wbm),'money'));
   marktInit();
   erfNachziehen();
   ORDER.forEach(t=>{ if(typeof S.prices[t]!=='number'||!isFinite(S.prices[t])||S.prices[t]<=0) S.prices[t]=marketOf(t); });

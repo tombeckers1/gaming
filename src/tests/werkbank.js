@@ -88,7 +88,7 @@ const BILDER=process.env.BILDER||'';
   pruef(bau.stufen.map(s=>s.schuss).join()==='25,60,110,200,500','Schusszahlen nicht 25/60/110/200/500');
 
   /* Bedienung per Klick im Bauprogramm */
-  await p.evaluate(()=>{ const bb=window.__bb; bb.wbAnsicht='start'; bb.wbRender(); });
+  await p.evaluate(()=>{ const bb=window.__bb; if(!bb.wbOpen) bb.wbOeffnen(); bb.wbAnsicht='start'; bb.wbRender(); });
   await p.click('#werkbank [data-a="neu"]');
   const klick=async(sel)=>{ await p.click('#werkbank '+sel); };
   const zust=()=>p.evaluate(()=>{ const bb=window.__bb, e=bb.wbE; return {n:e.abschnitte.length,rest:bb.wbRest(e),stufe:e.stufe,sel:bb.wbSel,ab:e.abschnitte.map(x=>x.e+':'+x.n+':'+x.muster)}; });
@@ -103,7 +103,7 @@ const BILDER=process.env.BILDER||'';
   await klick('[data-a="set"][data-v="muster:rl"]'); await klick('[data-a="set"][data-v="e:dahlie"]'); await klick('[data-a="set"][data-v="A:blau"]'); const z8=await zust();
   console.log('KLICK',JSON.stringify({z0,z1,z2,z3,z4,z5,z6,z7,z8}));
   pruef(z1.stufe===0&&z1.rest===0,'Groessenwechsel streckt die Abschnitte nicht');
-  pruef(z2.n===z1.n+1,'+ Abschnitt'); pruef(z3.rest===5,'Schuss -5 zeigt Rest nicht'); pruef(z4.rest===0,'Rest auffuellen');
+  pruef(z2.n===z1.n+1,'+ Abschnitt'); pruef(z3.rest===z2.rest+5,'Schuss -5 zeigt Rest nicht'); pruef(z4.rest===0,'Rest auffuellen');
   pruef(z5.n===z2.n+1,'Abschnitt kopieren'); pruef(z6.sel===1,'Abschnitt verschieben'); pruef(z7.n===z5.n-1,'Abschnitt loeschen');
   pruef(/dahlie:\d+:rl/.test(z8.ab[z8.sel]),'Effekt/Muster setzen: '+z8.ab[z8.sel]);
   /* Live-Anzeige: Schuss frei */
@@ -123,6 +123,7 @@ const BILDER=process.env.BILDER||'';
     const d={stufe:1,name:'Probe',abschnitte:[bb.wbAbschnitt({e:'chrys',A:'gold',B:'rot',n:20,takt:0,muster:'lr'}),bb.wbAbschnitt({e:'licht:goldkomet',A:'gold',B:'weiss',n:20,takt:1,muster:'gerade',pause:1.5}),
       bb.wbAbschnitt({e:'kamuro',A:'gold',B:'violett',n:20,muster:'finale',hoehe:2,kal:2})]};
     o.dauerPlan=bb.wbDauer(d);
+    bb.run(2,0.05);   /* liegengebliebene Zeitgeber (Kapitel-Aufstieg nach dem Kauf) vorher abarbeiten */
     const AL=[]; A.log(AL); const log=[]; bb.fwLog(log); bb.ROHR_LOG=[];
     const P0=Object.keys(bb.P).length, hype0=bb.hype, xp0=S.xp, money0=S.money, tag0=S.day, uhr0=bb.clock;
     bb.wbVorschauStart(d); o.vs=!!bb.wbVs; o.offen=bb.wbOpen; o.nacht=bb.todUhr?bb.todUhr():null;
@@ -153,7 +154,9 @@ const BILDER=process.env.BILDER||'';
   pruef(vs.ende.tag===0&&Math.abs(vs.ende.uhr)<1,'Spielzeit laeuft waehrend der Vorschau'); pruef(vs.ende.wieder,'nach der Vorschau nicht zurueck an der Werkbank');
   if(BILDER){
     /* Vorschau-Bild: Abend, Batterie auf dem Tisch, nach ein paar Sekunden mitten im Ablauf */
-    await p.evaluate(()=>{ const bb=window.__bb; const d=bb.wbEntwurfNeu(2); d.name='Probe'; bb.wbVorschauStart(d); bb.run(6,0.05); });
+    await p.evaluate(()=>{ const bb=window.__bb; const d=bb.wbEntwurfNeu(2); d.name='Probe'; bb.wbVorschauStart(d); bb.run(0.6,0.05); });
+    await bild('vorschau-tisch',()=>{ const bb=window.__bb; bb.renderFrame(0.05); return bb.renderer.domElement.toDataURL('image/jpeg',0.88); });
+    await p.evaluate(()=>{ const bb=window.__bb; bb.run(6,0.05); });
     await bild('vorschau',()=>{ const bb=window.__bb; bb.renderFrame(0.05); return bb.renderer.domElement.toDataURL('image/jpeg',0.88); });
     await p.evaluate(()=>{ const bb=window.__bb; bb.run(4,0.05); });
     await bild('vorschau2',()=>{ const bb=window.__bb; bb.renderFrame(0.05); return bb.renderer.domElement.toDataURL('image/jpeg',0.88); });
@@ -168,9 +171,9 @@ const BILDER=process.env.BILDER||'';
   if(BILDER) await schuss('produkt','#werkbank .wbcard');
   const ent=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, W=bb.WIRT.werkbank, o={};
     const e0=bb.wbE; o.kosten=bb.wbStueckkosten(e0); o.entw=bb.wbEntwicklung(e0); o.kartons=bb.wbKartons; o.mind=W.stufen[0].mindest;
-    const g0=S.money; document.querySelector('#werkbank [data-a="entwickeln"]').click();
+    const g0=S.money, pr0=(bb.DS&&bb.DS.praemien)||0; document.querySelector('#werkbank [data-a="entwickeln"]').click();
     const e=bb.eigeneListe()[0]; o.da=!!e; if(!e) return o;
-    o.id=e.id; o.name=e.name; o.bezahlt=+(g0-S.money).toFixed(2); o.soll=+(o.entw+o.kosten*W.stufen[0].mindest*bb.WB_STUFEN[0].box).toFixed(2);
+    o.praemie=+(((bb.DS&&bb.DS.praemien)||0)-pr0).toFixed(2); o.id=e.id; o.name=e.name; o.bezahlt=+(g0-S.money+o.praemie).toFixed(2); o.soll=+(o.entw+o.kosten*W.stufen[0].mindest*bb.wbBox(0)).toFixed(2); o.box=bb.P[e.id].box; o.boxSoll=bb.wbBox(0);
     o.preis=S.prices[e.id]; o.imKatalog=!!bb.P[e.id]&&bb.ORDER.includes(e.id); o.show=!!bb.istBatterie(e.id); o.schuss=bb.rohrBedarf(e.id).schuss;
     o.serien=e.serien.map(s=>s.kartons+'/'+s.rest); o.stat=bb.stat('eigene');
     o.verpackt=bb.P[e.id].art.title; o.linie=bb.linieVon?bb.linieVon(e.id):null;
@@ -181,7 +184,7 @@ const BILDER=process.env.BILDER||'';
   pruef(ent.da&&ent.name==='Testfeuer Gold','Entwickeln fehlgeschlagen'); pruef(Math.abs(ent.bezahlt-ent.soll)<0.05,`bezahlt ${ent.bezahlt}, soll ${ent.soll}`);
   pruef(ent.preis===29.99,'Verkaufspreis nicht uebernommen: '+ent.preis); pruef(ent.imKatalog&&ent.show&&ent.schuss===25,'Produkt nicht im Katalog/keine Batterie');
   pruef(ent.serien.join()===`${ent.mind}/2`,'Serie falsch: '+ent.serien); pruef(ent.korb===0,'eigene Batterie beim Fachhandel bestellbar');
-  pruef(ent.linie==='hausmarke','Verpackung nicht Hausmarke');
+  pruef(ent.linie==='hausmarke','Verpackung nicht Hausmarke'); pruef(ent.box===ent.boxSoll,'Stueck je Karton: Produkt '+ent.box+', Serie '+ent.boxSoll);
 
   /* --- 6. Lieferung nach Tagen, LKW, Regal, Verkauf --- */
   const lief=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={}, e=bb.eigeneListe()[0], id=e.id;
@@ -204,7 +207,7 @@ const BILDER=process.env.BILDER||'';
     const v={p:[P0.x+fx*1.7,1.45,P0.z+fz*1.7],t:[P0.x,1.0,P0.z]}; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2]; bb.setView(v.p[0],v.p[2],Math.atan2(-dx,-dz),0); bb.clock=600; bb.applyTOD();
     for(let i=0;i<3;i++){ bb.kameraSetzen(); cam.position.set(v.p[0],v.p[1],v.p[2]); cam.lookAt(v.t[0],v.t[1],v.t[2]); cam.updateMatrixWorld(); bb.renderFrame(0.05); } return bb.renderer.domElement.toDataURL('image/jpeg',0.88); });
   /* Verkauf: ein Verkaufstag, die eigene Marke im Regal - Nachfrage messen */
-  const v0=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.rep=70; const id=bb.eigeneListe()[0].id; const lv=bb.allLevels().find(l=>l.type===id); return {v:bb.stat('v_eigene'),im:lv?lv.count:0,tag:S.day}; });
+  const v0=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S; S.rep=70; S.staff.kassierer=true; try{ bb.hireStaff('kassierer'); }catch(e){} const id=bb.eigeneListe()[0].id; const lv=bb.allLevels().find(l=>l.type===id); return {v:bb.stat('v_eigene'),im:lv?lv.count:0,tag:S.day}; });
   await p.evaluate(()=>{ const bb=window.__bb; bb.openShop(); });
   await H.vorspulen(p,{sek:3,dt:0.1,max:2000,bis:`bb.S.day>a.day||bb.phase==='after'||(bb.clock>=1300)`,name:'Verkaufstag'});
   const verk=await p.evaluate((v0)=>{ const bb=window.__bb, S=bb.S, id=bb.eigeneListe()[0].id; const lv=bb.allLevels().filter(l=>l.type===id);
@@ -229,7 +232,8 @@ const BILDER=process.env.BILDER||'';
   pruef(plaetze.loeschen&&plaetze.nachLoeschen===4,'Loeschen'); pruef(!plaetze.loeschenMitSerie,'Loeschen trotz laufender Serie');
 
   /* --- 8. Speichern und Laden --- */
-  const vorSpeichern=await p.evaluate(()=>{ const bb=window.__bb; bb.save(); return {n:bb.eigeneListe().length,ids:bb.eigeneListe().map(e=>e.id),preis:bb.S.prices[bb.eigeneListe()[0].id],wb:[+bb.wbG.position.x.toFixed(2),+bb.wbG.position.z.toFixed(2)],serien:bb.eigeneListe()[0].serien.length}; });
+  const vorSpeichern=await p.evaluate(()=>{ const bb=window.__bb; const id0=bb.eigeneListe()[0].id; if(!bb.allLevels().some(l=>l.type===id0&&l.count>0)){ const lv=bb.emptyLevel(id0); if(lv) for(let k=0;k<6;k++) bb.addToLevel(lv,id0,1); }
+    bb.save(); return {regal:bb.allLevels().filter(l=>l.type===id0).reduce((a,l)=>a+l.count,0),n:bb.eigeneListe().length,ids:bb.eigeneListe().map(e=>e.id),preis:bb.S.prices[bb.eigeneListe()[0].id],wb:[+bb.wbG.position.x.toFixed(2),+bb.wbG.position.z.toFixed(2)],serien:bb.eigeneListe()[0].serien.length}; });
   await H.neuladen(p);
   await p.click('#startBtns button:first-child');
   await H.warte(p,"!document.getElementById('start').classList.contains('show')",'Weiterspielen');
@@ -239,17 +243,19 @@ const BILDER=process.env.BILDER||'';
   console.log('LADEN',JSON.stringify(vorSpeichern),JSON.stringify(geladen));
   pruef(geladen.n===vorSpeichern.n&&geladen.ids.join()===vorSpeichern.ids.join()&&geladen.preis===vorSpeichern.preis,'eigene Batterien nicht gespeichert');
   pruef(geladen.wb&&geladen.wb.join()===vorSpeichern.wb.join(),'Werkbank nach dem Laden nicht da'); pruef(geladen.katalog,'nach dem Laden nicht im Katalog');
-  pruef(geladen.serien===vorSpeichern.serien,'offene Serien nicht gespeichert'); pruef(geladen.regal>0,'Regalbestand der eigenen Marke verloren');
+  pruef(geladen.serien===vorSpeichern.serien,'offene Serien nicht gespeichert'); pruef(geladen.regal===vorSpeichern.regal&&geladen.regal>0,`Regalbestand der eigenen Marke: ${vorSpeichern.regal} -> ${geladen.regal}`);
 
   /* --- 9. Migration alter Labor-Rezepturen --- */
-  await p.evaluate(()=>{ const bb=window.__bb; bb.save(); const k=Object.keys(localStorage).find(x=>{ try{ const d=JSON.parse(localStorage.getItem(x)); return d&&d.v===3&&d.up; }catch(e){ return false; } });
+  const altStand=await p.evaluate(()=>{ const bb=window.__bb; bb.save(); const k=Object.keys(localStorage).find(x=>{ try{ const d=JSON.parse(localStorage.getItem(x)); return d&&d.v===3&&d.up; }catch(e){ return false; } });
     const d=JSON.parse(localStorage.getItem(k)); delete d.wbv; delete d.werkbank; d.eigeneAlt=[];
     d.eigene=[{id:'eigenalt1',name:'Alte Batterie',traeger:'batterie',eff:'chrys',eff2:null,A:'rot',B:'gold',etikett:'klassik',cost:9,market:21,hype:30,rest:0,fertig:true},
               {id:'eigenalt2',name:'Altes Raketenset',traeger:'rakete3',eff:'kugel',eff2:null,A:'gold',B:'blau',etikett:'klassik',cost:3,market:7,hype:10,rest:0,fertig:true}];
     d.up.labor2=true; d.boxes=(d.boxes||[]).concat([{type:'eigenalt2',count:8,q:1,x:-12,y:0.2,z:-3,ry:0},{type:'eigenalt1',count:6,q:1,x:-13,y:0.2,z:-3,ry:0}]);
-    localStorage.setItem(k,JSON.stringify(d)); window.__migGeld=d.money; });
+    return {k,json:JSON.stringify(d),geld:d.money}; });
+  /* der alte Stand muss NACH dem Speichern beim Verlassen der Seite gelten: vor dem Spielcode einsetzen (einmal) */
+  await p.addInitScript(a=>{ try{ if(!sessionStorage.getItem('wbMig')){ localStorage.setItem(a.k,a.json); sessionStorage.setItem('wbMig','1'); } }catch(e){} },altStand);
   await H.neuladen(p);
-  const geld0=await p.evaluate(()=>{ try{ const k=Object.keys(localStorage).find(x=>{ try{ const d=JSON.parse(localStorage.getItem(x)); return d&&d.v===3&&d.up; }catch(e){ return false; } }); return JSON.parse(localStorage.getItem(k)).money; }catch(e){ return null; } });
+  const geld0=altStand.geld;
   await p.click('#startBtns button:first-child');
   await H.warte(p,"!document.getElementById('start').classList.contains('show')",'Weiterspielen (Migration)');
   await p.evaluate(()=>window.__bb.stoppSchleife());

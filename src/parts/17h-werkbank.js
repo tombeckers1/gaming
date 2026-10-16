@@ -10,6 +10,7 @@
    ========================================================= */
 let wbOpen=false, wbAnsicht='start', wbE=null, wbSel=0, wbKartons=0, wbPreis=0, wbLoeschArm=null, wbNachK={}, wbVs=null, wbVsN=0;
 function wbEl(){ return $('werkbank'); }
+const wbEsc=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 function wbOeffnen(){
   if(!S||!S.up.labor){ toast('Erst die Werkbank kaufen (Ausbau, Kapitel 5).','bad'); return; }
   if(S.carrying){ toast('Erst den Karton abstellen.','bad'); return; }
@@ -48,7 +49,7 @@ function wbStartHtml(){
   for(let i=0;i<W.slots;i++){ const e=L[i];
     if(!e){ h+=`<div class="wbplatz leer"><b>Platz ${i+1}</b><small>frei</small>${wbKnopf('neu','Neue Batterie',{i})}</div>`; continue; }
     const st=W.stufen[e.stufe], u=wbUnterwegs(e), m=st.mindest, k=wbNachK[e.id]||m, se=wbSerie(e,k);
-    h+=`<div class="wbplatz"><img class="wbbild" ${prodPicTag(e.id)} alt=""><div class="wbinfo"><b>${e.name}</b>${wbSterne(e.sterne||0)}`+
+    h+=`<div class="wbplatz"><img class="wbbild" ${prodPicTag(e.id)} alt=""><div class="wbinfo"><b>${wbEsc(e.name)}</b>${wbSterne(e.sterne||0)}`+
       `<small>${st.schuss} Schuss · ${st.kal} mm · ${e.abschnitte.length} Abschnitte · Dauer ca. ${wbDauer(e)} s</small>`+
       `<small>Stückkosten ${eur(e.cost)} · dein Preis ${eur(S.prices[e.id]||e.market)} · Marktwert ${eur(marketOf(e.id))}</small>`+
       `<small>Bestand ${stockOf(e.id)} Stück${u?` · <span class="warn">${u} Karton${u===1?'':'s'} in Fertigung (${(e.serien||[]).map(s=>s.rest+' Tag'+(s.rest===1?'':'e')).join(', ')})</span>`:''}</small></div>`+
@@ -59,7 +60,7 @@ function wbStartHtml(){
   h+='</div><div class="wbkopfzeile">Größen</div><div class="wbstufen">';
   W.stufen.forEach((st,i)=>{ const u=UPGRADES.find(x=>x.id===st.up), offen=wbStufeOffen(i), gekauft=!!S.up[st.up];
     const zu=!gekauft?(S.level<st.lvl?`ab Level ${st.lvl}`:u&&u.req&&!S.up[u.req]?`erst Stufe ${i}`:''):(S.level<st.lvl?`ab Level ${st.lvl}`:'');
-    h+=`<div class="wbstufe${offen?' an':''}"><b>${st.schuss} Schuss</b><small>${WB_STUFEN[i].name} · ${st.kal} mm · ${WB_STUFEN[i].box} je Karton</small>`+
+    h+=`<div class="wbstufe${offen?' an':''}"><b>${st.schuss} Schuss</b><small>${WB_STUFEN[i].name} · ${st.kal} mm · ${wbBox(i)} je Karton</small>`+
       `<small>Entwicklung ab ${eur(st.entwicklung)} · Serie ab ${st.mindest} Kartons · ${st.liefertage} Tage</small>`+
       (offen?'<small class="ok">freigeschaltet</small>':gekauft?`<small class="warn">${zu}</small>`:zu?`<small class="warn">${zu}</small>`:
         wbKnopf('stufe',`Freischalten · ${eur(u.cost())}`,{v:st.up,aus:S.money<u.cost()}))+'</div>'; });
@@ -122,7 +123,7 @@ function wbProduktHtml(){
   const r=wbPreis/markt, tol=priceTol(), ampel=r<=tol?['ok','Kunden greifen gern zu']:r<=tol+WIRT.kunden.preisAmpel.einige?['warn','Einige zögern']:['no','Viele lassen es liegen'];
   const nach=wbGewicht(e,b), nachTxt=nach>=W.stufen[e.stufe].gewicht*1.1?'hoch':nach>=W.stufen[e.stufe].gewicht*0.85?'mittel':'niedrig';
   let h=`<div class="wbprodukt"><div class="wbpack"><canvas id="wbPack" width="300" height="420"></canvas><small>So kommt sie ins Regal: dein Name, das Markenfeld deines Ladens, die Farben der ersten Abschnitte.</small></div><div class="wbrechnung">`;
-  h+=`<div class="wbfeld"><label>Name der Batterie (kommt auf die Verpackung)</label><input id="wbName" maxlength="22" placeholder="z. B. Nordlicht" value="${String(e.name||'').replace(/"/g,'&quot;')}"></div>`;
+  h+=`<div class="wbfeld"><label>Name der Batterie (kommt auf die Verpackung)</label><input id="wbName" maxlength="22" placeholder="z. B. Nordlicht" value="${wbEsc(e.name)}"></div>`;
   h+=`<div class="wbfeld"><label>Bewertung</label>${wbSterne(b.sterne)} <small>Effektwert ${WF.prozent(b.effekt)} %, Abwechslung ${WF.prozent(b.abwechslung)} %, Ablauf ${WF.prozent(b.ablauf)} %${b.finale?'':' · ohne Finale am Ende'}${b.steigerung?' · steigert sich':''} · Nachfrage ${nachTxt}</small></div>`;
   const zeile=(k,v,cls)=>`<div class="wbwert${cls?' '+cls:''}"><span>${k}</span><b>${v}</b></div>`;
   h+=zeile('Stückkosten (Lohnfertiger)',eur(cost))+zeile('Marktwert – das erwarten Kunden',eur(markt));
@@ -203,8 +204,9 @@ function wbEingabe(ev){
 function wbAenderung(ev){ if(ev.target.id==='wbPreis'){ wbPreisLesen(); wbRender(); } }
 
 /* ---------- Vorschau: echte Zuendung am Testfeld, Abendlicht, eigene Kamera ---------- */
-/* Zuendtisch am Testfeld neben der Moerserbatterie, Kamera erhoeht ueber der Ladenrueckseite (Abendansicht) */
-const WB_VS={tisch:{x:4.6,z:-16.6,b:1.6},auge:[1.4,9.5,5.5],ziel:[4.6,13.5,-16.6],fov:70,vor:1.2,nach:3.0};
+/* Zuendtisch am Testfeld neben der Moerserbatterie. Kamera erhoeht ueber dem Ladendach (Abendansicht): erst auf die Batterie,
+   mit der Zuendung schwenkt sie nach oben in den Himmel (Brueche in 25-35 m), am Ende zurueck auf die rauchende Batterie */
+const WB_VS={tisch:{x:4.6,z:-16.6,b:1.6},auge:[2.5,13,2.0],zielTisch:[4.6,0.9,-16.6],zielHimmel:[4.6,24,-16.6],fovTisch:48,fovHimmel:72,schwenk:1.8,vor:1.2,nach:3.0};
 function wbVorschauStart(entwurf,echtId){
   if(wbVs) return;
   const m=wbMangel(entwurf); if(m){ toast(m,'bad'); return; }
@@ -214,17 +216,20 @@ function wbVorschauStart(entwurf,echtId){
   const T=WB_VS.tisch, g=new THREE.Group(); g.userData.bauteil='werkbankVorschau'; scene.add(g); abTischBau(g,T.x,T.z,T.b);
   const pl0=abPlatz('tisch',T.x,0.93,T.z,{ry:Math.PI,ort:'vorschau'});
   const h=abAufstellen(pl0,id);
-  wbVs={id,g,pl:pl0,h,t:0,ende:Infinity,name:P[id].name,alt:{x:pl.x,z:pl.z,yaw,pitch,fov:camera.fov},offen:wbOpen,zurueck:wbAnsicht};
+  /* Zeitgeber, die vor der Vorschau schon liefen: alles danach Geplante gehoert zur Vorschau (Spiel steht still) */
+  wbVs={id,g,pl:pl0,h,t:0,ende:Infinity,name:P[id].name,alt:{x:pl.x,z:pl.z,yaw,pitch,fov:camera.fov},offen:wbOpen,zurueck:wbAnsicht,vorher:new Set(timers)};
   if(wbOpen){ wbEl().classList.remove('show'); wbOpen=false; }
   paused=false; document.body.classList.add('wbvs');
   pl.x=WB_VS.auge[0]; pl.z=WB_VS.auge[2];
-  camera.fov=WB_VS.fov; camera.updateProjectionMatrix();
   lastF=-1; applyTOD(); if(typeof updateSonne==='function') updateSonne(T.x,T.z);
   wbVsKamera();
   later(WB_VS.vor,()=>{ if(!wbVs||wbVs.id!==id) return; const z=abZuenden(pl0,id,h,{fertig:()=>{ if(wbVs&&wbVs.id===id) abWeg(h); }}); wbVs.ende=wbVs.t+z.dauer+WB_VS.nach; wbVs.dauer=z.dauer; });
   wbVsLeiste();
 }
-function wbVsKamera(){ const a=WB_VS.auge, z=WB_VS.ziel; camera.position.set(a[0],a[1],a[2]); camera.lookAt(z[0],z[1],z[2]); camera.updateMatrixWorld(); }
+function wbVsKamera(){ const a=WB_VS.auge, A=WB_VS.zielTisch, B=WB_VS.zielHimmel, t=wbVs?wbVs.t:0, v=WB_VS.vor+0.6;
+  const ein=clamp((t-v)/WB_VS.schwenk,0,1), aus=wbVs&&wbVs.ende<Infinity?clamp((wbVs.ende-1.6-t)/WB_VS.schwenk,0,1):1, u=Math.min(ein,aus), k=u*u*(3-2*u);
+  camera.position.set(a[0],a[1],a[2]); camera.fov=WB_VS.fovTisch+(WB_VS.fovHimmel-WB_VS.fovTisch)*k; camera.updateProjectionMatrix();
+  camera.lookAt(A[0]+(B[0]-A[0])*k,A[1]+(B[1]-A[1])*k,A[2]+(B[2]-A[2])*k); camera.updateMatrixWorld(); }
 /* Ein Schritt waehrend der Vorschau (statt step, 20-loop): nur Zeitgeber, Feuerwerk, Schnee und Licht - Kunden,
    Personal und Uhr stehen */
 function wbVsStep(dt){
@@ -241,11 +246,13 @@ function wbVsLeiste(){
     el.addEventListener('click',e=>{ if(e.target.closest('button')){ e.stopPropagation(); wbVorschauEnde(true); } }); }
   if(!wbVs){ el.remove(); return; }
   const rest=wbVs.ende<Infinity?Math.max(0,Math.ceil(wbVs.ende-wbVs.t)):null;
-  el.innerHTML=`<b>VORSCHAU</b><span>${wbVs.name}</span><span>${rest===null?'Zündschnur brennt …':`noch ${rest} s`}</span><button>Beenden</button>`;
+  el.innerHTML=`<b>VORSCHAU</b><span>${wbEsc(wbVs.name)}</span><span>${rest===null?'Zündschnur brennt …':`noch ${rest} s`}</span><button>Beenden</button>`;
 }
 function wbVorschauEnde(abbruch){
   if(!wbVs) return; const V=wbVs; wbVs=null;
-  if(abbruch){ for(let i=timers.length-1;i>=0;i--) if(timers[i].fw) timers.splice(i,1);
+  /* was die Vorschau noch geplant hat (Schuesse, Nachrauch), faellt weg - das Probestueck ist gleich nicht mehr im Katalog */
+  for(let i=timers.length-1;i>=0;i--) if(!V.vorher.has(timers[i])) timers.splice(i,1);
+  if(abbruch){
     for(const ps of [psHuge,psBig,psMid,psSmall]) if(ps) for(let i=0;i<ps.max;i++) if(ps.life[i]>0) ps.life[i]=1e-4;
     rockets.length=0; emitters.length=0; if(typeof sfxSchnitt==='function') sfxSchnitt(); }
   abWeg(V.h); scene.remove(V.g); V.g.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
@@ -269,7 +276,7 @@ function wbBestellHtml(){
   const L=eigeneListe();
   if(!L.length) return `<div class="row"><div class="rm"><b>Noch keine eigene Batterie</b><small>Entwürfe entstehen an der Werkbank im Lager. Hier kannst du danach nachfertigen lassen.</small></div></div>`;
   return `<div class="karten">`+L.map(e=>{ const st=WIRT.werkbank.stufen[e.stufe], m=st.mindest, se=wbSerie(e,m), u=wbUnterwegs(e);
-    return `<div class="karte"><img class="kbild" ${prodPicTag(e.id)} alt=""><b>${e.name} <span class="pill">eigene Marke</span></b>`+
+    return `<div class="karte"><img class="kbild" ${prodPicTag(e.id)} alt=""><b>${wbEsc(e.name)} <span class="pill">eigene Marke</span></b>`+
       `<small>${st.schuss} Schuss · Stückkosten ${eur(e.cost)} · Bestand ${stockOf(e.id)}${u?` · ${u} Kartons in Fertigung`:''}</small>`+
       `<small>Mindestmenge ${m} Kartons (${se.stueck} Stück) · Lieferung in ${se.tage} Tagen · Vorkasse</small>`+
       `<div class="kpreis">${eur(se.preis)}</div><div class="steps"><button data-a="wbnach" data-t="${e.id}"${verfuegbar()<se.preis?' disabled':''}>Serie fertigen</button></div></div>`; }).join('')+`</div>`;

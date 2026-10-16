@@ -2,7 +2,7 @@
    LEISTUNGSBERICHT (Fundament Schritt 5, Tom 14.10.2026:
    "Leistungsbericht im Spiel - Tom misst auf seinem PC").
    Pausenmenü (Esc) -> Leistung messen: Das Spiel fährt eine feste Route
-   (Laden, Kasse, Halle Süd, Lager, Hochregal, Werk, Straße, Hof, Feuerwerk über dem Testfeld)
+   (Laden, Kasse, Halle Süd, Lager, Straße, Hof, Feuerwerk über dem Testfeld; Hochregal und Werk seit dem Rückbau 16.10. weg)
    und misst je Ort 10 s (Feuerwerk 20 s): Bilder/s (Mittel und 1-%-Tief), Bildzeit, CPU-Zeit
    je Bild, Zeichenaufrufe, Dreiecke, Geometrien/Texturen (renderer.info), JS-Heap (falls der
    Browser ihn zeigt). Dazu GPU-Name, Grafikstufe, Auflösung, geschätzter Texturspeicher.
@@ -25,8 +25,6 @@ function lmOrte(){
     ['Kasse',null,gp('Kassen'),LM.dauer],
     ['Halle Süd','shop_sued',gp('Halle Süd'),LM.dauer],
     ['Lager','lager',gp('Lager'),LM.dauer],
-    ['Hochregal','lagerlogistik',gp('Hochregal'),LM.dauer],
-    ['Werk','fabrik',GP_WERK[0],LM.dauer],
     ['Straße',null,[0,12,Math.PI,0.05],LM.dauer],
     ['Hof','lager',[-27,3,-Math.PI/2,0],LM.dauer],
     ['Feuerwerk','testfeld',[tf.x,tf.z+9,0,0.55],LM.feuer]
@@ -148,7 +146,7 @@ function lmVor(){
   const Z=LM.z; if(LM.ph==='warte'||!Z) return;
   const p=Z.ort.pose, f=Z.t/(Z.ort.dauer+LM.einschwing);
   pl.x=p[0]; pl.z=p[1]; yaw=p[2]+0.45*Math.sin(f*Math.PI*2); pitch=p[3]; aim=null;
-  camera.position.set(pl.x,1.65+bodenHoehe(pl.x,pl.z),pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld();
+  camera.position.set(pl.x,1.65,pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld();
 }
 /* nach dem Zeichnen: roh = echter Bildabstand in s, cpu = Zeit in ms, die das Spiel (Rechnen + Zeichenbefehle) gebraucht hat */
 function lmNach(roh,cpu){

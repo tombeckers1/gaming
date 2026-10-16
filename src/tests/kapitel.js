@@ -3,7 +3,7 @@
      landen vor der Ladentuer, Regale baut der Lieferant auf
    - Lager kaufen: Kapitel 2 Kleines Fachgeschaeft, Tuer frei,
      der LKW faehrt wieder an die Rampe
-   - Grosses Fachgeschaeft mit shop_gross ... Kapitel 7 Pyro-Logistik mit lager_west, Finale Kapitel 11 Pyro-Imperium (seit 24.09., der Reihe nach)
+   - Grosses Fachgeschaeft mit shop_gross ... Kapitel 6 Pyro-Kaufhaus, danach nur Vorschau (Rueckbau 16.10.: Pyro-Logistik und Pyro-Fabrik gestrichen), Finale Kapitel 9 Pyro-Imperium
    - alte Spielstaende behalten ihr Lager
    - Ausbau-Liste mit Kapitel-Ueberschriften
    - Kassierer 2 bis 5 besetzen die SB-Kassen, dort zahlen dann
@@ -64,9 +64,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     Object.keys(S.up).forEach(k=>{ S.up[k]=false; }); S.up.lager=true; S.up.shop_gross=true; S.up.labor=true;
     o.vorgezogen=bb.kapitelNr(); S.up.onlineshop=true; o.nachgeholt=bb.kapitelNr();
     Object.assign(S.up,alt);
-    /* Demo: das Logistikzentrum laesst sich nicht kaufen */
-    S.up.lager_west=false; bb.DEMO=true; bb.buyUp('lager_west'); o.demoGesperrt=!S.up.lager_west; o.demoToast=bb.toastLast;
-    bb.DEMO=false; bb.buyUp('lager_west'); o.vollOffen=!!S.up.lager_west;
+    /* Rueckbau 16.10.: kein kaufbarer Ausbau mehr in einem Vollversions-Kapitel */
+    o.vollAusbauten=bb.UPGRADES.filter(u=>u.kap&&bb.KAPITEL[u.kap-1]&&bb.KAPITEL[u.kap-1].voll).map(u=>u.id);
     return o;
   });
   console.log('START   ',JSON.stringify(k.start),'gesperrt bis x',k.lagerGesperrtBis,'Rack',k.rackOffen);
@@ -82,7 +81,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('LAGER',k.lagerFreiBis<-9,'Lagertuer nach dem Kauf zu (x='+k.lagerFreiBis+')');
   pruef('LAGER',k.rackOffenNach&&k.lkwNach,'nach dem Kauf kein LKW an der Rampe / kein Lagerregal');
   console.log('REIHE   ',JSON.stringify({vorgezogen:k.vorgezogen,nachgeholt:k.nachgeholt}));
-  pruef('ENDE',k.ende.nr===7&&k.ende.name==='Pyro-Logistik'&&k.finale==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende)+' Finale '+k.finale);
+  pruef('ENDE',k.ende.nr===6&&k.ende.name==='Pyro-Kaufhaus'&&k.finale==='Pyro-Imperium','Ende: '+JSON.stringify(k.ende)+' Finale '+k.finale);
   pruef('REIHE',k.vorgezogen===3&&k.nachgeholt===5,'Kapitel nicht der Reihe nach: Labor vor Onlineshop gibt '+k.vorgezogen+', danach '+k.nachgeholt);
 
   /* Laptop: Ausbau mit Kapitelueberschriften */
@@ -91,14 +90,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const k=[]; for(const e of document.querySelectorAll('#lbody .kapkopf, #lbody .row')){ if(e.classList.contains('kapkopf')) k.push([e.querySelector('b').textContent,0,e.classList.contains('voll')]); else if(k.length) k[k.length-1][1]++; }
     bb.closeLaptop(false); return k; });
   console.log('LAPTOP  ',JSON.stringify(lap));
-  pruef('LAPTOP',lap.length===11&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
-  /* Kapitel 7 traegt die drei Hallenstufen und vier Tore (Tom, 24.09.) */
-  pruef('LAPTOP',lap.slice(0,7).every((x,i)=>x[1]>=2&&x[1]<=(i===6?8:6)),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
-  /* Demo 1-6, Vollversion ab 7; 8-11 sind Vorschau */
+  pruef('LAPTOP',lap.length===9&&lap.every((x,i)=>x[0].indexOf('Kapitel '+(i+1))===0),'Kapitelueberschriften: '+JSON.stringify(lap));
+  pruef('LAPTOP',lap.slice(0,6).every((x,i)=>x[1]>=2&&x[1]<=6),'Kapitel ungleich verteilt: '+lap.map(x=>x[1]).join('/'));
+  /* Demo 1-6, Vollversion ab 7; 7-9 sind Vorschau */
   pruef('VOLL',lap.every((x,i)=>x[2]===(i>=6)&&(i<6||/Vollversion/.test(x[0]))),'Vollversion falsch markiert: '+JSON.stringify(lap.map(x=>x[2])));
-  pruef('VOLL',lap.slice(7).every(x=>x[1]===1),'Vorschau der geplanten Kapitel fehlt');
-  console.log('DEMO    ',JSON.stringify({gesperrt:k.demoGesperrt,toast:k.demoToast,voll:k.vollOffen}));
-  pruef('DEMO',k.demoGesperrt&&/Vollversion/.test(k.demoToast||'')&&k.vollOffen,'Demo-Sperre: '+JSON.stringify({g:k.demoGesperrt,t:k.demoToast,v:k.vollOffen}));
+  pruef('VOLL',lap.slice(6).every(x=>x[1]===1),'Vorschau der geplanten Kapitel fehlt');
+  pruef('DEMO',k.vollAusbauten.length===0,'kaufbare Ausbauten in Vollversions-Kapiteln: '+k.vollAusbauten.join(','));
 
   /* Alter Spielstand ohne Lager-Schluessel behaelt sein Lager */
   const alt=await p.evaluate(()=>{ const bb=window.__bb; bb.save();

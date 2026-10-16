@@ -84,29 +84,19 @@ const BAUTEILE=[
   {bk:'regal',woerter:['regal','regale','rack','shelf','gondel'],wofuer:'Regale (Verkaufsmoebel, Lagerregal, Fachboden) - einheit.md'},
   {bk:'kasse',woerter:['kasse','kassen','checkout','kassenplatz'],wofuer:'Kassen (Kassenplatz, SB-Terminal, SB-Tafel) - einheit.md'},
   {bk:'lampe',woerter:['lampe','lampen','leuchte','leuchten','lamp','fluter','strahler'],wofuer:'Lampen'},
-  {bk:'tuer',woerter:['tuer','tuere','door','schiebetuer','drehtuer','stahltuer','brandschutztuer','feuerschutztuer','streifenvorhang'],wofuer:'Tueren (Schiebetuer, Drehfluegel Stahl/Brand/Glas, Streifenvorhang) - einheit.md'},
+  {bk:'tuer',woerter:['tuer','tuere','door','schiebetuer','drehtuer','stahltuer','brandschutztuer','feuerschutztuer','streifenvorhang'],wofuer:'Tueren (Schiebetuer; Drehfluegel und Streifenvorhang seit dem Rueckbau 16.10. weg) - einheit.md'},
   {bk:'fenster',woerter:['fenster','window','schaufenster'],wofuer:'Fenster (Schaufenster, Fluegelfenster Lager) - einheit.md'},
   {bk:'leiter',woerter:['leiter','ladder'],wofuer:'Leitern'},
   {bk:'foerderband',woerter:['foerderband','rollenbahn','band','belt','conveyor'],wofuer:'Foerderbaender'},
-  /* Halle Etappe A (14.10.) */
-  {bk:'hochregal',woerter:['hochregal','palettenregal'],wofuer:'Hochregal (Rahmen, Traversen, Gitterroste, Belegung) - baukasten.md'},
-  {bk:'rbg',woerter:['rbg','regalbediengeraet'],wofuer:'Regalbediengeraet'},
-  {bk:'foerderer',woerter:['foerderer','rollenfoerderer','kettenfoerderer'],wofuer:'Paletten-Foerderer (Rollen)'},
-  {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Gehweg, Sperrflaeche, Stellplatz)'},
-  {bk:'fts',woerter:['fts'],wofuer:'Fahrerloses Transportfahrzeug (Paletten)'},
+  /* Rueckbau 16.10. (Tom): hochregal, rbg, foerderer, fts (Halle Etappe A) und treppe, portalgreifer, rohrraster, maschine,
+     erdwall, zelle (Werk West, Etappe B) sind mit der grossen Halle aus dem Baukasten geloescht */
+  {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Sperrflaeche, Freihalteflaeche, Stellplatz, Bodenschrift)'},
   {bk:'hubwagen',woerter:['hubwagen','handhubwagen','ameise'],wofuer:'Handhubwagen (Gabeln passen in die Euro-Palette; DDL-Fahrer, Versandhof)'},
-  /* Halle Etappe B (15.10.) - Woerter bewusst eng (Atlas-zelle). bk.drehtuer ist seit Einheit 15.10. bk.tuer (art stahl/brand/glas) */
-  {bk:'treppe',woerter:['treppe','treppen','stiege'],wofuer:'Treppen (Stahl, Gelaender gelb)'},
-  {bk:'portalgreifer',woerter:['portalgreifer','greifer'],wofuer:'Portalgreifer aus Alu-Profil (Fertigung)'},
-  {bk:'rohrraster',woerter:['rohrraster'],wofuer:'Batterie-Rohr-Raster (Fertigung)'},
-  {bk:'maschine',woerter:['maschine','maschinen'],wofuer:'Stationsmaschinen der Fertigung (Arten statt Kopien)'},
-  {bk:'erdwall',woerter:['erdwall','schutzwall'],wofuer:'Erdwall um das Mischhaus'},
-  {bk:'zelle',woerter:['betonzelle','sicherheitszelle','fuellzelle'],wofuer:'Betonzelle (mannlose Station, Mischhaus, Chemie-Box)'},
   /* Verpackungs-Ausstellung 2.0 (15.10.) */
   {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];
@@ -246,7 +236,7 @@ const GRUND=[
   [/^05e-street\.js$/,'Stadt/Strasse: Hausfassaden und Autos (bewusste Zufallsvielfalt, angleichung.md §4), Stadtmoebel stM und Haeuser hausKit (eigene Sammler), Stadtschilder','Fassade/Stadtmoebel (Umbauliste 8) und Zaeune/Poller (claude/fundament-waende)'],
   [/^05e2-laeden-innen\.js$/,'Laeden gegenueber: eigener gemalter Atlas inkl. Preistafeln als Deko (bewusst nicht angeglichen, angleichung.md §4)','bleibt Atlas; Farben beim Schritt Laeden gegenueber'],
   [/^05f-facade\.js$/,'Fassade: Fensterschmutz (grimeMats, veraenderlich), Fensterrahmen, Ladenschild','Umbauliste 8 Fassade/Fenster/Tueren'],
-  [/^(05g-dock|05h-ausbau|05m-logistik|05l-eingang2)\.js$/,'Hof/Ausbau/Logistik: veraenderliche Materialien (Ampeln, Lampen, Bauwaende), Zaeune, Schiebetueren, Restfarben ohne Ton','Schritte Zaeune/Waende, Lampen, Tueren'],
+  [/^(05g-dock|05h-ausbau|05l-eingang2)\.js$/,'Hof/Ausbau/Logistik: veraenderliche Materialien (Ampeln, Lampen, Bauwaende), Zaeune, Schiebetueren, Restfarben ohne Ton','Schritte Zaeune/Waende, Lampen, Tueren'],
   [/^(05j-stadt|05k-schoner|05n-park)\.js$/,'Skyline/Stadt/Park: eigene Sammler und Atlas, Wasser, Pflanzen','Aussenwelt-Paket (inventar-optik §5 letzte Zeile)'],
   [/^05o-oberflaechen\.js$/,'waehlbare Wand-/Bodenbelaege (Katalog mit Absicht verschieden)','bleibt Katalog; Malfarben bei Bedarf in MAT'],
   [/^06-fixtures\.js$/,'Regale, Kasse, Gitterbox, Regalschilder (Farben je Regal waehlbar, veraenderlich)','Schritt Regale (Umbauliste 7)'],

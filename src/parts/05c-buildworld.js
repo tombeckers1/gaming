@@ -26,11 +26,10 @@ function buildWorld(){
      "alles drum herum deutlich hochwertiger"); 4-m-Kachel aus 05e. Die
      Deckschicht der Fahrbahn nutzt dieselbe Textur in denselben
      Weltkoordinaten. */
-  /* Halle Etappe B (15.10.): nach Westen bis x −160 (Werk, Hof West, Mischhaus) - 4-m-Kachel bleibt in Phase (-160 = -100 - 15 Kacheln) */
-  const asph=asphaltTex(); asph.repeat.set(65,50);
+  const asph=asphaltTex(); asph.repeat.set(50,50);
   { const am=lichtMat(new THREE.MeshStandardMaterial({map:asph,normalMap:_asphN,roughness:0.9}));
     if(am.normalMap) am.normalScale=new THREE.Vector2(0.7,0.7);
-    lichtUV2(flat(260,200,am,-30,0,0).geometry,tm(-30,0,0,-Math.PI/2,0,0)); }
+    lichtUV2(flat(200,200,am,0,0,0).geometry,tm(0,0,0,-Math.PI/2,0,0)); }
   /* Darunter eine grosse Flaeche bis zum Horizont. Sie traegt eine
      grobe Struktur, damit sie in den Luecken zwischen den Haeusern
      nicht als gleichmaessige graue Scheibe auffaellt. */

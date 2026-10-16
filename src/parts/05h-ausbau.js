@@ -46,7 +46,6 @@ function applyZonen(){
       z.wandCols.forEach(c=>{ if(colliders.indexOf(c)<0) colliders.push(c); });
       z.hooks.forEach(fn=>fn()); }
   }
-  if(typeof logiAnwenden==='function') logiAnwenden();
   if(typeof navDirty==='function') navDirty();
   } finally { bk.WB.halt=false; }
   bk.wandbild();
@@ -285,131 +284,9 @@ function testfeldSperre(){
 }
 
 /* =========================================================
-   Lagergang: der kurze Weg vom Verkauf ins Lager.
-
-   Das Rueckgebaeude liegt ganz im Osten, die Lagerhalle West ganz
-   im Westen, dazwischen das Testfeld. Wer eine Palette holen
-   wollte, lief vorher quer durch den Basisladen. Der Gang laeuft
-   dicht hinter der Rueckwand des Basisladens ueber das Testfeld
-   und verbindet beide Seiten direkt.
-
-   Die Hintertuer des Ladens muendet jetzt in den Gang; genau
-   gegenueber steht ein Durchgang aufs Testfeld, sodass der
-   gewohnte Weg nach draussen unveraendert geradeaus fuehrt.
-   Die Huelle steht wie alles andere von Anfang an, nur die beiden
-   Kopfenden sind zugesetzt, bis die Lagerhalle West gekauft ist.
-   ========================================================= */
-const GANG={x0:-7.9, x1:7.8, z0:-8.9, z1:-6.1, h:2.9};
-const GANGTUER={a:4.4, b:6.1};        /* fluchtet mit der Hintertuer */
-function buildLagergang(){
-  /* Der Gang gehoert zum Grosshandel und erscheint mit ihm - er
-     ist der kurze Weg vom Rueckgebaeude dorthin. Vorher stand er
-     von Tag eins da und die Hintertuer fuehrte in einen Gang, den
-     man noch gar nicht gekauft hatte. */
-  const Z='lager_west';
-  const G=GANG, mitteX=(G.x0+G.x1)/2, mitteZ=(G.z0+G.z1)/2;
-  const breite=G.x1-G.x0, tiefe=G.z1-G.z0;
-  /* Boden: derselbe Estrich wie im Lager */
-  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(breite,tiefe),breite/2,tiefe/2),
-    MAT.get('betonBoden'));
-  bo.rotation.x=-Math.PI/2; bo.position.set(mitteX,0.016,mitteZ); scene.add(bo); zAdd(Z,bo);
-  /* Decke und Dachrand */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(breite+0.3,tiefe+0.3),MAT.get('weissMatt'));
-  ce.rotation.x=Math.PI/2; ce.position.set(mitteX,G.h-0.01,mitteZ); scene.add(ce); zAdd(Z,ce);
-  /* Der Dachrand deckt die Kopf- und Suedwand ab, aber keinen
-     Zentimeter mehr: mit dem sonst ueblichen Ueberstand ragte er
-     durch die Ostwand der Lagerhalle Sued hinein. */
-  /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
-     Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
-     er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bk.dachrand({x0:mitteX-(breite+LW)/2,x1:mitteX+(breite+LW)/2,z0:mitteZ-(tiefe+LW)/2,z1:mitteZ+(tiefe+LW)/2,y:G.h+0.005}));
-  /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
-     stehen, sonst steht das Dach in der Luft. */
-  const zs=G.z0;
-  /* Laibung des Testfelddurchgangs in der Fassade, nicht in Grau */
-  const lb=bk.flaeche('fassade');
-  /* Die Enden stecken bis zur Mitte in den Kopfwaenden. Reichten sie
-     bis zu deren Innenflaeche, lag die Stirnseite genau in derselben
-     Ebene - in der Halle hinterm Laden und im Lager flimmerte dann
-     ein 20 cm breiter, 2,9 m hoher grauer Streifen auf der Wand. */
-  zAdd(Z,wall(G.x0-LW/2,GANGTUER.a,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
-  zAdd(Z,wall(GANGTUER.b,G.x1+LW/2,zs-LW,zs,0,G.h,'+z',lagerWall,null,0,lb));
-  zAdd(Z,wall(GANGTUER.a,GANGTUER.b,zs-LW,zs,2.5,G.h,'+z',lagerWall,null,0,lb));
-  zCol(Z,col(G.x0-LW,GANGTUER.a,zs-LW,zs));
-  zCol(Z,col(GANGTUER.b,G.x1+LW,zs-LW,zs));
-  /* Innen ueberall dieselbe Wand wie gegenueber: hell mit gelb-
-     schwarzem Sockel (Tom, 25.09.). Die Rueckwand des Ladens und die
-     beiden Kopfwaende zeigen aussen Fassade, solange der Gang nicht
-     steht; mit dem Gang bekommen sie innen eine Verkleidung. */
-  const vk=(x0,x1,z0,z1,y0,y1,f)=>zAdd(Z,wall(x0,x1,z0,z1,y0,y1,f,lagerWall,lagerWall,0,lagerWall));
-  const zn=G.z1, d=0.02;
-  vk(G.x0,HINTERTUER.x0,zn-d,zn,0,G.h,'-z');
-  vk(HINTERTUER.x1,G.x1,zn-d,zn,0,G.h,'-z');
-  vk(HINTERTUER.x0,HINTERTUER.x1,zn-d,zn,2.5,G.h,'-z');
-  vk(G.x1-d,G.x1,G.z0,G.z1,0,G.h,'-x');
-  vk(G.x0,G.x0+d,G.z0,G.z0+0.25,0,G.h,'+x');
-  vk(G.x0,G.x0+d,G.z1-0.25,G.z1,0,G.h,'+x');
-  vk(G.x0,G.x0+d,G.z0+0.25,G.z1-0.25,2.5,G.h,'+x');
-  leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
-  roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
-  /* Hinweisschild ueber dem Durchgang zum Lager */
-  zAdd(Z,bk.schild(scene,{text:'◄  LAGER · GROSSHANDEL',b:1.5,h:0.3,x:mitteX,y:2.45,z:G.z1-0.06,ry:Math.PI,leucht:true,doppel:true}));
-}
-/* =========================================================
-   Schleuse zwischen Lager und Grosshandel. Das Lager ist 6,4 m
-   hoch, der Grosshandel zwoelf - direkt aneinander geht das nicht.
-   Dazwischen steht ein niedriger Zwischenbau, durch den man von
-   einem Gebaeude ins andere geht.
-   ========================================================= */
-/* =========================================================
-   Streifenvorhang. Ein Durchgang zwischen zwei Hallen ist in
-   echt nie ein blosses Loch - dort haengt ein Vorhang aus
-   PVC-Streifen. Er haelt die Waerme und sieht aus wie das, was
-   er ist. Kollision bekommt er keine, man geht hindurch.
-   ========================================================= */
-function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
-  /* PVC-Streifen mit Traverse: bk.tuer art 'streifen' (04z) - hier nur die Zone (faellt/erscheint mit dem Ausbau) */
-  const T=bk.tuer({art:'streifen',laengs,fest,a0,a1,hoehe});
-  zAdd(zid,T.traverse); zAdd(zid,T.streifen);
-  return T.streifen;
-}
-function buildSchleuse(){
-  const S2=LAY.schleuse, H=SCHLEUSE_H;
-  const mx=(S2.x0+S2.x1)/2, mz=(S2.z0+S2.z1)/2;
-  const br=S2.x1-S2.x0, ti=S2.z1-S2.z0;
-  const bo=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(br,ti),br/2,ti/2),
-    MAT.get('betonBoden'));
-  bo.rotation.x=-Math.PI/2; bo.position.set(mx,0.016,mz); scene.add(bo);
-  /* Die Decke endet buendig in den beiden Gebaeudewaenden. Mit dem
-     ueblichen Ueberstand schaute ihre Kante als dunkler Streifen in
-     die Lagerhalle hinein. */
-  const ce=new THREE.Mesh(new THREE.PlaneGeometry(br-0.2,ti+0.3),MAT.get('weissMatt'));
-  ce.rotation.x=Math.PI/2; ce.position.set(mx,H-0.01,mz); scene.add(ce);
-  /* Der Dachrand darf nur bis in die Gebaeudewaende reichen. Mit dem
-     ueblichen Ueberstand stand er als schwarzer Balken frei in der
-     Lagerhalle. */
-  /* Der Dachrand endet INNERHALB der beiden Gebaeudewaende. Lag seine
-     Kante genau in der Wandebene, flimmerte die dunkle Platte durch
-     den Sturz und stand als schwarzer Balken in der Lagerhalle. */
-  /* 03.10.: die Westwand der Halle Sued steht jetzt in der Flucht der
-     Rolltorwand (-20,1 bis -19,9). Dachrand und Laengswaende enden
-     darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
-     standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
-  const xo=S2.x1-LW/2;
-  bk.dachrand({x0:S2.x0,x1:xo,z0:mz-ti/2-LW,z1:mz+ti/2+LW,y:H+(H>5.5?0.115:0.005)});
-  /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
-  for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
-    wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
-    col(S2.x0,xo,z0,z1);
-  }
-  leuchtenRaster(null,S2,H,3.0,3.0);
-  roomAO(S2.x0+0.02,S2.x1-0.02,S2.z0+0.02,S2.z1-0.02);
-}
-/* =========================================================
-   Lager-PC (Tom 09.10., vorlaeufig): der Laptop aus der Logistikhalle
-   ("Lagerterminal") ist weg. Dafuer steht ein Stehpult-PC im Lager, in
-   der Versandecke an der Rueckwand neben dem DDL-Telefon - vom Schleusen-
-   tor zur Logistikhalle sind es 15 m, zur Packstation 3 m. Dort steuert
+   Lager-PC (Tom 09.10., vorlaeufig): ein Stehpult-PC im Lager, in
+   der Versandecke an der Rueckwand neben dem DDL-Telefon - zur
+   Packstation sind es 3 m. Dort steuert
    man Onlineshop, Team und Bestellungen (17-laptop, GERAETE.lager).
    Der Platz liegt im Versandbereich (PACK_FL) und bleibt frei.
    Dazu im Laden ein Tablet an der Wand neben der Hintertuer: Ware bestellen.
@@ -546,10 +423,6 @@ function buildAusbau(){
   halle('lager_sued2',LAY.ls3,{art:'lager',aussen:{s:true},ao:{s:true,w:true,e:true},h:HALLE_H,
     /* Versandtor V1 in der Rueckwand (11e): 3,26 m breit, 3 m hoch */
     torS:{x0:V1.x-V1.w/2,x1:V1.x+V1.w/2,h:V1.h}});
-  /* Der Grosshandel ist ein eigenes Gebaeude: 1520 m2 und zwoelf
-     Meter licht, damit Palettenregale und ein Hubwagen hineinpassen.
-     Die Westwand mit den Ladetoren baut westWand(). */
-  /* Die Logistikhalle baut buildLogistikHalle() in drei Stufen. */
   /* Vom Rolltor in die Halle Sued. Das ganze Lager hat jetzt
      dieselbe Hoehe, darum faellt diese Wand beim Kauf komplett
      weg (offen=true) - kein Sturz, kein Pfeiler, ein Raum. */
@@ -563,74 +436,25 @@ function buildAusbau(){
      Pfeiler und Sturz quer im Raum. */
   durchbruchWand('lager_sued', true,LAY.ls1.z0,LAY.ls1.x0,LAY.ls1.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,HALLE_H,null,true);
   durchbruchWand('lager_sued2',true,LAY.ls2.z0,LAY.ls2.x0,LAY.ls2.x1,[[-18.7,-9.3]],lagerWall,lagerWall,3.3,HALLE_H,null,true);
-  /* Halle Sued und Grosshandel stehen nicht mehr aneinander, zwischen
-     ihnen liegen sechs Meter Hof. Beide bekommen eine Aussenwand mit
-     einer Tuer in die Schleuse. */
-  const ST=[[LAY.schleuse.z0+1.6,LAY.schleuse.z1-1.6]];
-  /* Innenseite der Halle Sued liegt oestlich dieser Wand, also '+x' -
-     mit dem Standardwert klebte die Aussenfassade innen im Lager. */
-  /* 03.10. (Tom, Foto): die Wand stand mittig auf x0 und ragte damit
-     10 cm weiter in die Halle als die Westwand des Rolltor-Raums (05c,
-     -20,1 bis -19,9) - rechts neben dem Rolltor sprang sie sichtbar vor.
-     Jetzt dieselbe Flucht innen und aussen; sie endet dort, wo die
-     Rolltorwand beginnt (z -6,1), mit den ueblichen 6 mm Ueberlappung. */
-  /* 14.10. (Halle Etappe A): Ostwand von ②, alte Schleuse und ihre Streifenvorhaenge verschwinden mit dem
-     Ausbau "lagerlogistik" (neue Schleuse z −29,9…−17, ③ offen zu ②) - darum gesammelt in llAltSammle (05q) */
-  llAltSammle(()=>{
-  durchbruchWand('lager_west',false,LAY.lsued.x0-LW/2,LAY.lsued.z0,-6.1+0.006,ST,lagerWall,undefined,3.0,HALLE_H,'+x');
-  /* Nur das Stueck in der Schleuse zeigt nach aussen in den Gang -
-     dort gehoert die Lagerwand hin, sonst stossen im Gang zwei
-     verschiedene Waende aneinander. Der lange Rest steht im Hof und
-     bekommt dieselbe Aussenhaut wie die uebrige Halle; vorher zog
-     sich die gelbe Lagerwand ueber die ganze Ostseite ins Freie. */
-  buildSchleuse();
-  /* Die beiden Schleusentore und der Gang bekommen Streifenvorhaenge
-     statt blanker Loecher. */
-  streifenvorhang('lager_west',false,LAY.lsued.x0-LW/2,ST[0][0],ST[0][1],3.0);
-  streifenvorhang('lager_west',false,LAY.lwest.x1,ST[0][0],ST[0][1],3.0);
-  });
-
-  /* ---------- Packstation, Rampen, Logistikzentrum ---------- */
-  /* Die beiden Kopfwaende des Lagergangs. Sie ersetzen die
-     Westwand des Rueckgebaeudes und die Ostwand der Halle Sued;
-     beide bekommen an der Stelle des Gangs eine Oeffnung, die
-     zusammen mit der Lagerhalle West freigegeben wird. */
-  const GT=[[GANG.z0+0.25,GANG.z1-0.25]];
-  /* Zum Rueckgebaeude gibt es bewusst keine Tuer: vom Verkauf geht es
-     nur ueber das Lager weiter, nicht quer durch den Gang. Die
-     Westwand des Rueckgebaeudes bleibt darum geschlossen. */
-  /* Westwand des Rueckgebaeudes. Nur das kurze Stueck, das im
-     Lagergang steht, traegt aussen die Lagerwand mit dem gelben
-     Streifen - der Rest steht am Testfeld im Freien und bekommt die
-     Fassade. Vorher lief der gelbe Streifen aussen ums Gebaeude. */
-  durchbruchWand('shop_sued',false,7.9,LAY.sued.z0,GANG.z0,[],shopWall,undefined,2.5,WH,'+x');
-  /* Im Gangstreifen steht die Ostwand des Ladens. Sie zeigt dort
-     nach draussen, solange der Gang nicht gebaut ist, und danach in
-     einen Gang zwischen zwei Gebaeuden - beides ist Fassade, nicht
-     gelbe Lagerwand. */
-  durchbruchWand('shop_sued',false,7.9,GANG.z0,GANG.z1,[],shopWall,undefined,2.5,WH,'+x');
-  /* endet 12 mm vor der Ladenflucht: mit den ueblichen 6 mm Ueberstand
-     ragte das Stueck sonst 6 mm aus der Rueckwand - als feine
-     senkrechte Linie gleich hinter der Testfeldtuer (Tom, 29.09.) */
-  durchbruchWand('shop_sued',false,7.9,GANG.z1,LAY.sued.z1-0.012,[],shopWall,undefined,2.5,WH,'+x');
-  /* Der Gang muendet in die Halle Sued und wird mit ihr freigegeben. */
-  /* Der Gang muendet in den ersten Abschnitt der Halle Sued, wird
-     aber erst mit dem Grosshandel geoeffnet - vorher fuehrt er
-     nirgendwohin. */
-  /* endet wie die Westwand an der Rolltor-Raumwand (z -6,1) - vorher
-     lagen beide 20 cm deckungsgleich uebereinander */
-  durchbruchWand('lager_west',false,-8.0,LAY.lsued.z0,-6.1+0.006,GT,lagerWall,undefined,2.5,HALLE_H,'-x');
-  streifenvorhang('lager_west',false,-8.0,GT[0][0],GT[0][1],2.5);
-  buildLagergang();
+  /* Westwand der Halle Sued (Rueckbau 16.10., Tom: "das Lager wie vorher, einfach die Wand davor - einheitlich
+     mit den anderen Waenden"): durchgehend geschlossen, ohne Tor, Schleuse oder Durchgang. Innen die Lagerwand
+     mit dem gelb-schwarzen Sockelband, aussen die Fassade mit Betonsockel (bk.wand). Gleiche Flucht wie die
+     Westwand des Rolltor-Raums (05c, -20,1 bis -19,9); sie endet dort, wo die Rolltorwand beginnt (z -6,1),
+     mit den ueblichen 6 mm Ueberlappung. */
+  durchbruchWand(null,false,LAY.lsued.x0-LW/2,LAY.lsued.z0,-6.1+0.006,[],lagerWall,undefined,3.0,HALLE_H,'+x');
+  /* Ostwand der Halle Sued zum Testfeld: geschlossen (der Lagergang zum Rueckgebaeude kam mit der
+     Logistikhalle und ist mit ihr weg). Endet wie die Westwand an der Rolltor-Raumwand (z -6,1). */
+  durchbruchWand(null,false,-8.0,LAY.lsued.z0,-6.1+0.006,[],lagerWall,undefined,2.5,HALLE_H,'-x');
+  /* Westwand des Rueckgebaeudes zum Testfeld: Fassade aussen, Ladentapete innen. Endet 12 mm vor der
+     Ladenflucht - mit den ueblichen 6 mm Ueberstand ragte das Stueck sonst 6 mm aus der Rueckwand
+     (feine senkrechte Linie gleich hinter der Testfeldtuer, Tom 29.09.). */
+  durchbruchWand('shop_sued',false,7.9,LAY.sued.z0,LAY.sued.z1-0.012,[],shopWall,undefined,2.5,WH,'+x');
   testfeldSperre();
   lagerSperre();
   buildLagerTerminal();
   buildPackstation();
   buildVersandhof();
-  buildLogistikHalle();
   buildLogistik();
-  buildLagerlogistik();
-  buildWerk();
 }
 
 /* =========================================================
@@ -1005,34 +829,6 @@ function drawPackSchild(){
    auf der Ablage (Meshes, Tischkoordinaten): */
 const pakete=[];
 
-/* =========================================================
-   Westrampen: drei Ladetore in der Westhalle und der grosse
-   Hof dahinter. Hier passen mehrere Auflieger nebeneinander -
-   der kleine Hof an der Basisrampe reicht dafuer nicht.
-   ========================================================= */
-/* Mitte der vier Tore in x an der Suedwand der Logistikhalle - von
-   der Schleuse aus nach Westen: Tor 2, 3 (Stufe 1), 4 (Stufe 2), 5 (Stufe 3) */
-const WRAMPEN=[-31.0,-38.5,-47.5,-57.5];
-const WTORE=[];                             /* Torblatt und Ampel je Rampe */
-const WTOR={w:3.4,h:3.05};
-
-/* Trapezblech fuer Hallenwaende. Die Wand-UVs stehen in Metern,
-   deshalb passt ein einziges Material auf jede Wandlaenge. */
-/* blechMat() entfaellt (14.10., Fundament Schritt Waende): Trapezblech = bk.flaeche('blech') = MAT.get('wandBlech') */
-/* Ein Ladetor in der Suedwand der Logistikhalle (R2-R5). Seit 13.10.
-   (Fundament, Schritt Tore) baut bk.tor() Blatt, Aussen- und Innenseite -
-   vorher standen hier westTor/westTorInnen mit je rund 73 Einzelmeshes und
-   der eigenen Textur torBlattMat. Innen = +x der Torgruppe, die Gruppe ist
-   so gedreht, dass +x nach Norden in die Halle zeigt. Die Spiel-Logik
-   (WTORE: blatt/zu/auf/rot/gruen, wtorSet in 08c) bleibt unveraendert. */
-function westTor(cx,nr){
-  const Z=LHALLE.z;
-  const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,fahrzeug:2.55,
-    nr:String(nr+1),bedien:1,x:cx,z:Z,ry:-Math.PI/2});
-  for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1);
-  WTORE[nr-1]={nr,x:cx,g:T.g,blatt:T.blatt,zu:T.zu,auf:T.auf,t:0,rot:T.ampel.rot,gruen:T.ampel.gruen,T};
-  return T.g;
-}
 /* =========================================================
    Nordwand des Lagers zur Strasse, mit drei echten Fenstern
    (Tom, 24.09.: "das sind keine Fenster, da muessen richtige hin").

@@ -81,10 +81,94 @@ function save(){
         .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
-      hr:S.hr||null, ll:S.ll||null, pd:S.pd||null,
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     localStorage.setItem(KEY,JSON.stringify(d));
   }catch(e){}
+}
+/* =========================================================
+   Rueckbau 16.10.2026 (Tom: "Die grosse Halle ist eine Katastrophe ... mach sie KOMPLETT weg"):
+   Logistikhalle West (Stufen 1-3), Andockstationen R2-R5, Lagerlogistik (Hochregal, Anbruch,
+   Kartonlager 3) und Werk West mit Produktion gibt es nicht mehr. Alte Staende laden sauber:
+   - Ausbauten weg, Kaufpreis zurueck (WIRT.historie.erstattung.ausbau = Preis V141)
+   - Werker und Mischer entlassen, ohne Kosten
+   - Rohstoffe im Lager und bestellte Rohstoffe zum Kaufpreis zurueck (historie.erstattung.rohstoff)
+   - Ware aus Hochregal, Anbruch, Fertigung, Trockenkammer und vom Boden der Halle: zuerst in freie
+     Lagerfaecher, dann an die Warenannahme (hoechstens RB_BODEN Kartons), der Rest wird zum heutigen
+     Einkaufspreis gutgeschrieben (ein Grosshaendler nimmt ihn zurueck) - nichts geht verloren
+   - Lagerregale aus der Halle bzw. aus Kartonlager 3 ziehen auf freie Plaetze im Lager; ohne Platz
+     nimmt der Regalbauer sie zum Grundpreis zurueck. Die fuenf Anbruch-Regale gab es mit dem Ausbau
+     umsonst - sie entfallen ohne Gutschrift, ihre Ware zieht mit um.
+   Einmalig: danach steht davon nichts mehr im Spielstand (save schreibt hr/ll/pd nicht mehr).
+   ========================================================= */
+const RUECKBAU_UP=['lager_west','lager_west2','lager_west3','rampe2','rampe3','rampe4','rampe5','lagerlogistik','fabrik','fabrik2','fabrik3'];
+const RUECKBAU_STAFF=['werker1','werker2','werker3','mischer'];
+const RB_BODEN=16;          /* Kartons, die hoechstens an der Warenannahme abgestellt werden (zwei Lagen auf den 8 Plaetzen) */
+let RUECKBAU=null;          /* Ergebnis der letzten Umstellung (Test rueckbau.js) */
+/* Liegt der Punkt dort, wo Halle, Schleuse, Kartonlager 3, Hof 2 oder Werk standen? */
+function rbAusserhalb(x,z){ return x<-34.3||(x<LAY.lsued.x0-0.25&&z<LAY.hof.z0+0.2); }
+function rbWare(L,t,c,q,k){ if(t&&P[t]&&c>0) L.push({t,c:Math.round(c),q:q||1,k:k?1:0}); }
+/* 1. Schritt (Daten, vor dem Aufbau der Welt): Ausbauten, Personal, Rohstoffe, Ware einsammeln */
+function rueckbauDaten(d){
+  if(!d) return null;
+  const up=d.up||{}, ST=d.staff||{};
+  const hat=RUECKBAU_UP.some(id=>up[id])||RUECKBAU_STAFF.some(id=>ST[id])||!!(d.hr||d.ll||d.pd)||
+    (Array.isArray(d.racks)&&d.racks.some(r=>r&&r.x!==undefined&&rbAusserhalb(r.x,r.z)))||
+    (Array.isArray(d.boxes)&&d.boxes.some(b=>b&&b.x!==undefined&&rbAusserhalb(b.x,b.z)));
+  if(!hat) return null;
+  const E=WIRT.historie.erstattung, R={ausbau:0,roh:0,regalGeld:0,wareGeld:0,up:[],staff:[],ware:[],regale:[],anbruch:0,regalUm:0,regalWeg:0,inRegal:0,amBoden:0,zuGeld:0,kartons:0};
+  for(const id of RUECKBAU_UP) if(S.up&&S.up[id]){ R.ausbau+=E.ausbau[id]||0; R.up.push(id); delete S.up[id]; }
+  for(const id of RUECKBAU_STAFF){ if(S.staff&&S.staff[id]) R.staff.push(id);
+    for(const k of ['staff','wage','pause','prio','einr']) if(S[k]&&typeof S[k]==='object') delete S[k][id]; }
+  /* Hochregal: Plaetze und Ladungen unterwegs */
+  const hr=d.hr; if(hr){ (Array.isArray(hr.p)?hr.p:[]).forEach(pl=>{ if(Array.isArray(pl)) pl.forEach(b=>b&&rbWare(R.ware,b.t,b.c,b.q)); });
+    (Array.isArray(hr.tr)?hr.tr:[]).forEach(l=>{ if(l&&Array.isArray(l.b)) l.b.forEach(b=>b&&rbWare(R.ware,b.t,b.c,b.q)); }); }
+  /* Werk: Rohstoffe (Lager + bestellt) zum Kaufpreis, Fertigware auf den Straßen, in der Trockenkammer, auf dem Foerderer */
+  const pd=d.pd; if(pd){ const RS=E.rohstoff, pr=(r,pre)=>(RS[r]||0)*(pre?RS.premium:1);
+    if(pd.lager) for(const r in pd.lager){ const L=pd.lager[r]||{}; R.roh+=(+L.std||0)*pr(r,false)+(+L.pre||0)*pr(r,true); }
+    (Array.isArray(pd.bestellt)?pd.bestellt:[]).forEach(b=>{ if(b) R.roh+=(+b.kg||0)*pr(b.r,b.pre); });
+    (Array.isArray(pd.s)?pd.s:[]).forEach(s2=>{ if(!s2) return; (Array.isArray(s2.pal)?s2.pal:[]).forEach(b=>b&&rbWare(R.ware,b.t,b.c,b.q));
+      const k=s2.karton; if(k&&k.n>0) rbWare(R.ware,k.t,k.n,k.q?k.q/k.n:1); });
+    (Array.isArray(pd.trocken)?pd.trocken:[]).forEach(x=>{ if(x&&Array.isArray(x.b)) x.b.forEach(b=>b&&rbWare(R.ware,b.t,b.c,b.q)); });
+    (Array.isArray(pd.aus)?pd.aus:[]).forEach(Q=>{ if(Array.isArray(Q)) Q.forEach(pl=>{ if(Array.isArray(pl)) pl.forEach(b=>b&&rbWare(R.ware,b.t,b.c,b.q)); }); }); }
+  R.roh=r2(R.roh);
+  delete S.hr; delete S.ll; delete S.pd;
+  /* Lagerregale ausserhalb des Lagers: Anbruch (umsonst) faellt weg, die uebrigen ziehen um (2. Schritt) */
+  if(Array.isArray(S.racks)) S.racks=S.racks.filter(rd=>{ if(!rd||rd.x===undefined||!rbAusserhalb(rd.x,rd.z)) return true;
+    const anbruch=rd.x>-46.2&&rd.x<-41.8&&rd.z>-28&&rd.z<-14;
+    if(anbruch){ R.anbruch++; (rd.slots||[]).forEach(sd=>sd&&rbWare(R.ware,sd.type,sd.count,sd.q,sd.kiste)); }
+    else R.regale.push({kind:rd.kind,slots:rd.slots||[]});
+    return false; });
+  /* Kartons am Boden der Halle (Stellplaetze, Wareneingang R2-R5) */
+  if(Array.isArray(S.boxes)) S.boxes=S.boxes.filter(b=>{ if(!b||b.x===undefined||!rbAusserhalb(b.x,b.z)) return true; rbWare(R.ware,b.type,b.count,b.q,b.kiste); return false; });
+  /* Regal- und Einbaupakete, Deko in der Halle: Pakete kommen mit der naechsten Lieferung, Deko an einen freien Platz */
+  if(Array.isArray(S.paketeBoden)) S.paketeBoden=S.paketeBoden.filter(b=>{ if(!b||b.x===undefined||!rbAusserhalb(b.x,b.z)) return true;
+    if(b.regal){ S.regale=(Array.isArray(S.regale)?S.regale:[]).concat([b.regal]); } else if(b.einbau){ S.einbauUnterwegs=(Array.isArray(S.einbauUnterwegs)?S.einbauUnterwegs:[]).concat([b.einbau]); } return false; });
+  if(Array.isArray(S.deko)) S.deko.forEach(dk=>{ if(dk&&dk.x!==undefined&&rbAusserhalb(dk.x,dk.z)){ delete dk.x; delete dk.z; delete dk.ry; } });
+  S.money=r2((+S.money||0)+R.ausbau+R.roh);
+  R.kartons=R.ware.length;
+  return R;
+}
+/* 2. Schritt (nach dem Aufbau der Lagerregale): Regale umstellen, Ware einlagern, Rest gutschreiben, Meldung */
+function rueckbauEinlagern(R){
+  if(!R) return;
+  for(const rd of R.regale){ const K=RACKKIND[rd.kind]||RACKKIND.standard;
+    if(rackPlatzFrei(K).length){ createRack(racks.length,{kind:K.id,slots:rd.slots}); R.regalUm++; }
+    else { R.regalGeld+=K.cost; R.regalWeg++; rd.slots.forEach(sd=>sd&&rbWare(R.ware,sd.type,sd.count,sd.q,sd.kiste)); } }
+  const frei=[]; for(const r of racks) for(const sl of r.slots) if(!sl.box) frei.push(sl);
+  /* gleiche Sorten nebeneinander, die meistverkaufte zuerst ins Regal */
+  R.ware.sort((a,b)=>(P[b.t].weight||0)-(P[a.t].weight||0)||(a.t<b.t?-1:a.t>b.t?1:0));
+  for(const w of R.ware){
+    const sl=frei.shift(); if(sl){ putInSlot(sl,w.t,w.c,w.q,!!w.k); R.inRegal++; continue; }
+    if(R.amBoden<RB_BODEN){ spawnFloorBox(w.t,w.c,null,w.q,!!w.k); R.amBoden++; continue; }
+    R.wareGeld+=w.c*ekRoh(w.t); R.zuGeld++; (R.geldListe||(R.geldListe=[])).push({t:w.t,c:w.c}); }
+  R.wareGeld=r2(R.wareGeld); R.regalGeld=r2(R.regalGeld);
+  S.money=r2(S.money+R.regalGeld+R.wareGeld);
+  R.summe=r2(R.ausbau+R.roh+R.regalGeld+R.wareGeld);
+  RUECKBAU=R;
+  const teile=[R.ausbau?`Ausbauten ${eur(R.ausbau)}`:'',R.roh?`Rohstoffe ${eur(R.roh)}`:'',R.regalGeld?`${R.regalWeg} Lagerregal${R.regalWeg===1?'':'e'} ${eur(R.regalGeld)}`:'',R.wareGeld?`${R.zuGeld} Karton${R.zuGeld===1?'':'s'} zum Einkaufspreis ${eur(R.wareGeld)}`:''].filter(Boolean);
+  const lager=R.inRegal+R.amBoden?` ${R.inRegal+R.amBoden} Karton${R.inRegal+R.amBoden===1?'':'s'} aus Halle und Werk stehen jetzt im Lager${R.amBoden?` (${R.amBoden} an der Warenannahme)`:''}.`:'';
+  const pers=R.staff.length?` ${R.staff.length===1?'Ein Mitarbeiter':R.staff.length+' Mitarbeiter'} aus dem Werk ${R.staff.length===1?'ist':'sind'} ohne Kosten ausgeschieden.`:'';
+  later(2.6,()=>toast(`Rückerstattung: Logistikhalle, Hochregal und Werk sind abgebaut – ${eur(R.summe)} gutgeschrieben${teile.length?` (${teile.join(', ')})`:''}.${lager}${pers}`,'money'));
 }
 function startGame(fresh){
   if(fresh){ try{ localStorage.removeItem(KEY); }catch(e){} }
@@ -130,9 +214,10 @@ function startGame(fresh){
     if(z>0){ S.money=r2((+S.money||0)+z); later(2.5,()=>toast(`Die Packstation zieht ans Hallenende (Lager Süd 4) – ${eur(z)} gutgeschrieben.`,'money')); } }
   /* Staende von vor den Kapiteln hatten das Lager von Anfang an */
   if(d&&d.up&&d.up.lager===undefined) S.up.lager=true;
-  /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse. Wer
-     sie hatte, bekommt alle drei Stufen - niemand verliert Flaeche. */
+  /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse (alle drei Stufen) - seit dem Rueckbau 16.10.
+     wird jede gekaufte Stufe einzeln erstattet, alte Staende ohne Stufe 2/3 bekommen sie mit erstattet */
   if(d&&d.up&&d.up.lager_west&&d.up.lager_west2===undefined){ S.up.lager_west2=true; S.up.lager_west3=true; }
+  const rueckbau=rueckbauDaten(d);
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
@@ -170,9 +255,6 @@ function startGame(fresh){
   S.news=Array.isArray(S.news)?S.news.slice(0,4):[];
   repaint();
   applyZonen();
-  /* Die Westtore stehen nach dem Laden zu, ganz gleich was beim
-     Speichern gerade an ihnen stand. */
-  if(typeof wbaysInit==='function') wbaysInit();
   setSB(!!S.up.kasse2);
   setEingang2(!!S.up.eingang2);
   vsLaden(); drawPackSchild(); syncPakete();
@@ -187,6 +269,7 @@ function startGame(fresh){
   (S.shelves||F.shelves).slice(0,SLOTS.length).forEach((sd,i)=>createShelf(i,sd));
   (S.racks||F.racks).slice(0,RACKS.length).forEach((rd,i)=>createRack(i,rd));
   racksEntwirren();
+  rueckbauEinlagern(rueckbau);
 
   (S.deko||[]).forEach(dk=>{ if(DEKO.some(x=>x.id===dk.id)) createDeko(dk.id,dk); });
   (S.boxes||F.boxes).forEach(fb=>{ if(P[fb.type]&&fb.count>0) spawnFloorBox(fb.type,fb.count,fb.x!==undefined?{x:fb.x,y:fb.y,z:fb.z,ry:fb.ry}:null,fb.q||1,!!fb.kiste); });

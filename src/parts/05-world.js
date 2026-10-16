@@ -14,15 +14,18 @@ const WH=3.6;
    waechst Stueck fuer Stueck hinzu.
 
         Strasse z 13..20 / Gehweg z 8.5
-   +--------+------------------+--------------------------+
-   | Lager  | Lager Basis      |  Verkauf Basis  | shop_  |
-   | Nord   | x -19.9..-8.1    |  x -7.9..8      | gross  |
-   +--------+ z -5.9..1.9      |  z -5.9..5.9    | +ost   |
-   | Lager West | Lager Sued   +-----------------+--------+
-   | x -41.9..  | x -19.9..    |    Testfeld     | shop_  |
-   |   -19.9    |   -8.1       |  x -7.9..8      | sued   |
-   | z -29.9..-7| z -29.9..-5.9|  z -28..-6      |        |
-   +------------+--------------+-----------------+--------+
+            +------------------+--------------------------+
+   Hof R1   | Lager Basis/Nord |  Verkauf Basis  | shop_  |
+   x -34..  | x -19.9..-8.1    |  x -7.9..8      | gross  |
+     -20    | z -5.9..5.9      |  z -5.9..5.9    | +ost   |
+            | Lager Sued       +-----------------+--------+
+            | x -19.9..-8.1    |    Testfeld     | shop_  |
+            | z -29.9..-5.9    |  x -7.9..8      | sued   |
+            | (V1 in der Rueck-|  z -28..-6      |        |
+            |  wand, Versand)  |                 |        |
+            +------------------+-----------------+--------+
+   Rueckbau 16.10. (Tom): Logistikhalle West, Schleuse, Hof 2 und Werk West sind weg -
+   die Westwand des Lagers (x -19,9) ist durchgehend geschlossen.
    ========================================================= */
 const LAY={
   /* Verkaufsflaeche, zusammen 1018 m2 */
@@ -33,8 +36,8 @@ const LAY={
   ost1  :{x0:8.0,  x1:20.0, z0:-5.9,  z1:5.9},   /* 142 m2 */
   ost2  :{x0:20.0, x1:37.9, z0:-5.9,  z1:5.9},   /* 212 m2 */
   sued  :{x0:8.0,  x1:37.9, z0:-21.9, z1:-5.9},  /* 478 m2 */
-  /* Lager, zusammen 927 m2 */
-  lager :{x0:-66.0,x1:-8.1, z0:-45.0, z1:5.9},
+  /* Lager, zusammen 422 m2 (Basis, Nord, Sued I-III) */
+  lager :{x0:-19.9,x1:-8.1, z0:-29.9, z1:5.9},
   /* Am Anfang gehoert nur der Raum am Rolltor zum Lager. Der
      Anbau nach Norden ist die erste Lagererweiterung; bis dahin
      steht dort eine Wand mit Durchbruch. */
@@ -48,25 +51,10 @@ const LAY={
   ls1   :{x0:-19.9,x1:-8.1, z0:-15.9, z1:-5.9},  /* 118 m2 */
   ls2   :{x0:-19.9,x1:-8.1, z0:-22.9, z1:-15.9}, /*  83 m2 */
   ls3   :{x0:-19.9,x1:-8.1, z0:-29.9, z1:-22.9}, /*  83 m2 */
-  /* Grosshandel: eigenes Gebaeude, 40 x 38 m und zwoelf Meter licht.
-     Palettenregale und ein Hubwagen brauchen die Hoehe; die alte
-     Halle mit 505 m2 und 6,4 m war dafuer zu klein. */
-  /* Logistikhalle in drei Stufen (seit 24.09.): klein anfangen,
-     dann groesser und hoeher. Die Tore stehen an der Suedwand
-     (z -34), der LKW-Hof liegt suedlich davor. lwest ist die
-     volle Halle der dritten Stufe. */
-  lw1   :{x0:-44.0,x1:-26.0,z0:-34.0, z1:-14.0},  /* 360 m2, 6,5 m  */
-  lw2   :{x0:-56.0,x1:-26.0,z0:-34.0, z1:-10.0},  /* 720 m2, 8,5 m  */
-  lwest :{x0:-66.0,x1:-26.0,z0:-34.0, z1:-7.0},   /* 1080 m2, 11 m  */
-  /* Schleuse zwischen Lager (6,4 m) und Grosshandel (12 m). Zwei
-     Gebaeude mit verschiedenen Deckenhoehen kann man nicht einfach
-     aneinanderstellen - dazwischen gehoert ein Zwischenbau. */
-  schleuse:{x0:-26.0,x1:-19.9,z0:-24.0,z1:-17.0},
   /* Testfeld hinter dem Basisladen, durch die Hintertuer erreichbar */
   test  :{x0:-7.9, x1:8.0,  z0:-28.0, z1:-6.0},
-  /* Hoefe: der kleine an der Basisrampe, der grosse an der Westrampe */
+  /* Hof an der Basisrampe R1 */
   hof   :{x0:-34.0,x1:-20.0,z0:-6.5,  z1:2.5},
-  hof2  :{x0:-70.0,x1:-22.0,z0:-62.0, z1:-34.2},   /* LKW-Hof suedlich der Logistikhalle */
   /* Logistikzentrum, vorerst nur von aussen */
   logi  :{x0:44.0, x1:90.0, z0:-16.0, z1:14.0}
 };
@@ -93,10 +81,6 @@ const LSUED_H=HALLE_H;
    entfallen Stuerze und stehengebliebene Wandstuecke zwischen den
    Bereichen, und am Ende steht wirklich ein grosser Raum. */
 const LAGER_H=HALLE_H;
-/* Grosshandel: Hoehe fuer Palettenregale und Hubwagen */
-const GH_H=12.0;
-/* Lichte Hoehe der Schleuse */
-const SCHLEUSE_H=3.4;
 function wallSet(){ return WALLS.find(w=>w.id===S.wall)||WALLS[0]; }
 function floorSet(){ return FLOORS.find(f=>f.id===S.floor)||FLOORS[0]; }
 /* Streichen und verlegen: die Maler stehen in 05o-oberflaechen */

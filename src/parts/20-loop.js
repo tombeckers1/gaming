@@ -26,7 +26,7 @@ function updateInnenlicht(dt){
   innenT-=dt;
   if(innenT<=0){ innenT=0.18;
     const fx=-Math.sin(yaw), fz=-Math.cos(yaw), px=pl.x+fx*2.5, pz=pl.z+fz*2.5;
-    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue; if(L.aus&&zoneOffen(L.aus)) continue;
+    const kand=[]; for(let i=0;i<LAMPEN.length;i++){ const L=LAMPEN[i]; if(L.id&&!zoneOffen(L.id)) continue;
       const d=Math.hypot(L.x-px,L.z-pz), dk=Math.hypot(L.x-pl.x,L.z-pl.z); if(d>16&&dk>16) continue;
       kand.push({i,d:Math.min(d,dk*1.15)}); }
     kand.sort((a,b)=>a.d-b.d);
@@ -58,26 +58,13 @@ function dachBereiche(){
   const r=(a2,h)=>{ if(a2) _daecher.push({x0:a2.x0-0.3,x1:a2.x1+0.3,z0:a2.z0-0.3,z1:a2.z1+0.3,h:h+0.4}); };
   r(LAY.basis,WH); r(LAY.ost1,WH); r(LAY.ost2,WH); r(LAY.sued,WH);
   r(LAY.lbasis,LAGER_H); r(LAY.lnord,LAGER_H); r(LAY.ls1,LAGER_H); r(LAY.ls2,LAGER_H); r(LAY.ls3,LAGER_H);
-  r(LAY.schleuse,SCHLEUSE_H);
-  /* Logistikhalle: jede Stufe hat ihr Dach, es zaehlt die, die steht */
-  [LAY.lw1,LAY.lw2,LAY.lwest].forEach((a2,i)=>{ r(a2,[6.5,8.5,11][i]); _daecher[_daecher.length-1].stufe=i; });
-  /* Die Hallen haben ihr Dach von Anfang an, auch solange sie
-     gesperrt sind. Der Gang nicht: sein Dach kommt erst mit dem
-     Grosshandel. Bis dahin ist der Streifen hinter dem Laden
-     Hof - dort schneit es, und dort gehoert draussen hin. */
-  const g=_daecher.length;
-  r({x0:GANG.x0,x1:GANG.x1,z0:GANG.z0,z1:GANG.z1},GANG.h);
-  _daecher[g].zone='lager_west';
-  /* Halle Etappe A: Ostteil von ③ und neue Schleuse haben ihr Dach erst mit dem Ausbau */
-  r({x0:-26,x1:-19.9,z0:LL.schleuse.z0,z1:LL.lager3.z1},LL.h3); _daecher[_daecher.length-1].zone=LL.id;
-  /* Halle Etappe B: Werk + Verbindungsbau und Mischhaus haben ihr Dach mit dem Werk */
-  r({x0:WK.werk.x0-LW,x1:-66.2,z0:WK.werk.z0-LW,z1:WK.werk.z1+LW},WK.H); _daecher[_daecher.length-1].zone=WK.id;
-  r(WK.misch,WK.misch.h); _daecher[_daecher.length-1].zone=WK.id;
+  /* Rueckbau 16.10. (Tom): Schleuse, Logistikhalle, Lagergang, Kartonlager ③ und Werk West sind weg - die Hallen haben
+     ihr Dach von Anfang an, auch solange sie gesperrt sind */
   return _daecher;
 }
 function unterDach(x,y,z){
   for(const d of dachBereiche())
-    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1&&(!d.zone||zoneOffen(d.zone))&&(d.stufe===undefined||typeof logiZeige!=='function'||logiZeige()===d.stufe)) return true;
+    if(y<d.h&&x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1&&(!d.zone||zoneOffen(d.zone))) return true;
   return false;
 }
 function updateSnow(dt){
@@ -136,27 +123,21 @@ function step(dt){
      Fussabdruecke") - frueher im Schnitt alle 114 s, jetzt alle 270 s */
   if(phase==='open'){ dirtT-=dt; if(dirtT<=0){ dirtT=rand(55,95)/((1+customers.length*0.09)*evv('dirt')); if(Math.random()<(hasDeko('muell')?0.14:0.28)) addDirt(rand(-6,6),rand(-4.5,5)); } }
   for(const pd of pending) pd.t-=dt;
-  /* Frueher hing alles an der einen Basisrampe: stand dort ein LKW,
-     wartete jede weitere Lieferung. Jetzt bekommt die naechste Welle
-     die Basisrampe, wenn sie frei ist, sonst eine zugekaufte
-     Andockstation in der Westhalle. */
+  /* Alles kommt an die Basisrampe R1: steht dort ein LKW, wartet die naechste Lieferung
+     (die Andockstationen R2-R5 der Logistikhalle gibt es seit dem Rueckbau 16.10. nicht mehr) */
   /* Kiosk ohne Lager: der Lieferant stellt alles vor die Ladentuer */
   if(!zoneOffen('lager')&&pending.some(pd=>pd.t<=0)) vorDieTuer();
   while(zoneOffen('lager')&&pending.some(pd=>pd.t<=0)){
-    const frei=!truck?-1:wbayFrei();
-    if(truck&&frei<0) break;
+    if(truck) break;
     const wave=[];
-    /* Versandmaterial kommt nur an die Basisrampe - dort holen es die
-       Einraeumer fuer das Packmaterial-Regal ab */
-    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16&&!(frei>=0&&pending[i].vm)) wave.push(pending[i]);
+    for(let i=0;i<pending.length&&wave.length<32;i++) if(pending[i].t<=16) wave.push(pending[i]);
     if(!wave.length) break;
     wave.forEach(w=>pending.splice(pending.indexOf(w),1));
     const sid=wave[0].sup||'mertens', ladung=wave.map(w=>w.regal?{regal:w.regal}:w.einbau?{einbau:w.einbau}:w.vm?{vm:w.vm}:{type:w.type,q:w.q||1});
-    if(frei<0) spawnTruck(ladung,sid,supplierOf(sid).name);
-    else if(!spawnWTruck(frei,ladung,sid,supplierOf(sid).name)) break;
+    spawnTruck(ladung,sid,supplierOf(sid).name);
   }
   updateSonne(pl.x,pl.z);
-  updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); if(typeof wkTick==='function') wkTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
+  updateInnenlicht(dt); updateTruck(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
   for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);

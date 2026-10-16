@@ -7,10 +7,8 @@ let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=fa
    Lager-PC in der Versandecke = Bestellen, Onlineshop (Versandkosten, Aktionen, Statistik)
    und Team; Tablet im Laden = Ware bestellen. Das Handy bleibt, wie es ist. */
 const GERAETE={
-  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','prod','shop'],zu:'Laptop zuklappen'},
-  lager :{name:'Lager-PC',tabs:['order','online','staff','prod'],zu:'Abmelden'},
-  /* Werk West (05s): Leitstand auf der Galerie - Produktion (mit "Zelle freigeben") und Team */
-  leitstand:{name:'Leitstand Werk West',tabs:['prod','staff'],zu:'Leitstand verlassen'},
+  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','shop'],zu:'Laptop zuklappen'},
+  lager :{name:'Lager-PC',tabs:['order','online','staff'],zu:'Abmelden'},
   tablet:{name:'Tablet · Bestellen',tabs:['order'],zu:'Tablet weglegen'}};
 let lapGeraet='buero';
 function geraetTabs(){ return (GERAETE[lapGeraet]||GERAETE.buero).tabs; }
@@ -473,9 +471,7 @@ function planFlaechen(){
     shopO:{x0:SHOP_HALB,x1:B.x1,z0:B.z0,z1:B.z1},
     ost1:LAY.ost1, ost2:LAY.ost2, sued:LAY.sued, test:LAY.test,
     lbas:{x0:L.x0,x1:L.x1,z0:L.z0,z1:L.z1},
-    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3, lw1:LAY.lw1, lw2:LAY.lw2, lwest:LAY.lwest,
-    /* Halle Etappe B: Werk West, Verbindungsbau und die drei Straßen */
-    werk:{x0:WK.werk.x0,x1:-66,z0:WK.werk.z0,z1:WK.werk.z1}, s1:{x0:-91,x1:-70,z0:-15.4,z1:-12.1}, s2:{x0:-91,x1:-70,z0:-20.9,z1:-17.6}, s3:{x0:-91,x1:-70,z0:-26.4,z1:-23.1}
+    lnord:LAY.lnord, ls1:LAY.ls1, ls2:LAY.ls2, ls3:LAY.ls3
   };
 }
 const PLAN={
@@ -490,20 +486,7 @@ const PLAN={
   lager_sued: {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1'],neu:['ls2']},
   eingang2:   {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:[],marke:{x:29,z:5.9,r:2.6}},
   lager_sued2:{alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2'],neu:['ls3']},
-  shop_sued:  {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2','ls3'],neu:['sued']},
-  lager_west: {alt:['shopW','shopO','ost1','ost2','sued','test','lbas','lnord','ls1','ls2','ls3'],neu:['lw1']},
-  lager_west2:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:['lw2']},
-  lager_west3:{alt:['lbas','lnord','ls1','ls2','ls3','lw2'],neu:['lwest']},
-  /* Die Tore liegen an der Suedwand der Logistikhalle, von der
-     Schleuse aus nach Westen: Tor 2 und 3 in Stufe 1, Tor 4 in
-     Stufe 2, Tor 5 in Stufe 3. */
-  rampe2:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-31.0,z:-34,r:3.0}},
-  rampe3:{alt:['lbas','lnord','ls1','ls2','ls3','lw1'],neu:[],marke:{x:-38.5,z:-34,r:3.0}},
-  rampe4:{alt:['lbas','lnord','ls1','ls2','ls3','lw2'],neu:[],marke:{x:-47.5,z:-34,r:3.0}},
-  rampe5:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:[],marke:{x:-57.5,z:-34,r:3.0}},
-  fabrik:{alt:['lbas','lnord','ls1','ls2','ls3','lwest'],neu:['werk']},
-  fabrik2:{alt:['lwest','werk','s1'],neu:['s2']},
-  fabrik3:{alt:['lwest','werk','s1','s2'],neu:['s3']}
+  shop_sued:  {alt:['shopW','shopO','ost1','ost2','test','lbas','lnord','ls1','ls2','ls3'],neu:['sued']}
 };
 function planZeichnen(g,W,H,def){
   const F=planFlaechen();
@@ -669,20 +652,6 @@ const UP_MOTIV={
     g.fillStyle='#232830'; g.fillRect(28,124,88,6);
     g.fillStyle='#f2c230'; g.fillRect(140,80,44,12); g.beginPath(); g.moveTo(140,72); g.lineTo(122,86); g.lineTo(140,100); g.closePath(); g.fill();
     h.nummer(2); },
-  rampe(g,W,H,h,n){ h.grund('#16203a','#0a1020'); h.boden(118,'rgba(20,22,28,.7)');
-    /* Hallenwand mit Rolltor, davor ein LKW-Auflieger rueckwaerts angedockt */
-    g.fillStyle='#4a515c'; g.fillRect(0,14,W,106); g.fillStyle='#59606b'; for(let x=0;x<W;x+=16) g.fillRect(x,14,2,106);
-    g.fillStyle='#2b3140'; g.fillRect(52,24,120,94);
-    g.fillStyle='#8a9099'; for(let y=28;y<116;y+=7){ g.fillRect(56,y,112,5); }
-    g.fillStyle='#15171c'; g.fillRect(46,98,8,20); g.fillRect(170,98,8,20);
-    /* Auflieger von hinten */
-    g.fillStyle='#e9edf5'; g.fillRect(66,44,92,70); g.fillStyle='#c9ced8'; g.fillRect(110,44,4,70);
-    g.fillStyle='#39414d'; g.fillRect(66,112,92,8); g.fillStyle='#c8322a'; g.fillRect(70,104,10,6); g.fillRect(144,104,10,6);
-    g.fillStyle='#f2c230'; for(let x=66;x<158;x+=12){ g.fillRect(x,120,6,4); }
-    h.rad(78,128,8); h.rad(146,128,8);
-    h.nummer(n); },
-  rampe2(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,2); }, rampe3(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,3); },
-  rampe4(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,4); }, rampe5(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,5); },
   labor(g,W,H,h){ h.grund('#141c30','#0a0f1c'); h.boden(110);
     /* Labortisch: Kolben, Reagenzglaeser, Pulverschalen, ein Kugelbomben-Rohling */
     g.fillStyle='#e9edf5'; g.fillRect(12,96,200,8); g.fillStyle='#39414d'; g.fillRect(20,104,8,30); g.fillRect(196,104,8,30);
@@ -1455,8 +1424,6 @@ function lapZeichnen(body){
       const pause=has?`<small>${inPause(s.id)?`In Saisonpause · ${eur(r2(s.wage*wageOf(s.id)*WIRT.personal.pause))} pro Tag`:'Im Dienst'} <button data-a="pause" data-t="${s.id}" style="padding:4px 9px;font-size:14px;margin-left:6px;${inPause(s.id)?'background:var(--mint);color:var(--ink)':'background:rgba(242,245,255,.12);color:var(--snow)'}">${inPause(s.id)?'Zurück in den Dienst':'In Saisonpause schicken'}</button></small>`:'';
       return `<div class="row${lock?' locked':''}${prio?' mitEinr':''}"><div class="rm"><b>${s.name}</b><small>${s.desc}</small><small>Einstellung ${eur(s.hire)} · Grundlohn ${eur(s.wage)} pro Tag</small>${lohn}${pause}</div>`+
         (fehlt?`<small>braucht: ${(UPGRADES.find(u=>u.id===s.req)||{name:s.req}).name}</small>`:lock?`<small>ab Level ${s.lvl}</small>`:has?`<button class="red" data-a="fire" data-t="${s.id}">Kündigen</button>`:`<button data-a="hire" data-t="${s.id}" ${S.money<s.hire?'disabled':''}>Einstellen</button>`)+prio+'</div>'; }).join('');
-  } else if(ltab==='prod'){
-    const r=pdLaptop(); h=r.h; hint=r.hint;
   } else if(ltab==='bank'){
     const t=loanTier(), L=S.loan;
     hint=t?`Dein Kreditrahmen: ${eur(t.amount)}.`:`Kredite gibt es ab Level ${LOANS[0].lvl}.`;
@@ -1599,7 +1566,6 @@ function lapKlick(e,imHandy){
   else if(a==='einr'){ const [v,g]=b.dataset.v.split(':'), n=STAFF.find(x=>x.id===t).name;
     if(v==='hoch') einrHoch(t,g); else if(v==='runter') einrRunter(t,g); else einrSchalten(t,g);
     const r=einrAktiv(t); toast(r.length?`${n}: zuerst ${AUFGABEN[r[0]].name}.`:`${n}: alle Aufgaben aus - steht nur herum.`); }
-  else if(a&&a.indexOf('pd')===0&&typeof pdKlick==='function') pdKlick(a,b.dataset);
   else if(a==='loan') takeLoan(+b.dataset.v);
   else if(a==='repay') repayLoan(+b.dataset.v);
   else if(a==='open'){ openShop(); closeLaptop(true); return; }
@@ -1687,7 +1653,6 @@ function buyUp(id){
     const k=id==='rack'?'standard':id.slice(5);
     createRack(racks.length,{kind:k}); toast(`${RACKKIND[k].name} steht im Lager.`); }
   else { const kapVor=kapitelNr(); S.up[id]=true;
-    if(id.indexOf('lager_west')===0&&typeof logiAnwenden==='function') logiAnwenden();
     /* Aufstieg nur, wenn sich das Kapitel wirklich aendert - bei einem
        vorgezogenen Kapitel erst, wenn das davor auch geschafft ist */
     const kapNach=kapitelNr();
@@ -1703,12 +1668,7 @@ function buyUp(id){
       else if(id==='lager_gross') toast('Der erste Abschnitt der Halle Süd steht offen: fünf Meter hoch, Platz für Hochregale und die Packstation.','money');
       else if(id==='lager_sued') toast('Der zweite Abschnitt ist offen. Die Wand dazwischen ist ganz weg.','money');
       else if(id==='lager_sued2') toast('Die Halle Süd ist komplett: 283 Quadratmeter am Stück.','money');
-      else if(id==='lager_west') toast('Die Logistikhalle gehört dir: hinter der Schleuse, die Tore rechts an der Südwand. Mit jeder Stufe wird sie größer.','money');
-      else if(id==='fabrik') toast('Das Werk steht. Für die Produktion: Werker und Mischer einstellen (Team), Rohstoffe bestellen und einen Auftrag anlegen (Produktion). Der Leitstand liegt oben über der Treppe neben der Umkleide.','money');
-      else if(id==='fabrik2'||id==='fabrik3') toast(`${id==='fabrik2'?'Straße 2 (Kugelbomben) und Gasse 3':'Straße 3 (Batterien)'} stehen bereit – mit eigenem Werker und Auftrag laufen sie los. Vom Leitstand siehst du alle Straßen.`,'money');
-      else if(id==='lagerlogistik') toast('Das Hochregal läuft: Lieferungen an Tor 2 bis 4 lagert das Regalbediengerät ein, Nachschub fährt nach ③. Durch N1 geht es ins Kartonlager.','money');
       else if(id==='eingang2'){ setEingang2(true); toast('Der zweite Eingang ist offen. Kunden nehmen ab jetzt die Tür, die näher liegt.','money'); }
-      else if(id.indexOf('rampe')===0) toast(`${u.name.split(' ')[0]} Andockstation geht in Betrieb. Das Tor ist frei.`,'money');
       else if(id==='packstation'){ drawPackSchild(); toast(S.up.onlineshop?'Die Packstation steht. Ab jetzt kommen Onlinebestellungen als Pakete herein.':'Die Packstation steht. Für den Versand brauchst du noch den Onlineshop.','money'); }
       addXP(Math.round(cost/WIRT.xp.ausbauTeiler),'Ausbau'); sfx.cash(); save(); return;
     }

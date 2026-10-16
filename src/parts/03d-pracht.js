@@ -288,7 +288,7 @@ function prSpiegelPruefen(m,o){
 }
 /* Innen oder aussen? Die Gebaeude nach LAY */
 function prDrinnen(x,z){
-  for(const k of ['shop','lager','lwest','schleuse','lw2']){ const r=LAY[k]; if(r&&x>r.x0-0.3&&x<r.x1+0.3&&z>r.z0-0.3&&z<r.z1+0.3) return true; }
+  for(const k of ['shop','lager']){ const r=LAY[k]; if(r&&x>r.x0-0.3&&x<r.x1+0.3&&z>r.z0-0.3&&z<r.z1+0.3) return true; }
   return false;
 }
 const _prV=new THREE.Vector3();

@@ -739,13 +739,6 @@ function regaleImBlick(){
      von den Kassen sah man sie durch die Wand mitgezeichnet. Ausgeblendet
      ueber die Ebene der Kamera (layers), nicht ueber visible - visible
      nutzen Kollision und Umbau. */
-  /* Logistikhalle, ihre Tore und die LKW an den Rampen (35-60 m, hinter
-     Waenden): gemessen rund 280 Zeichenaufrufe beim Blick von der Kasse.
-     Ausgeblendet, solange die Kamera drinnen im Laden/Lager steht. */
-  const drin=camera.position.x>-24&&typeof unterDach==='function'&&unterDach(camera.position.x,camera.position.y,camera.position.z);
-  const fern=[]; if(typeof LOGI_G!=='undefined') fern.push(...LOGI_G, ...TOR_G); if(typeof wbays!=='undefined') wbays.forEach(b=>{ if(b&&b.g) fern.push(b.g); });
-  for(const g of fern){ if(!g) continue; if(drin===!!g._fernAus&&(!drin||g._fernN===g.children.length)) continue;
-    g._fernAus=drin; g._fernN=g.children.length; g.traverse(o=>o.layers.set(drin?1:0)); }
   for(const rk of racks){ if(!rk.g) continue; rk.g.getWorldPosition(_blickV);
     const an=_blickV.distanceTo(camera.position)<16;
     if(an===!rk._fern&&(an||rk._n===rk.g.children.length)) continue;
@@ -808,7 +801,7 @@ function rackCount(k){ return racks.filter(r=>r.kind===k).length; }
 /* Ein Stellplatz nimmt nur Regale, die unter die Decke passen */
 function rackPasst(K,sl){ return K.hoch+0.5<=(sl.h||WH); }
 /* pack: den Stellplatz belegt ab dieser Stufe die Palettierstation (05h) */
-function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.weg&&zoneOffen(x.weg))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
+function racksOffen(){ return RACKS.filter(x=>(!x.zone||zoneOffen(x.zone))&&!(x.pack&&typeof packStufe==='function'&&packStufe()>=x.pack)); }
 /* Grundriss eines Lagerregals: Traversen und Stuetzen samt Fussplatten */
 function rackRect(K,x,z,ry){ const w=K.w/2+0.05, d=K.zo+0.09, q=Math.abs(Math.round(Math.sin(ry||0)));
   return q?{x0:x-d,x1:x+d,z0:z-w,z1:z+w}:{x0:x-w,x1:x+w,z0:z-d,z1:z+d}; }

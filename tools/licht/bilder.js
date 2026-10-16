@@ -2,7 +2,7 @@
 //   flock /tmp/bb-testlock-licht node -r <arbeitsordner>/ladezeit-preload.js tools/licht/bilder.js <real.html> <ordner> <gfx> [bilder|lauf] [tag]
 // zaehlen: Zeichenaufrufe (inkl. Schattenkarten und Bildeffekte) und Bildzeit je Ansicht, Mittel ueber 2 Bilder (Mittel: 6 -
 //         dort zeichnet die Sonne ihre Schattenkarte nur jedes 3. Bild). Modi kombinierbar: bilder,zaehlen,lauf
-// bilder: feste Kameras (Laden vom Eingang/von der Kasse erhoeht wie das Referenzbild, Gang, Lager, Versand, Halle, Werk, Sued)
+// bilder: feste Kameras (Laden vom Eingang/von der Kasse erhoeht wie das Referenzbild, Gang, Lager, Versand, Sued)
 //         je Tag (10:00) und Nacht (22:00) -> <ordner>/<ansicht>-<tag|nacht>-<gfx><tag>.jpg; Mittelwert je Bild in mittel.json
 // lauf:   Gang durch die Raeume (ein Bild je 3 m, 480 x 270) mit Kameradrehung (6 Blicke je Wegpunkt), mittlere Bildhelligkeit je Bild
 //         (bild) und dasselbe mit grauem Einheitsmaterial (nurLicht: nur die Beleuchtung, ohne Inhalt) -> <ordner>/lauf-<gfx><tag>.json
@@ -17,12 +17,10 @@ const ANS={
   ost:{p:[10,2.6,5.2],t:[24,0.6,-3]},
   sued:{p:[31,2.6,-7],t:[17,0.6,-19]},
   lager:{p:[-9,2.4,4.8],t:[-17,0.6,-4]},
-  versand:{p:[-13,2.2,-18.5],t:[-14,0.6,-27]},
-  halle:{p:[-38,2.6,-25.6],t:[-52,1.6,-25.6]},
-  werk:{p:[-91.3,2.0,-11.7],t:[-81.6,0.8,-14.2]}
-};
+  versand:{p:[-13,2.2,-18.5],t:[-14,0.6,-27]}
+};   /* Halle und Werk: Rueckbau 16.10. */
 /* Weg: Punkte [x,z]; zwischen den Punkten gehen (4 m/s), an jedem Punkt einmal ganz umdrehen */
-const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-30,-16]];
+const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-12,-27]];
 (async()=>{
   const html=process.argv[2], out=process.argv[3], gfx=process.argv[4]||'hoch', modus=process.argv[5]||'bilder', tag=process.argv[6]||'';
   fs.mkdirSync(out,{recursive:true});
@@ -59,7 +57,7 @@ const WEG=[[0,4],[0,-3],[14,1],[22,-12],[4,-3],[-7.4,1.0],[-14,-8],[-14,-22],[-3
   if(MOD.includes('zaehlen')){
     /* Zeichenaufrufe je Bild (alles: Schattenkarten, Szene, Bildeffekte) und Bildzeit (swiftshader, nur als Vergleichswert) */
     const r=await p.evaluate(({ANS,gfx})=>{ const bb=window.__bb, R=bb.renderer, cam=bb.camera, o={};
-      for(const k of ['ladenEingang','lager','halle','werk']){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
+      for(const k of ['ladenEingang','lager','versand']){ const v=ANS[k]; const dx=v.t[0]-v.p[0], dz=v.t[2]-v.p[2], yaw=Math.atan2(-dx,-dz);
         bb.setView(v.p[0],v.p[2],yaw,0); bb.clock=600; bb.run(0.4,0.05); bb.clock=600; bb.applyTOD();
         const f=()=>{ bb.kameraSetzen(); cam.position.set(v.p[0],v.p[1],v.p[2]); cam.lookAt(v.t[0],v.t[1],v.t[2]); cam.updateMatrixWorld(); };
         for(let i=0;i<2;i++){ f(); bb.renderFrame(0.05); }

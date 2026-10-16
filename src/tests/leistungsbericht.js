@@ -70,7 +70,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       pBtn:document.getElementById('pBtn').textContent,halt:bb.LM.halt,text:bb.lmText(bb.LM.bericht)}; });
   const B=nach.bericht;
   console.log('Messung ('+dauer+' s) Orte je Stufe:', B.laeufe.map(l=>l.name+':'+l.orte.length).join(' '));
-  const ORTE=['Laden','Kasse','Halle Süd','Lager','Hochregal','Werk','Straße','Hof','Feuerwerk'];
+  const ORTE=['Laden','Kasse','Halle Süd','Lager','Straße','Hof','Feuerwerk'];
   pruef('STUFEN',B.laeufe.length===2&&B.laeufe[0].stufe==='niedrig'&&B.laeufe[1].stufe==='mittel','Laeufe: '+B.laeufe.map(l=>l.stufe));
   for(const l of B.laeufe){
     const namen=l.orte.map(o=>o.name);
@@ -84,7 +84,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const g=B.geraet; pruef('GERAET',g.gpu&&g.webgl&&g.fenster&&g.kerne,'Geraetedaten: '+JSON.stringify(g));
   pruef('TEXT',ORTE.every(n=>nach.text.includes(n))&&/GPU:/.test(nach.text)&&/Stufe Niedrig/.test(nach.text)&&/Stufe Mittel/.test(nach.text)&&/Hinweis:/.test(nach.text),'Text unvollstaendig:\n'+nach.text.slice(0,600));
   pruef('ZURUECK',nach.gfx===vor.gfx&&Math.abs(nach.pos.x-vor.pos.x)<1e-6&&Math.abs(nach.pos.z-vor.pos.z)<1e-6&&Math.abs(nach.yaw-vor.yaw)<1e-6&&Math.abs(nach.pitch-vor.pitch)<1e-6&&nach.autoReset===true&&nach.ov==='none','Zustand nicht zurueck: '+JSON.stringify({vor,nach:{gfx:nach.gfx,pos:nach.pos,yaw:nach.yaw,autoReset:nach.autoReset,ov:nach.ov}}));
-  pruef('ANZEIGE',nach.pause&&nach.seite==='pLeistung'&&nach.tabellen===2&&nach.zeilen===18,'Anzeige: '+JSON.stringify({pause:nach.pause,seite:nach.seite,tab:nach.tabellen,zeilen:nach.zeilen}));
+  pruef('ANZEIGE',nach.pause&&nach.seite==='pLeistung'&&nach.tabellen===2&&nach.zeilen===14,'Anzeige: '+JSON.stringify({pause:nach.pause,seite:nach.seite,tab:nach.tabellen,zeilen:nach.zeilen}));
   pruef('NEULADEN-KNOPF',nach.halt&&/Neu laden/.test(nach.pBtn),'Weiterspielen-Knopf nicht umgestellt: '+nach.pBtn);
   /* Spielstand: auch ein Speichern NACH der Messung (Sichtbarkeitswechsel, Menue) darf ihn nicht veraendern */
   await p.evaluate(()=>{ window.__bb.save(); });

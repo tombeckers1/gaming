@@ -19,7 +19,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const r=await p.evaluate(()=>{
     const bb=window.__bb;
     bb.S.level=40; bb.S.money=9e6;
-    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued','lager_west','lager_west2','lager_west3']
+    ['shop_halb','shop_gross','shop_ost','shop_sued','lager','lager_nord','lager_gross','lager_sued']
       .forEach(id=>{ bb.S.up[id]=true; if(bb.ZONEN[id]) bb.oeffneZone(id,false); });
     bb.applyZonen();
     const orte=[['Verkauf',0,0],['Rueckgebaeude',22,-14],['Lager Sued',-14,-20],
@@ -32,10 +32,9 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       /* Die Raeume kommen aus dem Grundriss, NICHT aus unterDach() -
          sonst prueft der Test dieselbe Funktion, die er pruefen
          soll, und ist immer gruen. */
-      const L=bb.LAY, G=bb.GANG;
+      const L=bb.LAY;
       const R=[[L.basis,3.6],[L.ost1,3.6],[L.ost2,3.6],[L.sued,3.6],
-               [L.lbasis,3.6],[L.lnord,2.9],[L.lsued,5.0],[L.lwest,11.0],
-               [L.schleuse,3.4],[{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h]];
+               [L.lbasis,3.6],[L.lnord,2.9],[L.lsued,5.0]];
       let drin=0, nah=0;
       for(let i=0;i<a.length;i+=3){
         for(const [r2,h] of R)

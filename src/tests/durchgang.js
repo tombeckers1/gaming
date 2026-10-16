@@ -22,7 +22,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   const pruef = (n, ok, was) => { if (!ok) mangel.push(n + ': ' + was); };
   await p.evaluate(() => { const bb = window.__bb, S = bb.S;
     S.level = 40; S.money = 9e7; S.lic = bb.LIZENZEN.map(l => l.id);
-    ['shop_halb','lager','lager_nord','shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_sued2','lager_west','lager_west2','lager_west3','packstation','onlineshop','packstation2','packstation3'].forEach(id => bb.testKauf(id)); S.up.onlineshop = true;
+    ['shop_halb','lager','lager_nord','shop_gross','shop_ost','shop_sued','lager_gross','lager_sued','lager_sued2','packstation','onlineshop','packstation2','packstation3'].forEach(id => bb.testKauf(id)); S.up.onlineshop = true;
     /* alle Lagerregale, die gestellt werden duerfen (wie in der Vorfuehrung) */
     for (const id of ['rschwer','rhoch','rack']) for (let i = 0; i < 12; i++) { if (!bb.regalStellen(id)) break; }
     window.__lauf = (von, ziel) => {

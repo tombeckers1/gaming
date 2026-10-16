@@ -227,8 +227,7 @@ function vsQuellen(t){
   for(const lv of allLevels()) if(lv.type===t&&lv.count>0) L.push({kind:'level',ref:lv,n:lv.count,lager:false});
   return L;
 }
-/* Hochregal (11f) zaehlt mit: das RBG lagert Gefragtes in den Anbruch aus, dort picken die Packer */
-function vsBestand(t){ return vsQuellen(t).reduce((a,q)=>a+q.n,0)+(typeof hrStock==='function'?hrStock(t):0); }
+function vsBestand(t){ return vsQuellen(t).reduce((a,q)=>a+q.n,0); }
 function vsReserviert(t){ let n=0; for(const b of (S.bestellungen||[])) for(const l of b.pos) if(l.t===t) n+=Math.max(0,l.n-l.g); return n; }
 /* Eine neue Bestellung aus dem, was da ist. erz=true: auch ohne
    Ware (alte Spielstaende, die nur eine Zahl kannten). */

@@ -172,10 +172,6 @@ function dispoZins(){ return S.money<0?r2(-S.money*WIRT.kredit.dispo.zinsTag):0;
 function fixedCosts(){
   let f=WIRT.fix.grund+WIRT.fix.jeLagerregal*racks.length+Math.round(Math.max(0,S.level-WIRT.fix.levelAb)*WIRT.fix.jeLevel);
   shelves.forEach(sh=>f+=SHELFFIX[sh.kind]||WIRT.fix.regalStandard);
-  /* Halle Etappe A: Betrieb je aktiver Hochregal-Gasse */
-  if(typeof llGasseAktiv==='function') for(let k=0;k<3;k++) if(llGasseAktiv(k)) f+=WIRT.fix.hochregal;
-  /* Halle Etappe B: Werk erst ab Produktion (05r wkFixkosten, 05s) */
-  if(typeof wkFixkosten==='function') f+=wkFixkosten();
   return f;
 }
 /* Die ersten Tage läuft es besser: Neueröffnung spricht sich herum */
@@ -206,16 +202,14 @@ function endDay(){
   const online=onlineBasis;
   const dispo=dispoZins();
   if(packBereit()&&(S.offen|0)>WIRT.versand.strafe.offenAb){ rep(-Math.min(WIRT.versand.strafe.offenMax,WIRT.versand.strafe.offenJe*(S.offen-WIRT.versand.strafe.offenAb))); }
-  /* Werk West (05s): die Spedition des Grosshandels holt den Ueberschuss der Eigenproduktion ab */
-  const werksverkauf=typeof pdGrosshandel==='function'?pdGrosshandel():0;
-  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online+werksverkauf;
+  const wages=dailyWages(), fix=fixedCosts(), extra=(hasDeko('automat')?WIRT.tag.automat:0)+online;
   let pay=0, rate=0;
   if(S.loan){ rate=loanDaily(); const interest=r2(S.loan.remaining*S.loan.rate); pay=Math.min(rate,S.loan.remaining+interest);
     S.loan.remaining=r2(S.loan.remaining-(pay-interest)); S.loan.paid=r2(S.loan.paid+pay);
     if(S.loan.remaining<=0.01){ S.loan=null; toast('Kredit vollständig abbezahlt.','money'); } }
   DS.interest=pay;
   S.money=r2(S.money-wages-fix-pay-dispo+extra);
-  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)+(DS.roh||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
+  const out=r2(DS.goods+DS.upgrades+pay+dispo+DS.changeLoss+wages+fix+DS.burned+(DS.porto||0)+(DS.vm||0)+(DS.ddl||0)), profit=r2(DS.revenue+extra-out), dr=S.rep-DS.rep0;
   if(typeof onlineTagSchliessen==='function') onlineTagSchliessen(wartend);
   const dayXP=WIRT.xp.tag.grund+Math.round(DS.revenue*WIRT.xp.tag.jeUmsatz)+(DS.angry===0?WIRT.xp.tag.ohneBeschwerde:0);
   addXP(dayXP);
@@ -224,7 +218,6 @@ function endDay(){
     {head:'Einnahmen'},['Verkäufe',eur(DS.revenue)]];
   if(hasDeko('automat')) rows.push(['Getränkeautomat',eur(WIRT.tag.automat)]);
   if(online) rows.push(['Onlineshop (Marktplatz-Pauschale)',eur(online)]);
-  if(werksverkauf) rows.push([`Werksverkauf an den Großhandel (${DS.b2bKartons|0} Kartons)`,eur(werksverkauf)]);
   if(DS.versand) rows.push(['Versand (Pakete)',eur(DS.versand)]);
   if(DS.versandGeb) rows.push(['Davon Versandkosten der Kunden',eur(DS.versandGeb)]);
   if(DS.onRabatt) rows.push(['Online-Rabatte (schon abgezogen)',eur(DS.onRabatt)]);
@@ -232,7 +225,7 @@ function endDay(){
   if(packBereit()&&(S.offen|0)>0) rows.push(['Nicht gepackte Bestellungen',String(S.offen|0)]);
   if(packBereit()&&paketeJetzt>0) rows.push(['Pakete warten auf DDL',`${paketeJetzt}${wartend?` · ${wartend} seit gestern`:''}`]);
   if(S.goal) rows.push(['Wochenziel',`${S.goal.name}: ${Math.round(S.goal.have)}/${S.goal.need} ${S.goal.unit}`]);
-  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.ddl?[[`DDL-Abholung (${DS.ddlN|0}× ${eur(typeof DDL_PAUSCHALE!=='undefined'?DDL_PAUSCHALE:0)})`,eur(DS.ddl)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),...(DS.roh?[['Rohstoffe für das Werk',eur(DS.roh)]]:[]),
+  rows.push({head:'Ausgaben'},['Wareneinkauf',eur(DS.goods)],['Ausbau und Deko',eur(DS.upgrades)],['Löhne',eur(wages)],['Fixkosten',eur(fix)],['Kreditrate',eur(pay)],['Dispozinsen',eur(dispo)],['Zu viel Rückgeld',eur(DS.changeLoss)],['Selbst gezündet',eur(DS.burned)],...(DS.porto?[['Porto an DDL',eur(DS.porto)]]:[]),...(DS.ddl?[[`DDL-Abholung (${DS.ddlN|0}× ${eur(typeof DDL_PAUSCHALE!=='undefined'?DDL_PAUSCHALE:0)})`,eur(DS.ddl)]]:[]),...(DS.vm?[['Versandmaterial',eur(DS.vm)]]:[]),
     ['Gewinn des Tages',(profit>=0?'+':'')+eur(profit),true],
     {head:'Laden'},['Kunden bedient',DS.customers],['Verkaufte Artikel',DS.sold],['Verpasst, weil Fach leer',DS.missed],['Genervt gegangen',DS.angry],['Diebstahl',eur(DS.stolen)],['Diebe gestellt',DS.caught],['Großaufträge',DS.orders||0],['Gravuren verkauft',DS.gravur||0],
     ['Ruf',(dr>=0?'+':'')+dr.toFixed(1).replace('.',',')],['Erfahrung',`+${DS.xpGained} XP`],
@@ -252,8 +245,6 @@ function endDay(){
     rows.push(['Was jetzt hilft',wege.join(' · ')]);
     if(luft<400) rows.push(['Dringend','Ohne Geld kommt keine Ware ins Regal, und ohne Ware kein Umsatz. Jetzt gegensteuern.']);
   }
-  /* Produktion im Werk West (05s): je Straße Stueck, Ausschuss, Kosten; gebundenes Kapital */
-  if(typeof pdTagesabschluss==='function') rows.push(...pdTagesabschluss());
   /* Marktlage des Tages */
   if(DS.praemien) rows.push(['Prämien aus Herausforderungen',eur(DS.praemien)]);
   rows.push({head:'Markt'},['Preisniveau',marktText()],['Inflation seit Beginn',inflText()]);

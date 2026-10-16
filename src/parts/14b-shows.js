@@ -707,11 +707,10 @@ function igniteType(t,o0,it){
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
   /* Prototyp der eigenen Rezeptur (14z4 abProtoZuenden): kostenlos, ohne Hype */
-  /* QS-Stichprobe der Eigenproduktion (14z4 abStichprobe, it.qs): auch ohne Hype - das Stueck gehoert zur Produktion */
-  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto&&!(it&&it.qs)){
+  if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto){
     hype=Math.min(WIRT.kunden.hype.max,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
     statAdd('gezuendet',1); statAdd('hype',p.hype); }
-  else if(!(it&&it.qs)) vfGezuendet++;
+  else vfGezuendet++;
   if(SHOWS[t]){ const tag=neuerShowTag(); emitters.push({t:0.8,k:'fuse',o}); later(0.8,()=>playShow(o,SHOWS[t](),t,tag)); return; }
   /* Anomalie-Tabellen (26.09.): Fontaenen in Phasen, Kugelsorten,
      Kleinfeuerwerk (Verteiler aus der Kleinfeuerwerk-Datei) */

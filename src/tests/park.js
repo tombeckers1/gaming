@@ -56,10 +56,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     bb.scene.children.forEach(c=>{ if(c.userData&&c.userData.baum&&c.position.x>P.x0&&c.position.x<P.x1&&c.position.z>P.z0&&c.position.z<P.z1) o.baeume++; });
     o.baeume+=bb.parkTannen();
     /* Frei: Parkteile duerfen nicht ins Testfeld oder auf den Hof */
-    const T=L.test, H=L.hof2, bx=new THREE.Box3(); o.frei=[];
+    /* Rueckbau 16.10.: Hof 2 der Logistikhalle gibt es nicht mehr - der Versandhof V1 bleibt frei */
+    const T=L.test, H={x0:-15.7,x1:-4.7,z0:-45.6,z1:-30.1}, bx=new THREE.Box3(); o.frei=[];
     bb.scene.traverse(m=>{ if(!m.isMesh) return; let park=false; for(let a=m;a;a=a.parent) if(a.userData&&a.userData.park) park=true;
       if(!park) return; bx.setFromObject(m);
-      if(bx.min.x<H.x1&&bx.max.z>H.z0) o.frei.push('hof '+bx.min.x.toFixed(2)); });
+      if(bx.min.x<H.x1&&bx.max.x>H.x0&&bx.max.z>H.z0&&bx.min.z<H.z1) o.frei.push('hof '+bx.min.x.toFixed(2)); });
     /* Park im Testfeld? Die Parkteile sind zu wenigen grossen Meshes
        zusammengefasst, ihre Boxen sagen nichts - also von oben in das
        Testfeld schiessen, jeder Parktreffer zaehlt. */

@@ -55,15 +55,14 @@ Klassen (`bk.sammler`, Klasse = gleiche Werte wie `MAT.ober`).
 | Was | Maß | Quelle |
 |---|---|---|
 | Raumhöhe Laden | 3,6 m | `05-world.js` `WH` |
-| Lager/Halle lichte Höhe | 5,0 m (Großhandel 12 m, Schleuse 3,4 m) | `HALLE_H`, `GH_H`, `SCHLEUSE_H` |
+| Lager lichte Höhe | 5,0 m (Logistikhalle/Schleuse seit Rückbau 16.10. weg) | `HALLE_H` |
 | Ladeneingang Schiebetür | 2 Flügel × 1,24 m, Höhe 2,44 m | `05f-facade.js` `TUER` |
 | Durchgänge (Sturz) | Laden 2,5–2,7 m, Lager 3,0–3,3 m | `05h-ausbau.js` `durchbruchWand(…, sturzY)` |
 | Ladetor R1, V1 | 3,26 × 3,0 m (5 bzw. 6 Panele) | `TOR`, `V1`, `tore.md` |
-| Ladetor R2–R5 | 3,4 × 3,05 m | `WTOR` |
 | Tor-Attrappe Ost / Schiebetor Hof / Doppeltor Zaun | 3,6 × 4,2 · 4,2 × 2,3 · 6,22 × 2,4 m | `tore.md` §3 |
 | Verkaufsregal | Breite 1,0 (klein) / 2,0 m, Tiefe 0,52 m, Fachhöhen 0,56 m Raster (0,19 · 0,75 · 1,31 · 1,87) | `02-data.js` `SHELFKIND` |
 | Lagerregal | Breite 2,44 m (Schwerlast 3,30 m), Ebenen 0,14 · 0,94 · 1,74 (Hoch bis 3,66, Schwer 1,1 m Raster) | `06-fixtures.js` `RACKKIND` |
-| Bodenmarkierung | Linie 0,12 m (Fahrweg/LKW-Stellplatz), Stellplatz innen 0,06–0,08 m, Mittelstrich 0,1 × 0,5 m, Fahrspur gestrichelt 0,6/0,4 m, LKW-Stellplatz 3,8 × 14 m | `bk.MARKIERUNG` (04z) |
+| Bodenmarkierung | Linie 0,12 m (Fahrweg), Stellplatz innen 0,06–0,08 m, Fahrspur gestrichelt 0,6/0,4 m | `bk.MARKIERUNG` (04z) |
 | Schaufenster | Brüstung 0,9 m, Sturz 2,4 m, Leisten 0,06 × 0,12 m, Mittelsprosse 0,06 m, Sohlbank 0,05 × 0,3 m (Anthrazit) | `bk.fenster` (04z) |
 | Lagerfenster | 1,7 × 1,25 m (Brüstung 1,35, Sturz 2,6), Rahmen 0,07 m, zwei Flügel | `bk.fenster` art `fluegel` |
 | Ladenregal-Rückwand | Lochblech, Lochabstand 5 cm (Kachel 0,4 m) | `bk.regal` |
@@ -94,7 +93,7 @@ Geländer 1,1 m). Abweichung nur mit Grund (z. B. Spielbarkeit) im Bericht. Fehl
   anpassen mit `fitFont`. ☑ (BAUTEIL schild: Funktion, die ein Schild selbst malt und baut, ohne `bk.schild`)
 - **Warnung** = Signalgelb auf Gummischwarz/dunklem Feld (Bodenschrift, Warnschilder); kein Gold. Bodenschrift nur über
   `bk.bodenmarkierung({schriften})` (Signalgelb auf halbdunklem Feld mit Rand).
-- **Glas**: eine Scheibe für alles – `MAT.get('glasScheibe')` (Schaufenster, Türen, Lagerfenster, Kühlregal, Leitstand).
+- **Glas**: eine Scheibe für alles – `MAT.get('glasScheibe')` (Schaufenster, Türen, Lagerfenster, Kühlregal).
 - Beträge in Texten nie als feste Zahl – aus `WIRT`/`eur(...)` erzeugen. ☑ (GELD „N €“ im Text)
 
 ## 7. Abnutzung und Schmutz
@@ -118,10 +117,9 @@ keine Einzel-Schmutztexturen je Objekt, kein Zufallsschmutz pro Bau. Ein Abnutzu
 
 ## 9. Bildsprache
 Referenzen: **Zielbild** `docs/bilder/referenz/versand-max.png` (+ `versand-vergleich.png`, nachgebaute Szene `docs/bilder/referenz/szene/`),
-Toms KI-Zielbild (8510991a, Versandecke), **Produktion** `docs/uebergabe/produktion-referenz.webp`.
+Toms KI-Zielbild (8510991a, Versandecke). (Produktion-Referenz entfällt mit dem Rückbau 16.10.)
 Was daraus gilt: helle, saubere Industrie-Optik; Technik anthrazit, Stahl verzinkt, Warnung Signalgelb (Poller, Kanten, Markierung);
-Ladetore anthrazit mit Fensterband; gefaste Kanten statt scharfer Kästen; Licht von oben mit weichem Kontaktschatten; Produktion als
-automatisierte Straßen (Rollenbahnen, Portal-Greifer, Rohr-Raster). Keine Comic-Sättigung außerhalb von Feuerwerk und Verpackung.
+Ladetore anthrazit mit Fensterband; gefaste Kanten statt scharfer Kästen; Licht von oben mit weichem Kontaktschatten. Keine Comic-Sättigung außerhalb von Feuerwerk und Verpackung.
 
 ## 10. Abläufe
 

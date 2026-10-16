@@ -1557,7 +1557,7 @@ function buildMuelleimer(x,z,ry){
    die ganze Moeblierung kostet so nur eine Handvoll Draw-Calls.
    ========================================================= */
 /* Bordkanten (Fahrbahnseite), Parkstreifen, Leitlinie, Zebrastreifen */
-const STR={zN:11.1, zS:17.3, park:14.9, mitte:13.0, zebra:33, X:100, XW:130};   /* XW: nach Westen bis hinter das Werk (Halle Etappe B, Zaun x −124) */
+const STR={zN:11.1, zS:17.3, park:14.9, mitte:13.0, zebra:33, X:100};
 /* Absenkungen der Borde: Hofzufahrt und Ueberweg (unsere Seite endet bei x 38) */
 const BORD_ABS_N=[[-30.2,-19.8],[STR.zebra-1.6,STR.zebra+1.6]], BORD_ABS_S=[[STR.zebra-1.6,STR.zebra+1.6]];
 /* Gehweghoehe (28.09., Tom: "alles drum herum deutlich schoener"): der
@@ -1570,8 +1570,8 @@ function gwH(x,z,nord){
   const zS=STR.zS+0.2; return 0.012+(0.008+0.1*bordHoch(x,BORD_ABS_S))*clamp((22.4-z)/(22.4-zS),0,1);
 }
 function gehwegY(x,z){
-  if(z>=5.8&&z<=STR.zN-0.2&&x>-STR.XW&&x<38&&(x<-30.2||x>-19.8)) return gwH(x,z,true);
-  if(z>=STR.zS+0.2&&z<=24&&x>-STR.XW&&x<STR.X) return gwH(x,z,false);
+  if(z>=5.8&&z<=STR.zN-0.2&&x>-STR.X&&x<38&&(x<-30.2||x>-19.8)) return gwH(x,z,true);
+  if(z>=STR.zS+0.2&&z<=24&&Math.abs(x)<STR.X) return gwH(x,z,false);
   return 0;
 }
 /* ---------- Sammler: Teile je Material, am Ende verschmolzen ---------- */
@@ -2121,7 +2121,7 @@ function gehwegFlaeche(B,x0,x1,z0,z1,kachel,nord){
     B.quad(e(x,zs[j],0),e(x,zs[j+1],0),e(x,zs[j+1]),e(x,zs[j]),[sx,0,0]); }
 }
 function buildFahrbahn(){
-  const X=STR.X, XW=STR.XW, zN=STR.zN, zS=STR.zS, Z=STR.zebra, R=saat(2612);
+  const X=STR.X, zN=STR.zN, zS=STR.zS, Z=STR.zebra, R=saat(2612);
   const asph=asphaltTex();
   /* --- Deckschicht: Flickstellen, vergossene Fugen, nasse Rinne.
      Dieselbe Textur in denselben Weltkoordinaten wie der Boden, nur
@@ -2130,11 +2130,11 @@ function buildFahrbahn(){
   const flaeche=(x0,x1,z0,z1,y,c0,c1,quer)=>{ const e=(x,z,c)=>{ const [u,v]=uv(x,z); return ecke(x,y,z,u,v,c); };
     if(quer) D.quad(e(x0,z0,c0),e(x1,z0,c0),e(x1,z1,c1),e(x0,z1,c1)); else D.quad(e(x0,z0,c0),e(x1,z0,c1),e(x1,z1,c1),e(x0,z1,c0)); };
   /* feuchte Rinne und Streusalzschleier an beiden Borden */
-  flaeche(-XW,X,zN+0.3,zN+0.95,0.004,grau(0.62),grau(1),true);
-  flaeche(-XW,X,zS-0.3,zS-0.95,0.004,grau(0.62),grau(1),true);
+  flaeche(-X,X,zN+0.3,zN+0.95,0.004,grau(0.62),grau(1),true);
+  flaeche(-X,X,zS-0.3,zS-0.95,0.004,grau(0.62),grau(1),true);
   /* Flickstellen: Aufgrabungen quer ueber eine Spur und kleine Flicken */
   const flicken=[];
-  for(let x=-XW+6;x<X-6;x+=9+R()*16){
+  for(let x=-X+6;x<X-6;x+=9+R()*16){
     if(Math.abs(x-Z)<5) continue;
     const quer=R()<0.4, w=quer?0.8+R()*0.5:0.9+R()*1.4, z0=quer?(R()<0.5?zN+1.0:STR.mitte+0.15):zN+1.1+R()*(zS-zN-3.2), d=quer?1.8+R()*0.9:0.7+R()*1.2;
     const z1=Math.min(z0+d,zS-1.05), f=0.84+R()*0.1, c=[f*0.97,f*0.98,f], n=0.03;
@@ -2147,15 +2147,15 @@ function buildFahrbahn(){
   const frei=x=>!flicken.some(([a,b])=>x>a-0.3&&x<b+0.3);
   /* Laengsfuge der Einbaubahnen neben der Leitlinie */
   { let pts=[]; const zf=STR.mitte+0.3;
-    for(let x=-XW;x<=X;x+=0.8){ if(!frei(x)||Math.abs(x-Z)<2){ if(pts.length>1) streifen(D,pts,0.05,0.0055,grau(0.45),uv); pts=[]; continue; }
+    for(let x=-X;x<=X;x+=0.8){ if(!frei(x)||Math.abs(x-Z)<2){ if(pts.length>1) streifen(D,pts,0.05,0.0055,grau(0.45),uv); pts=[]; continue; }
       pts.push([x,zf+Math.sin(x*0.37)*0.03+(R()-0.5)*0.02]); }
     if(pts.length>1) streifen(D,pts,0.05,0.0055,grau(0.45),uv); }
   /* Fahrspuren: wo die Reifen rollen, ist die Decke dunkler und glatter */
   for(const zc of [zN+1.35,STR.mitte+0.95]){ let a=null;
-    for(let x=-XW;x<=X;x+=0.5){ const ok=frei(x)&&frei(x+0.5)&&Math.abs(x-Z)>2;
+    for(let x=-X;x<=X;x+=0.5){ const ok=frei(x)&&frei(x+0.5)&&Math.abs(x-Z)>2;
       if(ok&&a===null) a=x; if((!ok||x+0.5>X)&&a!==null){ if(x>a){ flaeche(a,x,zc-0.35,zc,0.004,grau(1),grau(0.86),true); flaeche(a,x,zc,zc+0.35,0.004,grau(0.86),grau(1),true); } a=null; } } }
   /* Querrisse, mit Bitumen vergossen */
-  for(let x=-XW+4;x<X-4;x+=6+R()*11){
+  for(let x=-X+4;x<X-4;x+=6+R()*11){
     if(!frei(x)||Math.abs(x-Z)<3) continue;
     const pts=[]; let z=zN+0.35+R()*0.4, xx=x; const bis=R()<0.5?STR.mitte+R()*0.6:zS-0.4-R()*0.8;
     while(z<bis){ pts.push([xx,z]); xx+=(R()-0.5)*0.22; z+=0.3+R()*0.25; }
@@ -2173,7 +2173,7 @@ function buildFahrbahn(){
      Autos - dort spiegelte sonst der helle Himmel. */
   { const Pf=bauer(), pf=(cx,cz,l,b,k)=>{ const u0=(k%4)/4, v0=Math.floor(k/4)/2, e=(x,z,u,v)=>ecke(cx+x,0.0065,cz+z,u0+u/4,v0+v/2);
       Pf.quad(e(-l/2,-b/2,0,0),e(l/2,-b/2,1,0),e(l/2,b/2,1,1),e(-l/2,b/2,0,1)); };
-    for(let x=-XW+3;x<X-3;x+=5+R()*11){
+    for(let x=-X+3;x<X-3;x+=5+R()*11){
       if(Math.abs(x-Z)<3.5) continue;
       const gegen=R()<0.5&&(x<-26||x>22);
       pf(x,gegen?zS-0.4-R()*0.15:zN+0.4+R()*0.15,1.0+R()*1.8,0.45+R()*0.35,R()*8|0);
@@ -2196,7 +2196,7 @@ function buildFahrbahn(){
      breit; Parkstreifen mit T-Marken zwischen den Buchten; Zebrastreifen;
      Zickzack an der Haltestelle. Abrieb per Alpha-Maske. */
   const Mk=bauer(), uvM=(x,z)=>[x/1.5,z/1.5], mk=(x0,x1,z0,z1)=>{ const e=(x,z)=>ecke(x,0.009,z,x/1.5,z/1.5); Mk.quad(e(x0,z0),e(x1,z0),e(x1,z1),e(x0,z1)); };
-  for(let x=-XW+2;x<X-3;x+=9) if(x+3<Z-2.5||x>Z+2.5) mk(x,x+3,STR.mitte-0.06,STR.mitte+0.06);
+  for(let x=-X+2;x<X-3;x+=9) if(x+3<Z-2.5||x>Z+2.5) mk(x,x+3,STR.mitte-0.06,STR.mitte+0.06);
   const P0=-25.3, P1=20.9;
   mk(P0,P1,STR.park-0.06,STR.park+0.06);
   for(let x=P0;x<=P1+0.01;x+=6.6) mk(x-0.06,x+0.06,STR.park,STR.park+0.6);
@@ -2228,17 +2228,17 @@ function buildFahrbahn(){
   /* --- Bordsteine, Rinnen, Gehwege --- */
   const Bs=bauer(), Z0=Z-1.6, Z1=Z+1.6;
   /* unsere Seite: an der Hofzufahrt (x -30..-20) und am Ueberweg abgesenkt */
-  bordstein(Bs,-XW,38,zN,-1,BORD_ABS_N);
-  bordstein(Bs,-XW,X,zS,1,BORD_ABS_S);
+  bordstein(Bs,-X,38,zN,-1,BORD_ABS_N);
+  bordstein(Bs,-X,X,zS,1,BORD_ABS_S);
   const gt=granitTex(), bm=new THREE.Mesh(lichtUV2(Bs.geo()),lichtMat(new THREE.MeshStandardMaterial({map:gt,vertexColors:true,roughness:0.78})));
   if(HIQ){ bm.receiveShadow=true; bm.castShadow=true; } scene.add(bm);
   /* Gehwegplatten, zur Bordseite ein Streifen Kleinpflaster (Baum- und
      Laternenstreifen). Unsere Seite laesst die Hofzufahrt frei - dort
      liegt der Beton der Zufahrt. */
   const Gp=bauer(), Kp=bauer(), zNg=zN-BORD_B, zSg=zS+BORD_B;
-  for(const [a,b] of [[-XW,-30.2],[-19.8,38]]){
+  for(const [a,b] of [[-X,-30.2],[-19.8,38]]){
     gehwegFlaeche(Gp,a,b,6.0,9.7,2.4,true); gehwegFlaeche(Kp,a,b,9.7,zNg,1.6,true); }
-  gehwegFlaeche(Kp,-XW,X,zSg,18.3,1.6,false); gehwegFlaeche(Gp,-XW,X,18.3,23.4,2.4,false);
+  gehwegFlaeche(Kp,-X,X,zSg,18.3,1.6,false); gehwegFlaeche(Gp,-X,X,18.3,23.4,2.4,false);
   const gm2=lichtMat(new THREE.MeshStandardMaterial({map:gehwegTex(),vertexColors:true,roughness:0.86}));
   const km=lichtMat(new THREE.MeshStandardMaterial({map:pflasterTex(),vertexColors:true,roughness:0.84}));
   for(const [B,m] of [[Gp,gm2],[Kp,km]]){ const o=new THREE.Mesh(lichtUV2(B.geo()),m); if(HIQ) o.receiveShadow=true; scene.add(o); }

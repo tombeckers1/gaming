@@ -288,8 +288,6 @@ function renderFrame(dt){
   if(typeof ladenLichtTakt==='function') ladenLichtTakt(dt||0.016);
   sonneNachfuehren();
   gruppenTakt();
-  if(typeof llSichtTakt==='function') llSichtTakt();   /* Halle Etappe A: Halleninhalt nur mit Blick in die Halle (05q) */
-  if(typeof wkSichtTakt==='function') wkSichtTakt();   /* Halle Etappe B: Werk-Inhalt nur mit Blick ins Werk (05r) */
   if(typeof bk!=='undefined') bk.wandbildTakt();
   buendelTakt();
   schattenTakt();

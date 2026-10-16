@@ -220,13 +220,15 @@ for(const t in P){ const q=P[t]; if(!q.dims||q.shape==='shell'||q.shape==='batte
 const ORDER=Object.keys(P);
 /* Kapitel: die grossen Stufen des Ladens. Jedes beginnt mit einem
    bestimmten Ausbau. */
-/* Demo und Vollversion (Tom, 24.09.): Kapitel 1-6 bilden die Demo,
-   die im Dezember erscheinen soll. Ab dem Logistikzentrum (Kapitel 7)
-   ist alles Vollversion - dort kommen auch die eigene Fabrik und die
-   eigenen Produkte. Kapitel 8-11 sind geplant, aber noch nicht gebaut;
-   im Ausbau stehen sie als Vorschau. Pyro-Imperium ist das Finale
-   (Kapitel 11): das Silvester-Stadtfeuerwerk, am Ende leuchtet die
-   ganze Stadt. */
+/* Demo und Vollversion (Tom, 24.09.): Kapitel 1-6 bilden die Demo.
+   Ab Kapitel 7 ist alles Vollversion. Kapitel 7-9 sind geplant, aber
+   noch nicht gebaut; im Ausbau stehen sie als Vorschau. Pyro-Imperium
+   ist das Finale (Kapitel 9): das Silvester-Stadtfeuerwerk, am Ende
+   leuchtet die ganze Stadt.
+   Rueckbau 16.10. (Tom): Pyro-Logistik (Logistikhalle, Hochregal) und
+   Pyro-Fabrik (Werk West, Produktion) sind gestrichen - die geplanten
+   Kapitel ruecken nach (vorher 9-11). Fokus: Verkauf, Pyrotechnik,
+   Online-Shop, Versand. */
 const KAPITEL=[
   {nr:1,name:'Pyro-Kiosk',up:null,txt:'Ein kleiner Laden, die Lieferungen kommen vor die Tür.'},
   {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
@@ -234,14 +236,11 @@ const KAPITEL=[
   {nr:4,name:'Pyro-Versand',up:'onlineshop',txt:'Onlineshop und Packstation: du verkaufst ins ganze Land.'},
   {nr:5,name:'Eigene Marke',up:'labor',txt:'Im Labor mischst du eigene Effekte und verkaufst sie unter deinem Namen.'},
   {nr:6,name:'Pyro-Kaufhaus',up:'shop_sued',txt:'Riesige Verkaufsfläche und ein zweiter Eingang mit eigener Kasse.'},
-  {nr:7,name:'Pyro-Logistik',up:'lager_west',voll:true,txt:'Logistikzentrum mit Toren und Hof – der Grundstein für dein Imperium.'},
-  {nr:8,name:'Pyro-Fabrik',up:'fabrik',voll:true,txt:'Eigene Fabrikhalle: du produzierst deine Feuerwerke selbst.',
-    vorschau:['Fabrikhalle mit Mischraum und Fertigungsstraße','Eigene Produkte in Serie statt Einzelstücke aus dem Labor','Rohstoffe einkaufen, Qualität steuern']},
-  {nr:9,name:'Pyro-Großhändler',up:'grosshandel',voll:true,geplant:true,txt:'Du belieferst andere Läden mit deinen eigenen Marken.',
+  {nr:7,name:'Pyro-Großhändler',up:'grosshandel',voll:true,geplant:true,txt:'Du belieferst andere Läden mit deinen eigenen Marken.',
     vorschau:['Händlerverträge und Lieferfristen','Eigene LKW-Flotte vom Logistikzentrum aus','Deine Marke in den Regalen der Konkurrenz']},
-  {nr:10,name:'Pyro-Kette',up:'filialen',voll:true,geplant:true,txt:'Filialen in anderen Städten, geführt von deinem Team.',
+  {nr:8,name:'Pyro-Kette',up:'filialen',voll:true,geplant:true,txt:'Filialen in anderen Städten, geführt von deinem Team.',
     vorschau:['Filialen eröffnen und Filialleiter einstellen','Sortiment und Preise zentral steuern','Wettbewerb mit Ketten der Konkurrenz']},
-  {nr:11,name:'Pyro-Imperium',up:'stadtfeuerwerk',voll:true,geplant:true,txt:'Das Finale: du zündest das offizielle Silvesterfeuerwerk der Stadt.',
+  {nr:9,name:'Pyro-Imperium',up:'stadtfeuerwerk',voll:true,geplant:true,txt:'Das Finale: du zündest das offizielle Silvesterfeuerwerk der Stadt.',
     vorschau:['Offizielles Stadtfeuerwerk an Silvester, von dir geplant','Große Show mit Musik über der ganzen Stadt','Am Ende leuchtet die ganze Stadt – dein Imperium ist komplett']}
 ];
 /* Demo-Schalter: an, sobald die Demo gebaut wird. Dann lassen sich die
@@ -292,23 +291,6 @@ const UPGRADES=[
   {id:'shop_sued',kat:'flaeche',lvl:24,req:'shop_ost',kap:6,name:'Ladenerweiterung 4 – riesig viel Platz',desc:'Die große Halle hinter dem Laden, zwei breite Durchgänge: 478 Quadratmeter Verkaufsfläche mit zwei Gondelgassen. Damit ist der Laden fünfeinhalbmal so groß wie am Anfang.',cost:()=>WIRT.ausbau.preis.shop_sued,done:()=>S.up.shop_sued},
   {id:'lager_sued',kat:'flaeche',lvl:18,req:'lager_gross',name:'Lagererweiterung 3 – noch mehr Platz',desc:'Der zweite Abschnitt, noch einmal 83 Quadratmeter. Die Wand zum ersten fällt ganz weg — kein Pfeiler, kein Sturz, eine durchgehende Halle.',cost:()=>WIRT.ausbau.preis.lager_sued,done:()=>S.up.lager_sued},
   {id:'lager_sued2',kat:'flaeche',lvl:25,req:'lager_sued',name:'Lagererweiterung 4 – die ganze Halle',desc:'Der letzte Abschnitt bis zur Stirnwand. Damit steht die ganze Halle: 283 Quadratmeter am Stück, dreizehn Stellplätze für Hoch- und Schwerlastregale.',cost:()=>WIRT.ausbau.preis.lager_sued2,done:()=>S.up.lager_sued2},
-  {id:'lager_west',kat:'flaeche',lvl:28,req:'lager_sued2',kap:7,name:'Logistikhalle – Stufe 1',desc:'Eine eigene Halle hinter der Schleuse: 18 mal 20 Meter, 6,5 Meter hoch, mit zwei Toren an der Südwand zum LKW-Hof. Klein fängt sie an, mit jeder Stufe wird sie größer und höher. Dazu wird der Lagergang hinter dem Laden geöffnet.',cost:()=>WIRT.ausbau.preis.lager_west,done:()=>S.up.lager_west},
-  /* Andockstationen. Die Basisrampe hinter dem Lager ist die erste
-     und bleibt die begehbare; jede zugekaufte Westrampe nimmt eine
-     Lieferung zusaetzlich an, parallel zu allen anderen. */
-  {id:'rampe2',kat:'flaeche',lvl:28,req:'lager_west',name:'Andockstation 2',desc:'Das erste Tor der Logistikhalle geht in Betrieb. Ab jetzt können zwei Lieferungen gleichzeitig anrollen: während du an der Basisrampe auslädst, stapelt der Fahrer hier seine Kartons selbst in der Halle ab.',cost:()=>WIRT.ausbau.preis.rampe2,done:()=>S.up.rampe2},
-  {id:'lager_west2',kat:'flaeche',lvl:29,req:'lager_west',name:'Logistikhalle – Stufe 2',desc:'Die Halle wächst: 30 mal 24 Meter und 8,5 Meter hoch, mit Platz für ein drittes Tor und acht weitere Regalplätze.',cost:()=>WIRT.ausbau.preis.lager_west2,done:()=>S.up.lager_west2},
-  {id:'rampe3',kat:'flaeche',lvl:29,req:'rampe2',name:'Andockstation 3',desc:'Das zweite Tor der Logistikhalle kommt dazu. Drei Lieferungen nebeneinander — ab hier staut sich der Einkauf auch an starken Tagen nicht mehr.',cost:()=>WIRT.ausbau.preis.rampe3,done:()=>S.up.rampe3},
-  {id:'rampe4',kat:'flaeche',lvl:30,req:'lager_west2',name:'Andockstation 4',desc:'Das Tor in der erweiterten Halle. Vier Lieferungen gleichzeitig.',cost:()=>WIRT.ausbau.preis.rampe4,done:()=>S.up.rampe4},
-  {id:'lager_west3',kat:'flaeche',lvl:30,req:'lager_west2',name:'Logistikhalle – Stufe 3',desc:'Die volle Halle: 40 mal 27 Meter und 11 Meter hoch, Platz für Hochregale bis unters Dach und das letzte Tor.',cost:()=>WIRT.ausbau.preis.lager_west3,done:()=>S.up.lager_west3},
-  {id:'rampe5',kat:'flaeche',lvl:31,req:'lager_west3',name:'Andockstation 5',desc:'Das letzte Tor der Logistikhalle. Zusammen mit der Basisrampe rollen dann fünf Lieferungen gleichzeitig an — mehr gibt das Grundstück nicht her.',cost:()=>WIRT.ausbau.preis.rampe5,done:()=>S.up.rampe5},
-  /* Kapitel 7.3 (Halle Etappe A, 14.10.): die volle Halle wird zum Hochregallager (05q, 11f) */
-  {id:'lagerlogistik',kat:'flaeche',lvl:31,req:'lager_west3',kap:7,name:'Lagerlogistik – Hochregal und Kartonlager',desc:`Die Logistikhalle wird zum Hochregallager: Gasse 1 mit 180 Palettenplätzen und Regalbediengerät, Ein- und Auslagerung über Förderer, Anbruch zum Kommissionieren, Stellplätze am Wareneingang und zwei fahrerlose Transportfahrzeuge. Lieferungen an Tor 2 bis 4 gehen ab jetzt automatisch ins Hochregal, Nachschub fährt nach ③ und ①. Dazu das Kartonlager ③ mit gelber Wand und Schnelllauftor N1 – ①, ② und ③ sind ein Raum – und eine neue Schleuse. Die Lagerregale in der Halle ziehen nach ③ um. Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag.`,cost:()=>WIRT.ausbau.preis.lagerlogistik,done:()=>S.up.lagerlogistik},
-  /* Kapitel 8 / 8.2 / 8.3 (Halle Etappe B, 15.10.): Werk West (05r), Produktion (05s, docs/halle/produktion.md):
-     Rohstoffe, Rezepte, Takt, Qualitaet, Stoerungen, Grosshandel - Tab "Produktion" im Laptop, Lager-PC und Leitstand */
-  {id:'fabrik',kat:'flaeche',lvl:33,req:'lagerlogistik',kap:8,name:'Pyro-Werk – Werkhalle und Raketenstraße',desc:`Das eigene Werk westlich der Halle: 30 mal 27 Meter, Leichtdach, getrennte Betonzellen für alles mit Satz. Dazu Leitstand auf der Galerie, QS-Labor, Sternhaus, Trockenkammern, drei Chemie-Boxen, Annahme mit Tor 6, Mischhaus hinter dem Erdwall und ein eigener Hof. Straße 1 baut Raketen in sieben Stationen, der Förderer bringt die Paletten durch zwei Brandwände in Gasse 2 des Hochregals – die bekommt dafür ihr Regalbediengerät (Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag). Produziert wird nach deinem Plan (Laptop, Lager-PC oder Leitstand: Produktion) – dafür brauchst du einen Werker, einen Mischer und Rohstoffe, die der Gefahrgut-LKW an Tor 6 bringt. Ab der ersten eingeschalteten Straße kostet das Werk ${WF.euro(WIRT.fix.werk,0)} am Tag, jede eingeschaltete Straße ${WF.euro(WIRT.fix.werkStrasse,0)}.`,cost:()=>WIRT.ausbau.preis.fabrik,done:()=>S.up.fabrik},
-  {id:'fabrik2',kat:'flaeche',lvl:35,req:'fabrik',name:'Pyro-Werk 8.2 – Kugelbombenstraße',desc:`Straße 2: Halbschalen, Sterne einlegen, Zerlegerladung, Bandage, Trockentunnel, Ausstoßladung – sieben Stationen, drei davon in Betonzellen. Dazu Gasse 3 des Hochregals mit eigenem Regalbediengerät (Betrieb ${WF.euro(WIRT.fix.hochregal,0)} am Tag).`,cost:()=>WIRT.ausbau.preis.fabrik2,done:()=>S.up.fabrik2},
-  {id:'fabrik3',kat:'flaeche',lvl:37,req:'fabrik2',name:'Pyro-Werk 8.3 – Batteriestraße',desc:'Straße 3: Rohre ins Raster, Bodenplatte mit eingespritzter Zündschnur, Ausstoßladung, Effekte, Verdämmen, Banderole, Prüfen und Palettieren – vollautomatisch. Damit ist das Werk komplett.',cost:()=>WIRT.ausbau.preis.fabrik3,done:()=>S.up.fabrik3},
   {id:'packstation',kat:'flaeche',lvl:25,req:'lager_sued2',name:'Packstation für den Versand',desc:`Ein Packplatz mit Packmaterial-Regal am hinteren Ende der großen Halle, dazu Förderband, Kran-Greifer und eine Palette in der gelben Box vor Rolltor V1. Das fertige Paket läuft übers Band, der Kran stapelt es auf die Palette. Abgeholt wird nur, wenn du DDL am Wandtelefon oder per Handy (Onlineshop) rufst – jede Abholung kostet eine Pauschale, dazu Porto je Paket (S ${WF.euro(WIRT.versand.porto[1],2)}, M ${WF.euro(WIRT.versand.porto[3],2)}, L ${WF.euro(WIRT.versand.porto[6],2)}). Der DDL-Fahrer lädt selbst. Ist die Palette voll, staut sich das Band. Zusammen mit dem Onlineshop kommen Bestellungen als echte Pakete herein.`,cost:()=>WIRT.ausbau.preis.packstation,done:()=>S.up.packstation},
   /* Ausbau der Packstation (Tom, 05.10.): weitere Packplaetze am selben
      Band, je mit Packmaterial-Regal und Wagen, und mehr Paletten unter
@@ -365,12 +347,6 @@ const STAFF=[
   {id:'packer',lvl:25,req:'packstation',name:'Versandmitarbeiter',desc:'Schiebt einen Kommissionierwagen mit sechs Fächern durchs Lager – fehlt dort etwas, durch den Laden –, legt jede Onlinebestellung Stück für Stück in ihren Karton, klebt am Packtisch zu und schickt das Paket aufs Band zur Palettierstation.',hire:WIRT.personal.einstellung.packer,wage:WIRT.personal.lohn.packer},
   {id:'packer2',kurz:'Packer 2',lvl:27,req:'packstation2',name:'Zweiter Versandmitarbeiter',desc:'Arbeitet am zweiten Packplatz mit eigenem Wagen und eigenem Packmaterial-Regal.',hire:WIRT.personal.einstellung.packer2,wage:WIRT.personal.lohn.packer2},
   {id:'packer3',kurz:'Packer 3',lvl:29,req:'packstation3',name:'Dritter Versandmitarbeiter',desc:'Der dritte Packplatz der Versandstraße. Lohnt sich, wenn täglich viele Bestellungen offen bleiben.',hire:WIRT.personal.einstellung.packer3,wage:WIRT.personal.lohn.packer3},
-  /* Werk West (Produktion 15.10., 05s): werk = Nummer der Straße (-1 Mischer). Sie arbeiten im Werk an ihrer Straße und laufen
-     nicht durchs Wegenetz (hireStaff legt keine Figur an); Lohn laeuft auch, wenn die Straße steht. Erfahrung = Produktionstage. */
-  {id:'mischer',kurz:'Mischer',lvl:33,req:'fabrik',werk:-1,name:'Mischer im Mischhaus',desc:'Mischt im Mischhaus hinter dem Erdwall den Satz für alle Straßen aus Oxidator, Metallpulver und Schwarzpulver. Ohne Mischer steht das ganze Werk.',hire:WIRT.personal.einstellung.mischer,wage:WIRT.personal.lohn.mischer},
-  {id:'werker1',kurz:'Werker 1',lvl:33,req:'fabrik',werk:0,name:'Werker Raketenstraße',desc:'Führt Straße 1: rüstet um, füllt die Magazine, behebt Störungen. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker1,wage:WIRT.personal.lohn.werker1},
-  {id:'werker2',kurz:'Werker 2',lvl:35,req:'fabrik2',werk:1,name:'Werker Kugelbombenstraße',desc:'Führt Straße 2 mit Trockentunnel und Trockenkammern. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker2,wage:WIRT.personal.lohn.werker2},
-  {id:'werker3',kurz:'Werker 3',lvl:37,req:'fabrik3',werk:2,name:'Werker Batteriestraße',desc:'Führt Straße 3, die schnellste im Werk. Mit jedem Produktionstag weniger Ausschuss und bessere Effekte.',hire:WIRT.personal.einstellung.werker3,wage:WIRT.personal.lohn.werker3}
 ];
 /* Einkauf (Tom, 25.09., zweite Runde; 26.09. nachgeschaerft): keine
    Lieferanten mit eigenem Sortiment mehr. Drei Stufen, jede mit eigenem
@@ -700,18 +676,6 @@ function mkRacks(){
   /* 07.10.: im hinteren Ende steht jetzt die Versandecke (Packstation, Box vor dem Rolltor V1) -
      die beiden Plaetze an der Ostseite gibt es nicht mehr */
   [-24.4,-27.6].forEach(z=>{ add(-17.8,z,0,5.0,'lager_sued2'); });
-  /* Logistikhalle in drei Stufen (seit 24.09.). Die Tore liegen an
-     der Suedwand (z -34), davor bleiben vier Meter frei; der Weg von
-     der Schleuse (z -22,4 bis -18,6) laeuft zwischen den Reihen. */
-  [-18.0,-22.0,-26.0].forEach(z=>{ add(-41.5,z,0,5.0,'lager_west'); add(-35.0,z,0,5.0,'lager_west'); });
-  [-14.0,-18.0,-22.0,-26.0].forEach(z=>{ add(-52.5,z,0,6.4,'lager_west2'); add(-47.5,z,0,6.4,'lager_west2'); });
-  [-12.0,-16.0,-20.0,-24.0,-28.0].forEach(z=>{ add(-63.0,z,0,6.4,'lager_west3'); add(-59.0,z,0,6.4,'lager_west3'); });
-  /* Halle Etappe A (14.10.): mit der Lagerlogistik wird die Halle zum Hochregallager - die freien Plaetze
-     dort entfallen (weg), dafuer bekommt das Kartonlager ③ zwei Reihen (Nordwand und gelbe Wand). Lagerregale,
-     die dort standen, ziehen beim Kauf um (llRaeumen, 11f); Plaetze am Ende der Liste, damit alte Staende passen. */
-  for(const sl of A) if(sl.zone&&sl.zone.indexOf('lager_west')===0) sl.weg='lagerlogistik';
-  [-34.6,-31.5,-28.4,-25.3,-22.2].forEach(x=>add(x,-7.55,Math.PI,5.0,'lagerlogistik'));
-  [-34.6,-31.5,-28.4].forEach(x=>add(x,-16.45,0,5.0,'lagerlogistik'));
   return A;
 }
 const RACKS=mkRacks();

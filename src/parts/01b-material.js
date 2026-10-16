@@ -47,14 +47,14 @@ const MAT=(function(){
     lichtgrau:        [0xdcdfe4,'Lichtgrau','Regalboeden, helle Verkleidungen, Kunststoff hellgrau, Torblatt aller Ladetore (alter R1)','≈ RAL 7035'],
     weiss:            [0xe8ecf2,'Weiss','Decken, Putz, Kunststoff weiss, Schnee, Etiketten','≈ RAL 9016'],
     cremeweiss:       [0xf2efe6,'Cremeweiss','warme Weisstoene: Fensterbaenke, Putz warm, Papier','≈ RAL 9001'],
-    steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm; Betonzellen und Brandwaende im Werk (Etappe B)','≈ RAL 7030'],
+    steingrau:        [0x9a958c,'Steingrau','Naturstein, Pflaster, Mauerwerk warm','≈ RAL 7030'],
     signalgelb:       [0xf9a800,'Signalgelb','Warnfarbe: Anfahrschutz, Bodenmarkierung, Absperrgitter, Kran, Torantrieb','RAL 1003'],
     schildgold:       [0xffd23f,'Schildgold','Hausstil-Schrift und -Rahmen auf Nachtblau (Schilder, Logo, Automat) - vorher zwei Golds (#ffd23f, #f2c230)','–'],
-    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten, Traversen der Palettenregale (Hochregal)','≈ RAL 2000'],
+    signalorange:     [0xed760e,'Signalorange','Blink-/Warnleuchten (Gehaeuse, Glas aus), Tasten, Traversen der Lagerregale','≈ RAL 2000'],
     signalrot:        [0xd8352a,'Signalrot','Not-Halt, Ampel rot (aus), rote Bedienteile, Markierung rot','≈ RAL 3020'],
     feuerrot:         [0xaf2b1e,'Feuerrot','Brandschutz: Hydrant, Feuerloescher; dunkle Rotteile','RAL 3000'],
-    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, Gehweg-Markierung, gruene Bedienteile','≈ RAL 6024'],
-    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau (Stuetzen Hochregal), Hinweisschilder','≈ RAL 5005'],
+    signalgruen:      [0x2f9e57,'Signalgruen','Ampel gruen (aus), Fluchtweg, gruene Bedienteile','≈ RAL 6024'],
+    signalblau:       [0x2a5a9e,'Signalblau','blaue Bedienteile, Regalrahmen blau (Stuetzen Lagerregal), Hinweisschilder','≈ RAL 5005'],
     nachtblau:        [0x1b2340,'Nachtblau','Hausfarbe Schilder/Laden (mit Schildgold)','≈ RAL 5011'],
     tannengruen:      [0x2a4a33,'Tannengruen','Stadtmoebel gruen (Litfass, Baenke), Hecken-Kaesten','≈ RAL 6009'],
     holzPalette:      [0xc49a62,'Holz Palette','Europaletten, Kisten, helles Holz','–'],
@@ -62,8 +62,6 @@ const MAT=(function(){
     holzDunkel:       [0x4a3624,'Holz dunkel','Ladenfronten Holz, Tueren, Moebel dunkel','–'],
     wellpappe:        [0xc89b5c,'Wellpappe','Kartons, Packband braun','–'],
     messing:          [0xc9a14e,'Messing','Tuerklinken, Schluessel, Rahmen golden','–'],
-    /* Werk West (Etappe B, 15.10.): eigene Bedeutung - Erdung/Entladen (Kupferplatte an jeder Zellentuer, Pflicht in Pyro-Werken) */
-    kupfer:           [0xb5713f,'Kupfer','Erdungsplatten an Zellentueren (Entladen), Kupferschienen','–'],
     glasKlar:         [0xd6ecff,'Glas klar','Toenung fuer Glas (immer transparent)','–'],
     /* Anzeigen/LEDs an Geraeten (Einheit 15.10.): eigene Bedeutung - leuchtende Bedienanzeigen (Klasse leucht, unbeleuchtet) */
     anzeigeGruen:     [0x37d977,'Anzeige gruen','LED/Signalleuchte bereit/frei (Kasse, SB-Kasse, Automat)','–'],
@@ -139,26 +137,17 @@ const MAT=(function(){
     torBlatt:         {f:0xffffff,tex:'torBlatt',vertexColors:true,k:'lackMetall',w:'Torblatt aller Ladetore (Sektionen lichtgrau wie der alte R1, Lichtband, Warnstreifen) - Atlas torBlatt'},
     ampelRot:         {f:0x300808,emissive:LIN(0xff2a2a),emissiveIntensity:1.4,k:'kunststoff',w:'Torampel rot (Tor zu) - nur MAT.neu, Leuchtstaerke schaltet'},
     ampelGruen:       {f:0x082a12,emissive:LIN(0x3dff7a),emissiveIntensity:0,k:'kunststoff',w:'Torampel gruen (Tor offen) - nur MAT.neu, Leuchtstaerke schaltet'},
-    /* Halle Etappe A (14.10.): Gitterroste im Hochregal und Bodenmarkierung Gehweg (bk.hochregal, bk.bodenmarkierung).
-       Boden-Markierungen liegen 3-5 mm ueber dem Boden und schieben sich zusaetzlich per polygonOffset nach vorn. */
-    gitterRost:       {f:'silbergrau',tex:'drahtgitter',transparent:true,alphaTest:0.35,side:THREE.DoubleSide,k:'stahl',w:'Gitterrost verzinkt im Palettenregal (UV 0,2 m je Kachel, Masche 5 cm)'},
-    markierungGruen:  {f:'signalgruen',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Bodenmarkierung Gehweg gruen (Halle, Kartonlager)'},
-    markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
-    lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
+    /* Boden-Markierungen liegen 3-5 mm ueber dem Boden und schieben sich zusaetzlich per polygonOffset nach vorn. */
     freihalteflaeche: {f:0xffffff,tex:'freihalteschraffur',transparent:true,depthWrite:false,k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Freihalteflaeche am Boden: gelbe Schraffur 45° auf dem Belag (Versandbereich, kuenftige Stationen; UV in Metern / 0,4)'},
     bodenSchrift:     {f:0xffffff,k:'matt',transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Bodenschrift (ANLIEFERUNG, VERSANDHOF): eigene Textur je Text ueber bk.bodenmarkierung - nur MAT.neu mit map'},
     sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
-    /* Werk West (Halle Etappe B, 15.10.): Betonzellen, Glas (Leitstand, Schnelllauftor), Erdwall, PVC-Behang */
-    betonZelle:       {f:'cremeweiss',tex:'beton',k:'matt',w:'Betonzellen, Brandwaende und Satz-Bunker im Werk (bk.zelle) - UV in Metern / 2,4; Toenung Cremeweiss x graue Betontextur = sichtbar Steingrau (Steingrau selbst x Textur waere fast schwarz)'},
-    glasScheibe:      {f:'glasKlar',k:'blank',transparent:true,opacity:0.24,depthWrite:false,w:'Glasscheibe klar (Leitstand-Front, Sichtfenster Schnelllauftor) - durchsichtig, getoent'},
-    erdwall:          {f:0xffffff,tex:'rasen',k:'matt',w:'Erdwall/Boeschung mit Winterwiese (bk.erdwall) - UV in Metern / 4'},
-    pvcBehang:        {f:'signalgelb',k:'kunststoff',side:THREE.DoubleSide,w:'Behang Schnelllauftor PVC (bk.tor art schnelllauf) - Warnfarbe, schnell bewegtes Teil'},
+    glasScheibe:      {f:'glasKlar',k:'blank',transparent:true,opacity:0.24,depthWrite:false,w:'Glasscheibe klar (Schaufenster, Tueren, Lagerfenster, Kuehlregal) - durchsichtig, getoent'},
     torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'},
     /* Einheit (15.10., Regale/Kassen/Fenster/Tueren/Schilder/Bodenmarkierung, docs/fundament/einheit.md): vorher je Bauort eigene
        Materialien (pegMat, kasseRueckMat, _postM/_deckM in 06, coldGlass, Glas je Tuer/Fenster, regalPaketMat in 08b) */
     lochblech:        {f:0xffffff,tex:'lochblech',k:'kunststoff',w:'Rueckwand Verkaufsregal: pulverbeschichtetes Lochblech, Loch 5 cm (UV 0,4 m je Kachel); Farbe folgt der Wand - nur MAT.neu'},
     lochblechKasse:   {f:'lichtgrau',tex:'lochblech',k:'kunststoff',w:'Rueckwand Kassenregal: Lochblech lichtgrau wie die Kasse (UV 0,4 m je Kachel)'},
-    regalStuetze:     {f:'signalblau',tex:'lochprofil',k:'lackMetall',w:'Stuetzen der Lagerregale: Lochprofil Signalblau (wie Hochregal und Packmaterial-Regal), Kachel 2,34 m hoch (Lochabstand 10 cm)'},
+    regalStuetze:     {f:'signalblau',tex:'lochprofil',k:'lackMetall',w:'Stuetzen der Lagerregale: Lochprofil Signalblau (wie das Packmaterial-Regal), Kachel 2,34 m hoch (Lochabstand 10 cm)'},
     regalBoden:       {f:0xffffff,tex:'stahlboden',k:'stahl',w:'Fachboden Lagerregal: verzinkte Stahlblechauflage mit Kantung (Kachel = 0,8 m)'},
     regalPaket:       {f:0xffffff,tex:'regalPaket',k:'kunststoff',w:'Flachpaket eines Regals in Folie (LKW, getragen, abgestellt)'},
     gitterBox:        {f:'aluminium',tex:'drahtgitter',alphaTest:0.4,side:THREE.DoubleSide,k:'stahl',w:'Drahtgitter der Gitterbox (UV 0,2 m je Kachel); Farbe folgt dem Regalgestell - nur MAT.neu'},
@@ -168,7 +157,6 @@ const MAT=(function(){
     scannerGlas:      {f:'gummischwarz',tex:'scannerGlas',k:'blank',w:'Scannerscheibe in der Kassenplatte (Glas mit Kratzern)'},
     kassenTastatur:   {f:0xffffff,tex:'kassenTastatur',k:'kunststoff',w:'Kassentastatur (Tasten beschriftet, Summentaste gruen)'},
     kassenband:       {f:0xffffff,tex:'kassenband',k:'matt',w:'Laufband der Kasse (Gummi mit Rillen; eigene Kopie der Textur, weil sie laeuft - offset)'},
-    pvcStreifen:      {f:0xffffff,vertexColors:true,transparent:true,opacity:0.38,side:THREE.DoubleSide,depthWrite:false,k:'kunststoff',w:'PVC-Streifenvorhang (bk.tuer art streifen): halbdurchsichtige Streifen'},
     fensterSchmutz:   {f:0xffffff,tex:'fensterSchmutz',transparent:true,opacity:0,depthWrite:false,k:'matt',w:'Schmutzschicht auf den Schaufenstern (Spielzustand S.grime, Deckkraft je Fenster) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
@@ -270,7 +258,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassade (Fundament-Schritt 2, 16.10.; vorher Faserzementtafeln 1,18 m mit Punkten und gemaltem Sockel, Tom: "flache Platten
      mit Punkten"): Sandwichpaneele quer wie an Gewerbebauten - Deckbreite 1,0 m (Nut-Feder-Fuge mit Schattenkante), feine
      Mikrolinierung, Stossprofil (Alu) alle 6 m mit Schrauben, an der Zwischenstuetze (3 m) zwei Schrauben je Paneel, Laufspuren
@@ -392,20 +380,6 @@ const MAT=(function(){
         for(let x=16;x<W;x+=51){ g.beginPath(); g.moveTo(x-2,0); g.lineTo(x-2,H); g.stroke(); }
       });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
-    /* Fussgaenger-Piktogramm (Halle Etappe A, 14.10.): gruenes Feld, weisse Figur im Schritt, wie Gehweg-Markierungen
-       in Logistikhallen (ASR A1.8 Verkehrswege). Eine Kachel = ein Piktogramm (0,8 m). */
-    /* Winterwiese (Etappe B, 15.10.): Erdwall um das Mischhaus. Kachel 4 m, Gras mit Schneeresten - wie der Park (05n), aber geteilt und kachelbar */
-    rasen:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#56663f'; g.fillRect(0,0,W,H);
-        let sd=11; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
-        for(let i=0;i<5200;i++){ const v=rnd(); g.fillStyle=v<0.5?`rgba(40,52,28,${rnd()*0.35})`:`rgba(150,160,110,${rnd()*0.18})`; g.fillRect(rnd()*W,rnd()*H,1+rnd()*2,2+rnd()*3); }
-        for(let i=0;i<10;i++){ const x=rnd()*W, y=rnd()*H, r=8+rnd()*26, gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(236,240,246,.4)'); gr.addColorStop(1,'rgba(236,240,246,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
-    fussgaenger:()=>{ const t=tex(128,128,(g,W,H)=>{ g.fillStyle=css('signalgruen'); g.fillRect(0,0,W,H);
-        g.fillStyle=css('weiss'); g.strokeStyle=css('weiss'); g.lineCap='round'; g.lineWidth=11;
-        g.beginPath(); g.arc(68,20,11,0,Math.PI*2); g.fill();
-        const L=(a,b,c,d)=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c,d); g.stroke(); };
-        L(64,40,58,76); L(58,76,40,108); L(58,76,78,94); L(78,94,76,116); L(62,46,40,64); L(62,46,86,62); });
-      t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; t.anisotropy=4; return t; },
     /* Drahtgitter (Schweissgitter), weiss, Farbe ueber das Material (13.10., vorher gitterTex() in 06 fuer die
        Gitterbox und vsGitterMat() in 05h fuer die Ladezone - zwei Malcodes, zwei Maschenweiten). Kachel = 4 Maschen,
        UV-Massstab 0,2 m je Kachel -> Masche 5 cm. */

@@ -30,12 +30,8 @@ const PLZ_MAX=10.8;
 let SPIEL_RAUM=null;
 const keys={}; const joy={x:0,y:0,id:null,ox:0,oy:0};
 let sprayOn=false, sprayCool=0, build=false, grabbed=null, grabRy=0, grabHome=null;
-/* Werk West (Halle Etappe B, 15.10.): Bodenhoehe unter dem Spieler (Treppe und Leitstand-Galerie +3,2 m, 05r wkBoden) */
-function bodenHoehe(x,z){ return typeof wkBoden==='function'?wkBoden(x,z):0; }
-let plBoden=0;
 function collide(p,R){
   for(const c of colliders){
-    if(c.nurNav) continue;   /* Tuer, die nur der Spieler oeffnet (Personaltuer Halle): Wegenetz zu, Spieler darf durch */
     const cx=clamp(p.x,c.minX,c.maxX), cz=clamp(p.z,c.minZ,c.maxZ), dx=p.x-cx, dz=p.z-cz, d2=dx*dx+dz*dz;
     if(d2<R*R){
       if(d2>1e-8){ const d=Math.sqrt(d2); p.x=cx+dx/d*R; p.z=cz+dz/d*R; }
@@ -51,8 +47,7 @@ function collide(p,R){
      dasselbe Rechteck, auf dem auch das Navgitter steht. */
   /* Verpackungs-Vorfuehrung: eigener Raum ausserhalb der Karte */
   if(SPIEL_RAUM){ p.x=clamp(p.x,SPIEL_RAUM.x0+0.4,SPIEL_RAUM.x1-0.4); p.z=clamp(p.z,SPIEL_RAUM.z0+0.4,SPIEL_RAUM.z1-0.4); return; }
-  /* mit dem Werk (Kapitel 8) reicht die Welt nach Westen bis x -124 - das Wegenetz der Kunden nicht (dort laeuft niemand) */
-  p.x=clamp(p.x,typeof wkWeltX0==='function'?wkWeltX0():NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
+  p.x=clamp(p.x,NAV.x0+0.4,NAV.x1-0.4); p.z=clamp(p.z,NAV.z0+0.4,PLZ_MAX);
 }
 function look(dx,dy,s){ aim=null; yaw-=dx*s; pitch=clamp(pitch-dy*s,-1.45,1.45); }
 function updatePlayer(dt){
@@ -71,8 +66,7 @@ function updatePlayer(dt){
   const schrittNr=Math.floor(bobT/Math.PI);
   if(schrittNr!==schrittAlt){ schrittAlt=schrittNr; if(Math.hypot(pl.x-x0,pl.z-z0)>dt*0.8&&!paused) sfx.schritt(1,typeof unterDach==='function'?!unterDach(pl.x,1.0,pl.z):false); }
   const sx=shake>0?rand(-shake,shake)*0.15:0; shake=Math.max(0,shake-dt*1.5);
-  { const bz=bodenHoehe(pl.x,pl.z); plBoden=Math.abs(bz-plBoden)>1.0?bz:plBoden+(bz-plBoden)*Math.min(1,dt*14); }
-  camera.position.set(pl.x+sx,1.65+plBoden+Math.sin(bobT)*0.035+sx,pl.z);
+  camera.position.set(pl.x+sx,1.65+Math.sin(bobT)*0.035+sx,pl.z);
   updateAim(dt);
   camera.rotation.set(pitch,yaw,0);
   if(sprayCool>0) sprayCool-=dt;
@@ -99,14 +93,9 @@ const UMBAU_RAUM=[
   {r:{x0:LAY.lbasis.x0,x1:LAY.lbasis.x1,z0:LAY.lbasis.z0,z1:LAY.lnord.z1},z:'lager_nord'},
   {r:LAY.ls1,  z:'lager_gross'},
   {r:{x0:LAY.ls1.x0,x1:LAY.ls1.x1,z0:LAY.ls2.z0,z1:LAY.ls1.z1},z:'lager_sued'},
-  {r:LAY.lsued,z:'lager_sued2'},
-  {r:LAY.lw1,z:'lager_west'},{r:LAY.lw2,z:'lager_west2'},{r:LAY.lwest,z:'lager_west3'},
-  /* Halle Etappe A: Ostteil von ③ (x −26…−19,9) */
-  {r:{x0:-36,x1:-19.9,z0:-17,z1:-7},z:'lagerlogistik'}
+  {r:LAY.lsued,z:'lager_sued2'}
 ];
 function imRaum(minX,maxX,minZ,maxZ){
-  /* Halle Etappe A: Hochregal, Anbruch, Stellplaetze, Packmaterial, Schleuse sind belegt (05q) */
-  if(typeof llSperrt==='function'&&llSperrt(minX,maxX,minZ,maxZ)) return false;
   return UMBAU_RAUM.some(b=>(!b.z||zoneOffen(b.z))&&
     minX>=b.r.x0+0.08&&maxX<=b.r.x1-0.08&&minZ>=b.r.z0+0.08&&maxZ<=b.r.z1-0.08);
 }
@@ -320,7 +309,6 @@ function updateTarget(){
   for(const k in stations) if(nahDran(stations[k].g.position,R)) list.push(stations[k].hit);
   if(typeof vp2An!=='undefined'&&vp2An) for(const e of vp2Liste) if(e.hit&&nahDran(e.hit.position,R)) list.push(e.hit);
   list.push(lapHit,doorSign,posHit,cardHit);
-  if(typeof pdHits==='function') list.push(...pdHits());   /* Werk West: Leitstand-Pult, gestoerte Zelle (05s) */
   if(lapHit2&&lapHit2.parent&&lapHit2.parent.visible) list.push(lapHit2);
   if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
   if(pultHit) list.push(pultHit);
@@ -337,7 +325,6 @@ function updateTarget(){
 function promptFor(t){
   if(t&&t.kind==='ddltel'&&typeof ddlTelPrompt==='function') return ddlTelPrompt();
   if(t&&t.kind==='vpstueck') return vp2Prompt(t.ref);
-  if(t&&(t.kind==='pdleitstand'||t.kind==='pdstoer')) return pdPrompt(t);
   if(!t) return null; const c=S.carrying, reg=regCustomer();
   if(pdaOn&&!grabbed){ const pt=pdaTargetType(); if(pt) return {t:`Preisgerät: ${P[pt].short} · ${eur(S.prices[pt])}`,a:true}; }
   if(c&&c.vm&&['level','rslot','box','station','gravur'].indexOf(t.kind)>=0) return {t:'Versandmaterial gehört ins Packmaterial-Regal an der Packstation',a:false};
@@ -418,7 +405,6 @@ function doAction(){
   if(!target) return;
   if(target.kind==='ddltel'){ ddlRufen(); return; }
   if(target.kind==='vpstueck'){ vp2Weiter(target.ref); return; }
-  if(target.kind==='pdleitstand'||target.kind==='pdstoer'){ pdAktion(target); return; }
   if(pdaOn&&!grabbed){ const t=pdaTargetType(); if(t){ openPDA(t); return; } }
   const k=target.kind, r=target.ref, reg=regCustomer();
   if(k==='placing') placeGrab();

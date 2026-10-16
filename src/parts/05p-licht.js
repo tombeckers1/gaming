@@ -101,7 +101,7 @@ function raumListe(){
   for(const d of dachBereiche()) RAUM.liste.push({d,x0:d.x0+0.24,x1:d.x1-0.24,z0:d.z0+0.24,z1:d.z1-0.24,h:d.h-0.34});
   return RAUM.liste;
 }
-function raumAktiv(d){ return (!d.zone||(typeof zoneOffen==='function'&&zoneOffen(d.zone)))&&(d.stufe===undefined||typeof logiZeige!=='function'||logiZeige()===d.stufe); }
+function raumAktiv(d){ return !d.zone||(typeof zoneOffen==='function'&&zoneOffen(d.zone)); }
 /* Werte setzen, wenn sich Zonen, Ausbaustufe oder Grafikstufe aendern (sonst nichts zu tun) */
 function raumSchatten(){ return !!(renderer.shadowMap.enabled&&sun.castShadow&&!gfxNiedrig(GFX)&&sun.shadow.bias>-1); }
 /* Deckenlicht beim Laden anlegen (vor dem ersten Shader - die Zahl der Lichter steht dann fest), nur ab Mittel:

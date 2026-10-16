@@ -1437,8 +1437,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,MAT.get('anthrazitMatt'),cx,H+0.12,zf+0.02,g);
-  bbox(w+0.1,0.1,0.36,MAT.get('weissMatt'),cx,H+0.3,zf+0.04,g,false);
+  /* 16.10. (Fundament-Schritt 2): Attika mit Paneelen und Attikablech (bk.dachrand) statt Anthrazit-Band und weissem Gesims */
+  bk.dachrand({x0:x0-0.1,x1:x1+0.1,z0:zf-0.18,z1:zf+0.22,y:H-0.02,h:0.3,parent:g});
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
@@ -1446,14 +1446,10 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
      der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
      der zweite Eingang gekauft ist. */
-  { const sm=MAT.get('graphitMatt'), sx0=x0-0.06, sx1=x1+0.06;
-    const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
-    if(eingang!==undefined){
-      const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
-      sockel(sx0,l0,g); sockel(l1,sx1,g);
-      zWand('eingang2',sockel(l0,l1,g));
-    } else sockel(sx0,sx1,g);
-  }
+  /* 16.10.: den Sockel bauen die Wandstuecke selbst (bk.wand, Aussenhaut). Nur vor der zugemauerten Eingangsachse steht ein
+     eigenes Sockelstueck, bis der zweite Eingang gekauft ist. */
+  if(eingang!==undefined){ const [ea,eb]=OEFF[eingang];
+    zWand('eingang2',bk.sockelleiste({art:'aussen',laengs:true,a0:ea,a1:eb,fest:zf-0.1,dicke:0.2,seite:1})); }
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);

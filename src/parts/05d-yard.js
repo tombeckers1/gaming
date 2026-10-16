@@ -374,12 +374,9 @@ function buildYard(){
   /* Flutlicht */
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
-  for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
-    bbox(0.12,3.4,0.12,MAT.std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
-    const head=bbox(0.55,0.3,0.25,MAT.get('anthrazitMatt'),x,3.45,z); head.rotation.x=0.4;
-    const lm=new THREE.MeshStandardMaterial({color:MAT.farbe('gummischwarz'),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
-  }
+  /* 16.10. (Fundament-Schritt 2, Toms Foto fassade-0910-hof.jpg: "Kasten auf Stange"): Mastleuchten aus dem Baukasten,
+     Ausleger zur Platzmitte, nachts mit Lichtfleck */
+  bk.lampe({art:'mast',h:5.0,punkte:[[-5.6,-13.0,Math.PI*0.75],[6.6,-21.0,-Math.PI*0.25]]});
 }
 /* =========================================================
    Kanaele (Tom, 25.09.): neun, wie die Zifferntasten.

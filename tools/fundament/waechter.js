@@ -78,6 +78,7 @@ const BAUTEILE=[
   {bk:'wand',woerter:['wand','wall','trennwand','waende'],wofuer:'Waende/Paneele'},
   {bk:'sockelleiste',woerter:['sockelleiste','sockel'],wofuer:'Sockelleisten'},
   {bk:'wandbild',woerter:['wandbild'],wofuer:'Wandbilder'},
+  {bk:'dachrand',woerter:['dachrand','attika','fallrohr','regenrohr'],wofuer:'Dachrand/Attika mit Attikablech und Fallrohren (fassade.md)'},
   {bk:'palette',woerter:['palette','paletten','pallet','europalette'],wofuer:'Paletten'},
   {bk:'karton',woerter:['karton','kartons'],wofuer:'Kartons (Atlas)'},
   {bk:'regal',woerter:['regal','regale','rack','shelf','gondel'],wofuer:'Regale (Verkaufsmoebel, Lagerregal, Fachboden) - einheit.md'},
@@ -105,7 +106,7 @@ const BAUTEILE=[
   {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD'];
+const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','HOCHREGAL','ladungGeo','MARKIERUNG','kastenM','werkSammler','balken','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

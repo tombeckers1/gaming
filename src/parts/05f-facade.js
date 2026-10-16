@@ -154,9 +154,8 @@ function buildFacade(){
      hellgraues Klinkermuster - das passte zu nichts daneben. */
   /* gleich hoch und gleich tief wie an den Erweiterungen (Tom, 26.09.:
      der 87-cm-Block war zu hoch und wirkte billig) */
-  const plinthM=MAT.get('graphitMatt');
-  bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
-  bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
+  /* 16.10. (Fundament-Schritt 2): kein eigener Graphit-Block mehr - die Bruestungswaende bauen den Betonsockel mit
+     Abschlussprofil selbst (bk.wand Aussenhaut), wie an jeder Aussenwand */
   /* Poller auf dem Gehweg: Strassenpoller aus dem Baukasten (bk.poller art 'stadt', ueber stPoller
      in den Stadtmoebel-Sammler, 05e) - vorher eigener Vierkant anthrazit mit Goldkappe (14.10.) */
   for(const x of [-5.4,5.4]){

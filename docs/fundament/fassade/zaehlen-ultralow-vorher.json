@@ -1,0 +1,66 @@
+{
+ "front-tag": {
+  "calls": 2174,
+  "tris": 2587741
+ },
+ "frontOst-tag": {
+  "calls": 2417,
+  "tris": 2651761
+ },
+ "hofR1-tag": {
+  "calls": 2342,
+  "tris": 2492405
+ },
+ "hofPyro-tag": {
+  "calls": 1785,
+  "tris": 2538902
+ },
+ "versandhof-tag": {
+  "calls": 1101,
+  "tris": 2345954
+ },
+ "hofWest-tag": {
+  "calls": 708,
+  "tris": 2249128
+ },
+ "nah-tag": {
+  "calls": 2246,
+  "tris": 2456093
+ },
+ "front-nacht": {
+  "calls": 2152,
+  "tris": 2590755
+ },
+ "frontOst-nacht": {
+  "calls": 2445,
+  "tris": 2662639
+ },
+ "hofR1-nacht": {
+  "calls": 2360,
+  "tris": 2493179
+ },
+ "hofPyro-nacht": {
+  "calls": 1790,
+  "tris": 2539590
+ },
+ "versandhof-nacht": {
+  "calls": 1111,
+  "tris": 2347250
+ },
+ "hofWest-nacht": {
+  "calls": 706,
+  "tris": 2249698
+ },
+ "nah-nacht": {
+  "calls": 2250,
+  "tris": 2457797
+ },
+ "_graf": {
+  "meshes": 4347,
+  "materialien": 1140,
+  "texturen": 686,
+  "texturMB": 713.5,
+  "gpuTexturen": 638,
+  "gpuGeometrien": 3258
+ }
+}

@@ -130,9 +130,10 @@ function buildWorld(){
   /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
      hinausragen: dahinter steht das hoehere Lager, und der
      Ueberstand stand dort als dunkler Balken quer in der Wand. */
-  bbox(16.2,0.25,12.4,MAT.get('anthrazitMatt'),0.1,H+0.13,0);
-  /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
-  bbox(12.4,0.25,12.4,MAT.get('anthrazitMatt'),-14,LAGER_H+0.13,-0.1);
+  /* 16.10. (Fundament-Schritt 2): Attika mit Paneelen und Attikablech statt der 25-cm-Platte (bk.dachrand) - gleiche Aussenkanten */
+  bk.dachrand({x0:-8.0,x1:8.2,z0:-6.2,z1:6.2,y:H+0.005});
+  /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen; Fallrohre an der Hofseite (West) */
+  bk.dachrand({x0:-20.2,x1:-7.8,z0:-6.3,z1:6.1,y:LAGER_H+0.005,fallrohre:[[-20.1,-5.75,'-x'],[-20.1,5.6,'-x']]});
   const ceil=MAT.get('weissMatt');
   /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
      stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */

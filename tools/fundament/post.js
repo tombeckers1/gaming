@@ -40,7 +40,7 @@ try{ if(typeof wall==='function'){ wall=WR(wall,'wall'); } }catch(e){}
 try{ if(typeof stuetze==='function'){ stuetze=WR(stuetze,'stuetze'); } }catch(e){}
 try{ if(typeof sockelLeiste==='function'){ sockelLeiste=WR(sockelLeiste,'sockelLeiste'); } }catch(e){}
 try{ if(typeof leuchtenRaster==='function'){ leuchtenRaster=WR(leuchtenRaster,'leuchtenRaster'); } }catch(e){}
-try{ if(typeof hofMast==='function'){ hofMast=WR(hofMast,'hofMast'); } }catch(e){}
+try{ if(typeof hofMasten==='function'){ hofMasten=WR(hofMasten,'hofMasten'); } }catch(e){}
 try{ if(typeof strassenlampe==='function'){ strassenlampe=WR(strassenlampe,'strassenlampe'); } }catch(e){}
 try{ if(typeof buildFacade==='function'){ buildFacade=WR(buildFacade,'buildFacade'); } }catch(e){}
 try{ if(typeof buildNachbar==='function'){ buildNachbar=WR(buildNachbar,'buildNachbar'); } }catch(e){}

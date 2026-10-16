@@ -976,12 +976,18 @@ const MAT=(function(){
        Metern, der Massstab steht im repeat der Textur - jede dieser Texturen gehoert genau einem Material).
        Vorher wallBrickMat()/lagerWall/blechMat()/trimMat in 05-world und 05h mit freien Werten. Ladenwand
        (shopWall) bleibt eigen: Tapete waehlt der Spieler (05o). */
-    wandFassade:      {f:0xffffff,tex:'fassade',k:'matt',     w:'Aussenwand: Faserzementtafeln 1,18 m mit dunklem Sockel (Kachel 2,4 x 8 m)'},
+    /* Fassade (Fundament-Schritt 2, 16.10., Toms Fotos fassade-0910-*.jpg): weisse Sandwichpaneele quer, Deckbreite 1,0 m, Stossprofil
+       alle 6 m, Befestigung an den Stuetzen (alle 3 m), Laufspuren. Der Sockel ist seit 16.10. ein eigenes Bauteil (bk.wand baut ihn
+       an jede Aussenwand am Boden: Betonsockel 0,5 m + Abschlussprofil), nicht mehr in die Textur gemalt. */
+    wandFassade:      {f:0xffffff,tex:'fassade',k:'matt',     w:'Aussenwand: Sandwichpaneele quer 1,0 m, Stossprofil alle 6 m, Schrauben an den Stuetzen, Laufspuren (Kachel 6 x 2 m)'},
     wandLager:        {f:0xffffff,tex:'lagerwand',k:'matt',   w:'Lagerwand innen: hell mit gelb-schwarzem Sockelband 35 cm (Kachel 2,6 x 3,6 m)'},
-    wandBlech:        {f:0xffffff,tex:'trapezblech',k:'lackMetall',w:'Hallenwand aussen: Trapezblech, Sicke 0,4 m (Kachel 3,2 m)'},
+    wandBlech:        {f:0xffffff,tex:'trapezblech',k:'lackMetall',w:'Hallenwand aussen: Trapezblech, Sicke 0,4 m, Schraubreihe je Riegel 1,6 m, Laufspuren (Kachel 3,2 x 1,6 m)'},
     wandLaibung:      {f:'aluminium',k:'matt',     w:'Laibung (Stirnseiten an Oeffnungen), wenn die Wand keine eigene vorgibt'},
     wandPutz:         {f:'lichtgrau',k:'matt',     w:'Fensterlaibung heller Putz'},
-    sockelAussen:     {f:'graphit',k:'matt',       w:'Spritzwassersockel aussen an Hallenwaenden'},
+    sockelAussen:     {f:0xffffff,tex:'sockelBeton',k:'matt',w:'Betonsockel/Spritzschutz 0,5 m vor jeder Aussenwand (Fassade, Trapezblech) - Struktur, Fuge alle 2 m, Spritzschmutz (Kachel 2 x 0,5 m)'},
+    /* Hof- und Wandleuchten (bk.lampe mast/wand, 16.10.): Leuchtflaeche opal, nachts warmweiss - veraenderlich, nur ueber MAT.neu
+       (bk.lampe holt EIN Material fuer alle Aussenleuchten und haengt es an lampMats). */
+    lampeAussen:      {f:'lichtgrau',k:'kunststoff',emissive:LIN(0xfff0d0),emissiveIntensity:0,w:'Leuchtflaeche der Hof-/Mast-/Wandleuchten (opal, nachts warmweiss) - nur MAT.neu'},
     /* Tore (Fundament Schritt "Tore", 13.10.): ein Material fuer jedes Torblatt (Atlas-Textur torBlatt, Zeile je
        Paneltyp, Kleinteile ueber Vertexfarben auf der weissen Zeile) und die drei Zustandsleuchten. Die Leuchten
        sind veraenderlich (emissiveIntensity) - nur ueber MAT.neu(...) holen, nie MAT.get. */
@@ -1119,50 +1125,107 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
-  /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
-     wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
-  const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  /* Fassade (Fundament-Schritt 2, 16.10.; vorher Faserzementtafeln 1,18 m mit Punkten und gemaltem Sockel, Tom: "flache Platten
+     mit Punkten"): Sandwichpaneele quer wie an Gewerbebauten - Deckbreite 1,0 m (Nut-Feder-Fuge mit Schattenkante), feine
+     Mikrolinierung, Stossprofil (Alu) alle 6 m mit Schrauben, an der Zwischenstuetze (3 m) zwei Schrauben je Paneel, Laufspuren
+     unter den Schrauben, leichte Wolkigkeit. Kachel 6 x 2 m, wiederholt in beide Richtungen (der Sockel ist eigenes Bauteil). */
+  const FASS={b:6.0, h:2.0, paneel:1.0, stuetze:3.0};
+  /* zufaellig, aber fest (gleiches Bild bei jedem Laden) */
+  const zufall=s=>()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; };
+  /* auf einer kachelbaren Flaeche zeichnen: f(ox,oy) fuer die 9 Lagen, damit Ueberhaenge am Rand gegenueber wieder auftauchen */
+  const rund=(W,H,f)=>{ for(const ox of [-W,0,W]) for(const oy of [-H,0,H]) f(ox,oy); };
+  /* Laufspur: senkrechter Streifen nach unten, oben kraeftig, unten auslaufend */
+  const spur=(g,x,y,b,l,a,ton)=>{ const gr=g.createLinearGradient(0,y,0,y+l); gr.addColorStop(0,'rgba('+ton+','+a+')'); gr.addColorStop(1,'rgba('+ton+',0)'); g.fillStyle=gr; g.fillRect(x-b/2,y,b,l); };
   /* Layout des Paletten-Atlas (Pixel im 256er-Bild, y von oben): EPAL-Brand 0..128 x 0..64, IPPC-Stempel 128..256 x 0..64,
      Maserung 72..252 (Streifen). Texel-Rand 1 px gegen Filterung in die Nachbarzelle. UV = [u0,v0,u1,v1] (v nach oben). */
   const PAL_UV=(()=>{ const N=256, uv=(x0,y0,x1,y1)=>[(x0+1)/N,1-(y1-1)/N,(x1-1)/N,1-(y0+1)/N];
     return {epal:uv(0,0,128,64),ippc:uv(128,0,256,64),maser:uv(0,72,256,252),maserY0:72,maserY1:252,N}; })();
   const TEXTUR={
-    /* Malcode unveraendert aus 05-world.js (fassadeTex, 26.09.) */
-    fassade:()=>{ const t=tex(256,1024,(g,W,H)=>{
-        const mx=W/FASS.b, my=H/FASS.h, yv=m=>H-m*my;
-        g.fillStyle='#c9cbc7'; g.fillRect(0,0,W,H);
-        { let sd=7; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
-          for(let m=FASS.sockel;m<FASS.h;m+=FASS.tafel){ const y0=H-(m+FASS.tafel)*my, y1=H-m*my;
-            for(const [xa,xb] of [[0,W/2],[W/2,W]]){ const t2=(rnd()-0.5)*2; g.fillStyle=`rgba(${t2>0?'255,255,255':'96,100,106'},${Math.abs(t2)*0.085})`; g.fillRect(xa,y0,xb-xa,y1-y0); } } }
-        for(let i=0;i<70;i++){ const r=rand(40,150); g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,128'},${rand(0.012,0.045)})`; g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1.0),rand(0,3.14),0,Math.PI*2); g.fill(); }
-        for(let i=0;i<14000;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'90,94,98'},${rand(0.02,0.09)})`; g.fillRect(Math.random()*W,Math.random()*H,1,1); }
-        for(let i=0;i<90;i++){ const x=rand(0,W), y=rand(yv(FASS.h),yv(FASS.sockel)), l=rand(20,140); g.fillStyle=`rgba(96,99,104,${rand(0.02,0.06)})`; g.fillRect(x,y,rand(1,3),l); }
-        const fugeV=x=>{ const w2=Math.max(2,Math.round(0.022*mx)); g.fillStyle='rgba(58,60,64,.62)'; g.fillRect(x-w2/2,0,w2,H); g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x+w2/2,0,1.5,H); g.fillStyle='rgba(30,32,36,.30)'; g.fillRect(x-w2/2-1.5,0,1.5,H); };
-        const fugeH=y=>{ const w2=Math.max(2,Math.round(0.022*my)); g.fillStyle='rgba(58,60,64,.58)'; g.fillRect(0,y-w2/2,W,w2); g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(0,y+w2/2,W,1.5); };
-        for(let m=FASS.sockel;m<FASS.h+FASS.tafel;m+=FASS.tafel) fugeH(yv(m));
-        fugeV(0); fugeV(W/2); fugeV(W);
-        g.fillStyle='rgba(84,88,94,.5)';
-        for(let m=FASS.sockel+0.10;m<FASS.h;m+=FASS.tafel) for(const x of [0.12*mx,W/2-0.12*mx,W/2+0.12*mx,W-0.12*mx]){ g.beginPath(); g.arc(x,yv(m),Math.max(1,0.018*my),0,Math.PI*2); g.fill(); }
-        const sy=yv(FASS.sockel);
-        g.fillStyle='#3b4049'; g.fillRect(0,sy,W,H-sy);
-        for(let i=0;i<5000;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'0,0,0'},${rand(0.02,0.08)})`; g.fillRect(Math.random()*W,sy+Math.random()*(H-sy),1,1); }
-        const sp=g.createLinearGradient(0,H-0.45*my,0,H); sp.addColorStop(0,'rgba(24,26,30,0)'); sp.addColorStop(1,'rgba(24,26,30,.55)'); g.fillStyle=sp; g.fillRect(0,H-0.45*my,W,0.45*my);
-        g.fillStyle='#9aa0a8'; g.fillRect(0,sy-Math.max(2,0.05*my),W,Math.max(2,0.05*my));
-        g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,sy-Math.max(2,0.05*my),W,1.5);
-        g.fillStyle='rgba(20,22,26,.45)'; g.fillRect(0,sy,W,2); });
-      t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8; return t; },
+    fassade:()=>{ const t=tex(1024,256,(g,W,H)=>{
+        const mx=W/FASS.b, my=H/FASS.h, rnd=zufall(7), np=Math.round(FASS.h/FASS.paneel), ph=H/np;
+        g.fillStyle='#cfd2cf'; g.fillRect(0,0,W,H);
+        /* Wolkigkeit (sehr schwach, kachelbar) */
+        for(let i=0;i<34;i++){ const x=rnd()*W, y=rnd()*H, r=40+rnd()*170, hell=rnd()<0.45, a=0.012+rnd()*0.022, q=0.35+rnd()*0.5, w=rnd()*3;
+          rund(W,H,(ox,oy)=>{ g.fillStyle=hell?'rgba(255,255,255,'+a+')':'rgba(112,114,110,'+a+')'; g.beginPath(); g.ellipse(x+ox,y+oy,r,r*q,w,0,Math.PI*2); g.fill(); }); }
+        /* je Paneel: Deckschale oben etwas heller, unten etwas dunkler (leicht gewoelbt), Ton je Paneel minimal anders */
+        for(let i=0;i<np;i++){ const y0=i*ph, d=(rnd()-0.5)*0.04, gr=g.createLinearGradient(0,y0,0,y0+ph);
+          gr.addColorStop(0,'rgba(255,255,255,'+(0.10+d).toFixed(3)+')'); gr.addColorStop(0.45,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(66,70,74,0.08)');
+          g.fillStyle=gr; g.fillRect(0,y0,W,ph); }
+        /* Mikrolinierung alle 10 cm (Licht von oben: helle Kante, darunter ein Hauch Schatten) */
+        for(let y=0.05*my;y<H;y+=0.1*my){ g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(0,Math.round(y),W,1); g.fillStyle='rgba(40,44,48,.045)'; g.fillRect(0,Math.round(y)+1,W,1); }
+        /* Koernung */
+        for(let i=0;i<9000;i++){ g.fillStyle=rnd()<0.5?'rgba(255,255,255,'+(0.02+rnd()*0.05).toFixed(3)+')':'rgba(86,90,94,'+(0.02+rnd()*0.05).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,1,1); }
+        /* freie Laufspuren (lang, kachelbar) */
+        for(let i=0;i<46;i++){ const x=rnd()*W, y=rnd()*H, l=(0.4+rnd()*1.5)*my, b=1+rnd()*2.5, a=(0.02+rnd()*0.04).toFixed(3);
+          rund(W,H,(ox,oy)=>spur(g,x+ox,y+oy,b,l,a,'104,103,96')); }
+        /* Paneelfuge (Nut-Feder): Schattenlinie, darunter weicher Schatten, darueber helle Lippe; etwas Schmutz auf der Lippe */
+        const fuge=y=>{ g.fillStyle='rgba(255,255,255,.38)'; g.fillRect(0,y-3,W,1); g.fillStyle='rgba(98,96,88,.10)'; g.fillRect(0,y-2,W,1);
+          g.fillStyle='rgba(38,42,46,.62)'; g.fillRect(0,y-1,W,2); g.fillStyle='rgba(38,42,46,.16)'; g.fillRect(0,y+1,W,2); g.fillStyle='rgba(38,42,46,.06)'; g.fillRect(0,y+3,W,2); };
+        for(let i=0;i<=np;i++) fuge(Math.round(i*ph));
+        /* Schraube mit Dichtscheibe (klein, nicht als Punktmuster: Kopf 8 mm, Scheibe 16 mm) und Laufspur darunter */
+        const schraube=(x,y,spurL)=>{ if(spurL) spur(g,x,y+2,1.6,spurL,(0.05+rnd()*0.05).toFixed(3),'96,94,86');
+          g.fillStyle='rgba(120,124,128,.45)'; g.beginPath(); g.arc(x,y,0.008*mx,0,Math.PI*2); g.fill();
+          g.fillStyle='rgba(62,66,70,.8)'; g.beginPath(); g.arc(x,y,0.0045*mx,0,Math.PI*2); g.fill();
+          g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(x-1,y-1.5,1,1); };
+        /* Zwischenstuetze bei 3 m: zwei Schrauben je Paneel, 12 cm von den Fugen */
+        for(let i=0;i<np;i++) for(const dy of [0.12,FASS.paneel-0.12]) schraube(W/2,Math.round(i*ph+dy*my),(0.15+rnd()*0.6)*my);
+        /* Stossprofil (Alu, 6 cm) auf dem Kachelrand: helle Kante links, Schatten rechts und auf dem Paneel, Schrauben alle 50 cm */
+        const pw=0.06*mx;
+        rund(W,H,(ox,oy)=>{ if(oy) return; const x0=ox-pw/2;
+          g.fillStyle='rgba(30,34,38,.10)'; g.fillRect(x0+pw,0,4,H);
+          g.fillStyle='#bfc3c7'; g.fillRect(x0,0,pw,H);
+          g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(x0,0,1.5,H);
+          g.fillStyle='rgba(30,34,38,.35)'; g.fillRect(x0+pw-2,0,2,H);
+          g.fillStyle='rgba(30,34,38,.12)'; g.fillRect(x0+pw*0.5,0,1,H); });
+        for(let y=0.25*my;y<H;y+=0.5*my){ schraube(0,Math.round(y),(0.1+rnd()*0.4)*my); schraube(W,Math.round(y),0); }
+      });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8; return t; },
+    /* Betonsockel (16.10.): Sichtbeton grau, Poren und Koernung, Fuge alle 2 m, unten Spritzschmutz (dunkler Verlauf + Spritzer bis
+       30 cm), oben der Schatten unter dem Abschlussprofil. UV in Metern ab Boden (v = Hoehe / 0,5 m), senkrecht nicht wiederholt. */
+    sockelBeton:()=>{ const t=tex(256,64,(g,W,H)=>{ const rnd=zufall(13), my=H/0.5, mx=W/2;
+        g.fillStyle='#a2a39f'; g.fillRect(0,0,W,H);
+        for(let i=0;i<26;i++){ const x=rnd()*W, y=rnd()*H, r=8+rnd()*40, a=(0.03+rnd()*0.05).toFixed(3), hell=rnd()<0.5;
+          rund(W,0,(ox,oy)=>{ if(oy) return; g.fillStyle=hell?'rgba(232,232,226,'+a+')':'rgba(70,70,66,'+a+')'; g.beginPath(); g.ellipse(x+ox,y,r,r*0.5,0,0,Math.PI*2); g.fill(); }); }
+        for(let i=0;i<2600;i++){ g.fillStyle=rnd()<0.5?'rgba(255,255,255,'+(0.03+rnd()*0.09).toFixed(3)+')':'rgba(40,40,38,'+(0.03+rnd()*0.1).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,1,1); }
+        /* Luftporen */
+        for(let i=0;i<170;i++){ const x=rnd()*W, y=rnd()*H, r=0.4+rnd()*1.0; g.fillStyle='rgba(44,44,42,'+(0.35+rnd()*0.35).toFixed(2)+')'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y+r,1,1); }
+        /* Spritzschmutz: dunkler Verlauf unten, Spritzer nach oben duenner */
+        const sp=g.createLinearGradient(0,H-0.22*my,0,H); sp.addColorStop(0,'rgba(62,57,50,0)'); sp.addColorStop(0.7,'rgba(62,57,50,.22)'); sp.addColorStop(1,'rgba(52,48,42,.5)'); g.fillStyle=sp; g.fillRect(0,H-0.22*my,W,0.22*my);
+        for(let i=0;i<1100;i++){ const h=Math.pow(rnd(),2.2)*0.32*my; g.fillStyle='rgba(58,53,46,'+(0.08+rnd()*0.22).toFixed(3)+')'; g.fillRect(rnd()*W,H-h-1,1+(rnd()<0.2?1:0),1); }
+        /* Fuge alle 2 m (Kachelrand) */
+        rund(W,0,(ox,oy)=>{ if(oy) return; g.fillStyle='rgba(46,46,44,.6)'; g.fillRect(ox-1,0,2,H); g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(ox+1,0,1,H); });
+        /* Laufspuren unter dem Profil */
+        for(let i=0;i<14;i++) spur(g,rnd()*W,2,1+rnd()*2,(0.1+rnd()*0.3)*my,(0.04+rnd()*0.06).toFixed(3),'70,68,62');
+        /* oben: Schatten unter dem Abschlussprofil */
+        const so=g.createLinearGradient(0,0,0,5); so.addColorStop(0,'rgba(20,22,24,.5)'); so.addColorStop(1,'rgba(20,22,24,0)'); g.fillStyle=so; g.fillRect(0,0,W,5);
+        void mx; });
+      t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/2,1/0.5); t.anisotropy=8; return t; },
+    /* Hofleuchten nachts (16.10.): links Lichtfleck (rund, Mitte flach hell, weicher Rand), rechts Lichtkegel (oben hell, zum Boden
+       auslaufend). Additiv gezeichnet - Schwarz traegt nichts bei. */
+    lichtfleck:()=>tex(128,64,(g,W,H)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H);
+        const r=g.createRadialGradient(32,32,0,32,32,31); r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(0.3,'rgba(255,255,255,.82)'); r.addColorStop(0.65,'rgba(255,255,255,.3)'); r.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle=r; g.fillRect(0,0,64,64);
+        const k=g.createLinearGradient(0,0,0,H); k.addColorStop(0,'rgba(255,255,255,.34)'); k.addColorStop(0.3,'rgba(255,255,255,.13)'); k.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle=k; g.fillRect(65,0,62,H); }),
     /* Lagerwand (vorher lagerWallTex in 05-world.js): hell, unten 35 cm Sockelband gelb/schwarz, Raumhoehe 3,6 m */
     lagerwand:()=>{ const WH=3.6, t=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?css('signalgelb'):'#1f1f24'; g.fillRect(0,y,W,16);} });
       t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/2.6,1/WH); return t; },
-    /* Trapezblech (vorher blechMat() in 05h): eine Sicke je 32 px = 0,4 m, Kachel 3,2 m */
-    trapezblech:()=>{ const t=tex(256,64,(g,W,H)=>{
+    /* Trapezblech (vorher blechMat() in 05h): eine Sicke je 32 px = 0,4 m; 16.10.: Schraubreihe am Riegel (alle 1,6 m) im Untergurt,
+       Laufspuren darunter, leichte Wolkigkeit. Kachel 3,2 x 1,6 m */
+    trapezblech:()=>{ const t=tex(256,128,(g,W,H)=>{ const rnd=zufall(5), my=H/1.6;
         g.fillStyle='#b9bec6'; g.fillRect(0,0,W,H);
         for(let x=0;x<W;x+=32){ const gr=g.createLinearGradient(x,0,x+32,0);
           gr.addColorStop(0.00,'#8f959e'); gr.addColorStop(0.16,'#cfd4da'); gr.addColorStop(0.42,'#e4e8ed'); gr.addColorStop(0.58,'#c4c9d1'); gr.addColorStop(0.84,'#9aa0a9'); gr.addColorStop(1.00,'#7d838c');
           g.fillStyle=gr; g.fillRect(x,0,32,H); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(x+12,0,2,H); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x+30,0,2,H); }
-        for(let i=0;i<900;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/3.2); t.anisotropy=8; return t; },
+        for(let i=0;i<12;i++){ const x=rnd()*W, y=rnd()*H, r=20+rnd()*60, a=(0.015+rnd()*0.03).toFixed(3), hell=rnd()<0.5;
+          rund(W,H,(ox,oy)=>{ g.fillStyle=hell?'rgba(255,255,255,'+a+')':'rgba(70,74,80,'+a+')'; g.beginPath(); g.ellipse(x+ox,y+oy,r,r*0.6,0,0,Math.PI*2); g.fill(); }); }
+        for(let i=0;i<1800;i++){ g.fillStyle='rgba(0,0,0,'+(rnd()*0.05).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,2,2); }
+        for(let i=0;i<20;i++){ const x=rnd()*W, y=rnd()*H, l=(0.3+rnd()*1.2)*my, a=(0.03+rnd()*0.05).toFixed(3); rund(W,H,(ox,oy)=>spur(g,x+ox,y+oy,1.5,l,a,'80,78,72')); }
+        const ys=Math.round(0.12*my);
+        for(let x=0;x<W;x+=32){ const sx=x+3; spur(g,sx,ys+2,1.4,(0.2+rnd()*0.5)*my,(0.05+rnd()*0.05).toFixed(3),'82,78,70');
+          g.fillStyle='rgba(150,155,162,.6)'; g.beginPath(); g.arc(sx,ys,2.2,0,Math.PI*2); g.fill(); g.fillStyle='rgba(54,58,64,.85)'; g.beginPath(); g.arc(sx,ys,1.2,0,Math.PI*2); g.fill(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/1.6); t.anisotropy=8; return t; },
     /* Beton (vorher concreteTex() in 05b-ao.js, 19 Aufrufe an 12 Stellen) - Malcode unveraendert */
     beton:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
@@ -15059,12 +15122,74 @@ bk.flaecheArt=function(m){
 };
 /* Material einer Box-Seite (0 +x, 1 -x, 2 +y, 3 -y, 4 +z, 5 -z) - fuer Tests und Pruefungen */
 bk.wandFlaeche=function(o,k){ const f=o&&o.userData&&o.userData.flaechen; if(f) return f[k]; return Array.isArray(o.material)?o.material[k]:o.material; };
+/* UV in Metern (wie meterUV): die Tapete ist auf jedem Stueck gleich gross, Naehte fallen weg. cx/cy/cz = Lage der Geometrie-Mitte in der Welt */
+function _bkMeterUV(geo,cx,cy,cz){ const p=geo.attributes.position, n=geo.attributes.normal, uv=geo.attributes.uv;
+  if(p&&n&&uv&&uv.count===p.count){ for(let i=0;i<p.count;i++){ const x=p.getX(i)+cx, y=p.getY(i)+cy, z=p.getZ(i)+cz, ax=Math.abs(n.getX(i)), ay=Math.abs(n.getY(i)), az=Math.abs(n.getZ(i));
+      if(ay>ax&&ay>az) uv.setXY(i,x,z); else if(ax>az) uv.setXY(i,z,y); else uv.setXY(i,x,y); } uv.needsUpdate=true; }
+  return geo; }
+/* Box-Seiten nach Material gruppieren (mats[6]): hoechstens so viele Gruppen wie verschiedene Materialien -> Liste der Materialien */
+function _bkGruppen(geo,mats){ const uniq=[]; for(const m of mats) if(uniq.indexOf(m)<0) uniq.push(m);
+  if(geo.index&&geo.groups&&geo.groups.length===6&&geo.setIndex){
+    const src=geo.index.array, out=new src.constructor(src.length); let q=0; const gr=geo.groups.slice(); geo.clearGroups();
+    for(let k=0;k<uniq.length;k++){ const s0=q; gr.forEach((g,f)=>{ if(mats[f]!==uniq[k]) return; out.set(src.subarray(g.start,g.start+g.count),q); q+=g.count; }); geo.addGroup(s0,q-s0,k); }
+    geo.setIndex(new THREE.BufferAttribute(out,1));
+    if(uniq.length===1) geo.clearGroups();
+  }
+  return uniq; }
+/* ---------- Aussenhaut (Fundament-Schritt 2, 16.10., Toms Fotos docs/uebergabe/fassade-0910-*.jpg) ----------
+   Jede Aussenwand am Boden (Aussenflaeche Fassade oder Trapezblech) bekommt automatisch:
+   - Betonsockel/Spritzschutz 0,5 m hoch, 5 cm vor der Wand (MAT sockelAussen: Struktur, Fuge alle 2 m, Spritzschmutz), an den
+     Enden um die eigene Tiefe verlaengert (Ecken geschlossen);
+   - Sockelabschlussprofil (Tropfkante Alu, 4 cm hoch, 8 cm vor der Wand) auf dem Sockel;
+   - Eck-/Stossprofile (Alu 6 cm, 1,8 cm stark) an beiden Enden der Aussenflaeche, ueber dem Sockel bis zur Wandoberkante -
+     an Ecken bilden die beiden Profile einen Eckwinkel, an Stoessen in der Flucht ein Stossprofil, an Oeffnungen die Laibungskante.
+   Alles Kinder der Wand (gleiche Sichtbarkeit: Zonen, Ausbaustufen) und im Wandbild mit gezeichnet - Sockel = ein Material mehr
+   je 32-m-Feld, Profile laufen im Laibungs-Material mit (kein Zeichenaufruf mehr). o.aussenSockel:false = ohne (z. B. Innenwand). */
+const AUSSEN={sockel:0.5,vor:0.05,profilH:0.04,profilVor:0.08,eck:0.06,eckVor:0.018};
+bk.AUSSEN=AUSSEN;
+/* Sockel, Attikablech und Fallrohre sind schmal und ueberall gleich: im Wandbild EIN Mesh fuer die ganze Welt (wbFeld 'alle')
+   statt eines je 32-m-Feld - ein Zeichenaufruf statt zwei bis fuenf in jeder Aussenansicht */
+/* Mehrere Teile (Geometrie in Weltlage) als EIN Mesh mit einer Gruppe je Material - ein Szenen-Objekt je Wand statt vier.
+   teile = [{geo, mat} | {geo, mats:[Material je Gruppe der Geometrie]}]; Lage des Meshes = (ox,oy,oz) im Elternteil (Elternteil in
+   Weltlage ohne Drehung). ud = userData; ud.wbAlle = Materialien, die im Wandbild weltweit in ein Mesh gehen. -> Mesh */
+function _bkTeileMesh(teile,parent,ox,oy,oz,ud,bild){
+  const seg=[], mats=[];
+  for(const t of teile){ const g=t.geo.index?t.geo.toNonIndexed():t.geo;
+    if(t.mats&&g.groups.length){ for(const gr of g.groups) seg.push({g,s:gr.start,c:gr.count,mat:t.mats[gr.materialIndex]}); }
+    else seg.push({g,s:0,c:g.attributes.position.count,mat:t.mat}); }
+  for(const q of seg) if(mats.indexOf(q.mat)<0) mats.push(q.mat);
+  let n=0; for(const q of seg) n+=q.c;
+  const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), geo=new THREE.BufferGeometry(); let k=0;
+  mats.forEach((mat,mi)=>{ const k0=k; for(const q of seg){ if(q.mat!==mat) continue; const P=q.g.attributes.position.array, N=q.g.attributes.normal.array, U=q.g.attributes.uv&&q.g.attributes.uv.array;
+      for(let i=q.s;i<q.s+q.c;i++,k++){ pos[k*3]=P[i*3]-ox; pos[k*3+1]=P[i*3+1]-oy; pos[k*3+2]=P[i*3+2]-oz; nor[k*3]=N[i*3]; nor[k*3+1]=N[i*3+1]; nor[k*3+2]=N[i*3+2]; if(U){ uv[k*2]=U[i*2]; uv[k*2+1]=U[i*2+1]; } } }
+    geo.addGroup(k0,k-k0,mi); });
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.BufferAttribute(nor,3)); geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  if(mats.length===1) geo.clearGroups(); geo.computeBoundingSphere();
+  const m=new THREE.Mesh(geo,mats.length===1?mats[0]:mats); m.position.set(ox,oy,oz); Object.assign(m.userData,ud||{});
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  parent.add(m); if(bild!==false) bk.wandBildAdd(m); return m; }
+/* Kasten in Weltlage mit UV in Metern */
+function _bkKastenW(w,h,d,x,y,z){ return _bkMeterUV(new THREE.BoxGeometry(w,h,d),x,y,z).translate(x,y,z); }
+function _bkAussenhaut(wand,o,r,ma){
+  const art=bk.flaecheArt(ma); if(art!=='fassade'&&art!=='blech') return;
+  const A=AUSSEN, y0=Math.min(r.y0,r.y1), y1=Math.max(r.y0,r.y1), laengs=(r.x1-r.x0)>(r.z1-r.z0), au=_WOPP[o.innen], s=au[0]==='-'?-1:1;
+  const ebene=laengs?(s<0?r.z0:r.z1):(s<0?r.x0:r.x1), a0=laengs?r.x0:r.z0, a1=laengs?r.x1:r.z1, L=a1-a0, am=(a0+a1)/2;
+  const T=[], teil=(lang,hoch,tief,mitte,y,vor,mat)=>{ const q=ebene+s*vor;
+    T.push({geo:laengs?_bkKastenW(lang,hoch,tief,mitte,y,q):_bkKastenW(tief,hoch,lang,q,y,mitte),mat}); };
+  const sockel=y0<0.05&&y1-y0>=0.6&&L>0.25, prof=bk.flaeche('laibung'), sm=MAT.get('sockelAussen');
+  if(sockel){
+    teil(L+2*A.vor,A.sockel,A.vor,am,A.sockel/2,A.vor/2,sm);
+    teil(L+2*A.profilVor,A.profilH,A.profilVor,am,A.sockel+A.profilH/2,A.profilVor/2,prof); }
+  const e0=sockel?A.sockel+A.profilH:y0;
+  if(y1-e0>0.3&&L>0.25) for(const e of [a0,a1]) teil(A.eck,y1-e0,A.eckVor,e,(e0+y1)/2,A.eckVor/2,prof);
+  if(T.length) _bkTeileMesh(T,wand,wand.position.x,wand.position.y,wand.position.z,{bauteil:'wand',bauteilArt:sockel?'aussenhaut':'eckProfil',wbAlle:[sm]},o.bild).position.set(0,0,0);
+}
 /* Wandstueck. o = {x0,x1,z0,z1,y0,y1, innen:'+x'|'-x'|'+z'|'-z' (Seite der Innenflaeche),
      flaechen:{innen, aussen (Standard 'fassade'), laibung (Standard 'laibung')} (Art-Name oder Material),
      ue (Ueberstand in Laengsrichtung gegen Haarfugen, Standard 6 mm; 0 zwischen Stuecken derselben Flucht),
      still (kein Hindernis fuer den Zielstrahl), sockel (true = Laden-Fussleiste auf jeder Seite mit
      Ladentapete, oder Liste der Seiten -1/+1 quer zur Wand), zone (zWand: faellt beim Kauf), parent,
-     bild:false (nicht ins Wandbild - zeichnet sich selbst) }
+     bild:false (nicht ins Wandbild - zeichnet sich selbst), aussenSockel:false (ohne Sockel/Profile der Aussenhaut) }
    -> Mesh (userData: bauteil 'wand', bauteilArt = Flaeche innen, aabb, flaechen[6]) */
 bk.wand=function(o){
   let x0=o.x0,x1=o.x1,z0=o.z0,z1=o.z1; const y0=o.y0,y1=o.y1, u=o.ue===undefined?0.006:o.ue;
@@ -15072,19 +15197,8 @@ bk.wand=function(o){
   const F=o.flaechen||{}, mi=bk.flaeche(F.innen), ma=bk.flaeche(F.aussen)||bk.flaeche('fassade'), ml=bk.flaeche(F.laibung)||bk.flaeche('laibung');
   const mats=[ml,ml,ml,ml,ml,ml]; mats[_WFACE[o.innen]]=mi; mats[_WFACE[_WOPP[o.innen]]]=ma;
   const w=x1-x0,h=y1-y0,d=z1-z0, cx=(x0+x1)/2, cy=(y0+y1)/2, cz=(z0+z1)/2;
-  const geo=new THREE.BoxGeometry(w,h,d);
-  /* UV in Metern (wie meterUV): die Tapete ist auf jedem Stueck gleich gross, Naehte fallen weg */
-  { const p=geo.attributes.position, n=geo.attributes.normal, uv=geo.attributes.uv;
-    if(p&&n&&uv&&uv.count===p.count){ for(let i=0;i<p.count;i++){ const x=p.getX(i)+cx, y=p.getY(i)+cy, z=p.getZ(i)+cz, ax=Math.abs(n.getX(i)), ay=Math.abs(n.getY(i)), az=Math.abs(n.getZ(i));
-        if(ay>ax&&ay>az) uv.setXY(i,x,z); else if(ax>az) uv.setXY(i,z,y); else uv.setXY(i,x,y); } uv.needsUpdate=true; } }
-  /* Seiten nach Material gruppieren: hoechstens drei Gruppen statt sechs */
-  const uniq=[]; for(const m of mats) if(uniq.indexOf(m)<0) uniq.push(m);
-  if(geo.index&&geo.groups&&geo.groups.length===6&&geo.setIndex){
-    const src=geo.index.array, out=new src.constructor(src.length); let q=0; const gr=geo.groups.slice(); geo.clearGroups();
-    for(let k=0;k<uniq.length;k++){ const s0=q; gr.forEach((g,f)=>{ if(mats[f]!==uniq[k]) return; out.set(src.subarray(g.start,g.start+g.count),q); q+=g.count; }); geo.addGroup(s0,q-s0,k); }
-    geo.setIndex(new THREE.BufferAttribute(out,1));
-    if(uniq.length===1) geo.clearGroups();
-  }
+  const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),cx,cy,cz);
+  const uniq=_bkGruppen(geo,mats);
   const m=new THREE.Mesh(geo,uniq.length===1?uniq[0]:uniq); m.position.set(cx,cy,cz);
   m.userData.aabb={x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)};
   m.userData.bauteil='wand'; m.userData.bauteilArt=bk.flaecheArt(mi); m.userData.flaechen=mats;
@@ -15095,6 +15209,7 @@ bk.wand=function(o){
   if(Math.min(y0,y1)<0.9) WAENDE.push(m);
   if(o.zone) zWand(o.zone,m);
   if(o.bild!==false) bk.wandBildAdd(m);
+  if(o.aussenSockel!==false) _bkAussenhaut(m,o,{x0,x1,z0,z1,y0,y1},ma);
   if(o.sockel){ const laengs=w>d, fest=laengs?cz:cx, a0=laengs?o.x0:o.z0, a1=laengs?o.x1:o.z1, si=o.innen[0]==='-'?-1:1;
     const seiten=Array.isArray(o.sockel)?o.sockel:[si,-si].filter(s=>(s===si?mi:ma)===shopWall);
     for(const s of seiten) bk.sockelleiste({laengs,fest,a0,a1,seite:s,dicke:laengs?d:w,zone:o.zone,parent:o.parent,bild:o.bild}); }
@@ -15103,23 +15218,63 @@ bk.wand=function(o){
 /* Sockel vor einer Wandflucht: laengs = Wand laeuft in x, fest = Mitte der Wand quer, a0..a1 Laenge,
    seite -1/+1 = vor welcher Wandseite, dicke = Wandstaerke (Standard LW), x/z = Mitte direkt vorgeben.
    art 'laden' (Standard): Fussleiste 10 cm hoch, 2 cm stark, Farbe folgt der Tapete (sockelM, 05o).
-   art 'aussen': Spritzwassersockel 1,05 m hoch, 6 cm stark, graphit matt (Hallenwand aussen).
+   art 'aussen': Betonsockel 0,5 m hoch, 5 cm stark (wie die Aussenhaut von bk.wand, UV in Metern) - nur fuer Stuecke ohne eigene
+   Wand (z. B. vor einer zugemauerten Oeffnung); Aussenwaende bekommen ihren Sockel automatisch.
    o.zone: faellt mit der Bauwand; o.versteckt: gehoert zum noch gesperrten Bereich (zAdd). -> Mesh */
-const SOCKEL_ART={laden:{h:0.1,t:0.02},aussen:{h:1.05,t:0.06}};
+const SOCKEL_ART={laden:{h:0.1,t:0.02},aussen:{h:0.5,t:0.05}};
 bk.sockelleiste=function(o){
   const A=SOCKEL_ART[o.art||'laden'], L=o.a1-o.a0, D=(o.dicke===undefined?LW:o.dicke)/2+A.t/2+0.001;
   const mat=o.art==='aussen'?MAT.get('sockelAussen'):sockelM();
-  const geo=roundedBoxGeo(o.laengs?L:A.t,A.h,o.laengs?A.t:L,Math.min(0.02,A.t*0.17));
+  const geo=o.art==='aussen'?new THREE.BoxGeometry(o.laengs?L:A.t,A.h,o.laengs?A.t:L):roundedBoxGeo(o.laengs?L:A.t,A.h,o.laengs?A.t:L,Math.min(0.02,A.t*0.17));
   const m=new THREE.Mesh(geo,mat);
   if(o.laengs) m.position.set((o.a0+o.a1)/2,A.h/2,o.fest+o.seite*D); else m.position.set(o.fest+o.seite*D,A.h/2,(o.a0+o.a1)/2);
   if(o.x!==undefined) m.position.set(o.x,A.h/2,o.z);
-  m.userData.bauteil='wand'; m.userData.bauteilArt=o.art==='aussen'?'sockelAussen':'sockel';
+  if(o.art==='aussen'){ _bkMeterUV(geo,m.position.x,m.position.y,m.position.z);
+    /* Abschlussprofil (Tropfkante Alu) wie an der Aussenhaut von bk.wand */
+    const P=AUSSEN, l=L+2*(P.profilVor-A.t), pr=new THREE.Mesh(new THREE.BoxGeometry(o.laengs?l:P.profilVor,P.profilH,o.laengs?P.profilVor:l),bk.flaeche('laibung'));
+    pr.position.set(o.laengs?0:o.seite*(P.profilVor-A.t)/2,A.h/2+P.profilH/2,o.laengs?o.seite*(P.profilVor-A.t)/2:0); pr.userData.bauteil='wand'; pr.userData.bauteilArt='sockelProfil';
+    m.add(pr); if(o.bild!==false) bk.wandBildAdd(pr); }
+  m.userData.bauteil='wand'; m.userData.bauteilArt=o.art==='aussen'?'sockelAussen':'sockel'; if(o.art==='aussen') m.userData.wbFeld='alle';
   (o.parent||scene).add(m);
   if(o.zone) zWand(o.zone,m);
   if(o.versteckt) zAdd(o.versteckt,m);
   if(o.bild!==false) bk.wandBildAdd(m);
   return m;
 };
+/* ---------- Dachrand / Attika (Fundament-Schritt 2, 16.10.) ----------
+   Vorher lag auf jedem Bau eine 25-cm-Platte in Anthrazit (Toms Foto: "schwarzer Balken" ueber der Wand). Jetzt eine Attika wie an
+   Gewerbebauten: Aufkantung (Standard 0,45 m) mit den Fassadenpaneelen (UV in Metern - die Paneele laufen von der Wand weiter),
+   darauf das Attikablech (Graphit lackiert, 5 cm, 4 cm Ueberstand = Tropfkante), Dachhaut oben dunkel. Optional Fallrohre:
+   Rinnenkessel unter der Attika, Rohr 10 cm mit Schellen alle 2 m, Standrohr unten.
+   o = {x0,x1,z0,z1 (Aussenkante), y (Unterkante = Wandoberkante), h, fallrohre:[[x,z,'+x'|'-x'|'+z'|'-z']] (Punkt auf der
+        Wandflaeche, Richtung nach aussen), parent, bild:false} -> Group (alle Teile im Wandbild; zAdd/zWand auf die Gruppe wirkt).
+   Zeichenaufrufe: keine eigenen - Attika laeuft im Fassaden-, Dachhaut im Anthrazit-, Blech und Rohre im Graphit-Material des
+   Wandbilds (je 32-m-Feld). */
+const DACHRAND={h:0.45,deckel:0.05,ueber:0.04,rohr:0.05,abstand:0.09,schelle:2.0};
+bk.DACHRAND=DACHRAND;
+bk.dachrand=function(o){
+  const D=DACHRAND, h=o.h||D.h, y=o.y, g=new THREE.Group(); g.userData.bauteil='dachrand'; (o.parent||scene).add(g);
+  const dach=MAT.get('anthrazitMatt'), fas=bk.flaeche('fassade'), blech=MAT.get('lackGraphit');
+  /* alle Teile in EIN Mesh (Gruppen je Material); Attikablech und Fallrohre im Wandbild weltweit ein Mesh */
+  const T=[], teil=(geo,mat,x,yy,z)=>{ T.push({geo:geo.translate(x,yy,z),mat}); };
+  const w=o.x1-o.x0, d=o.z1-o.z0, cx=(o.x0+o.x1)/2, cz=(o.z0+o.z1)/2;
+  T.push({geo:_bkKastenW(w,h,d,cx,y+h/2,cz),mats:[fas,fas,dach,dach,fas,fas]});
+  teil(new THREE.BoxGeometry(w+2*D.ueber,D.deckel,d+2*D.ueber),blech,cx,y+h+D.deckel/2,cz);
+  for(const f of o.fallrohre||[]) _bkFallrohr(teil,blech,f,y);
+  _bkTeileMesh(T,g,cx,y,cz,{bauteil:'dachrand',bauteilArt:'attika',wbAlle:[blech]},o.bild);
+  return g;
+};
+/* Fallrohr an der Wand: f = [x,z,Richtung nach aussen], y = Unterkante der Attika */
+function _bkFallrohr(teil,mat,f,y){
+  const D=DACHRAND, n={'+x':[1,0],'-x':[-1,0],'+z':[0,1],'-z':[0,-1]}[f[2]], px=f[0]+n[0]*D.abstand, pz=f[1]+n[1]*D.abstand, seg=bk.lod()===0?6:10;
+  const H0=0.34, H1=y-0.2, C=(r1,r2,l)=>new THREE.CylinderGeometry(r1,r2,l,seg);
+  teil(C(D.rohr,D.rohr,H1-H0),mat,px,(H0+H1)/2,pz,'fallrohr');
+  teil(new THREE.BoxGeometry(0.2,0.2,0.2),mat,px,y-0.1,pz,'fallrohr');                      /* Rinnenkessel */
+  teil(C(D.rohr*0.7,D.rohr,0.06),mat,px,H1+0.03,pz,'fallrohr');                              /* Trichter in den Kessel */
+  teil(C(D.rohr+0.012,D.rohr+0.012,H0),mat,px,H0/2,pz,'fallrohr');                           /* Standrohr */
+  for(let yy=H0+0.6;yy<H1-0.3;yy+=D.schelle){ teil(C(D.rohr+0.008,D.rohr+0.008,0.035),mat,px,yy,pz,'fallrohr');
+    if(bk.lod()>0) teil(n[0]?new THREE.BoxGeometry(D.abstand,0.025,0.022):new THREE.BoxGeometry(0.022,0.025,D.abstand),mat,f[0]+n[0]*D.abstand/2,yy,f[1]+n[1]*D.abstand/2,'fallrohr'); }
+}
 /* ---------- Wandbild: alle Wandteile je Material in wenigen Meshes ---------- */
 const WB={liste:[],sig:null,g:null,meshes:[],takt:0,aus:false,n:0,neu:0,feld:32};
 bk.WB=WB;
@@ -15144,9 +15299,9 @@ bk.wandbild=function(erzwingen){
     const ms=Array.isArray(o.material)?o.material:[o.material];
     const cnt=g.index?g.index.count:g.attributes.position.count;
     const grs=Array.isArray(o.material)&&g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
-    const e=o.matrixWorld.elements, feld=Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld);
+    const e=o.matrixWorld.elements, feld=o.userData.wbFeld||(Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld)), alle=o.userData.wbAlle;
     for(const gr of grs){ const mat=ms[gr.materialIndex]; if(!mat||mat.visible===false) continue;
-      const k=mat.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+feld;
+      const k=mat.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+(alle&&alle.indexOf(mat)>=0?'alle':feld);
       let t=topf.get(k); if(!t){ t={mat,cast:o.castShadow,recv:o.receiveShadow,teile:[],n:0}; topf.set(k,t); }
       t.teile.push({o,s:gr.start,c:gr.count}); t.n+=gr.count; }
     o.layers.set(3); }
@@ -15334,7 +15489,80 @@ bk.foerderer=function(o){
    art 'halle' (Hallenleuchte, LED-Hallenstrahler linear 1,4 m an Pendeln): o = {punkte:[[x,z],...], y (Unterkante), decke (Pendel bis),
        zone (LAMPEN-id), aus (Zone, mit der die Leuchte ausgeht), parent} - zwei InstancedMesh (Gehaeuse, Leuchtflaeche).
    art 'strasse' (Mastleuchte, vorher lampTeile 05e): o.add(k,geo,matrix,farbe) bekommt die Teile in lokalen Koordinaten. */
+/* ---------- Aussenleuchten: Mast und Wand (Fundament-Schritt 2, 16.10., Toms Foto fassade-0910-hof.jpg: vorher ein Kasten auf
+   einer Stange bzw. Strahler aus Einzelkaesten mit je eigenem Leuchtmaterial) ----------
+   art 'mast': Fussplatte mit Flansch, vier Ankerbolzen, Mastfuss mit Rippen, konischer Rundmast (Standard 6 m) mit Revisionstuer,
+     Kopfkappe; Ausleger (koepfe 1: ein Arm nach +z, leicht steigend) oder Traverse (koepfe 2: nach +-x), LED-Kopf mit flachem Gehaeuse,
+     Kuehlrippen und opaler Leuchtflaeche, zum Platz geneigt.
+   art 'wand': Wandplatte, Arm, LED-Strahler (geneigt), Leuchtflaeche.
+   Nachts: Leuchtflaeche warmweiss (lampeAussen ueber MAT.neu, an lampMats) und ein Lichtfleck am Boden, ab Niedrig dazu ein
+   schwacher Lichtkegel (eine additive Textur lichtfleck, keine Lichtquelle). Tagsueber ist das Licht unsichtbar (0 Zeichenaufrufe).
+   o = {art, punkte:[[x,z,ry]], h (Masthoehe bzw. Montagehoehe an der Wand), koepfe, neigung, parent, zone}
+   -> {meshes, ...} je Aufruf drei InstancedMesh (Korpus, Leuchtflaeche, Licht) fuer alle Punkte. */
+const LAMPE_AUSSEN={h:6.0,arm:0.85,hWand:3.0};
+bk.LAMPE_AUSSEN=LAMPE_AUSSEN;
+let _bkLA=null;
+function _bkLampeMat(){ if(_bkLA) return _bkLA;
+  const leucht=MAT.neu('lampeAussen');
+  const licht=MAT.bild(MAT.tex('lichtfleck'),{transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,color:MAT.farbe('lampeWarm'),polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});
+  licht.visible=false;
+  if(typeof lampMats!=='undefined'){ lampMats.push(leucht);
+    lampMats.push({set emissiveIntensity(v){ const k=Math.max(0,Math.min(1,v/3)); licht.opacity=0.5*k; licht.visible=k>0.02; }}); }
+  return _bkLA={leucht,licht};
+}
+function _bkLampeGeo(o){
+  const L=bk.lod(), art=o.art, h=o.h||(art==='wand'?LAMPE_AUSSEN.hWand:LAMPE_AUSSEN.h), n=o.koepfe||1, nei=o.neigung===undefined?(art==='wand'?0.45:(n===2?0.38:0.08)):o.neigung;
+  return _bkHRGeo('aussenlampe:'+[art,h,n,nei,L].join('|'),()=>{
+    const S=bk.sammler({form:{fase:0.012,faseMin:0.03,lod0Kasten:true}}), A=MAT.farbe('anthrazit'), G=MAT.farbe('silbergrau'), sg=L===0?6:(L===2?16:10);
+    const koepfe=[];                           /* [Matrix des Kopfs] - Leuchtflaeche und Licht haengen daran */
+    const kopf=(m,b,t)=>{ S.pivot(); const K=m;
+      S.geo(L>1?bk.kasten(b,0.07,t,{fase:0.02}):new THREE.BoxGeometry(b,0.07,t),K.clone().multiply(tm(0,0.035,0)),A,'lackMetall');
+      if(L>1) for(let i=-2;i<=2;i++) S.geo(new THREE.BoxGeometry(b*0.8,0.025,0.008),K.clone().multiply(tm(0,0.08,i*t*0.17)),A,'lackMetall');
+      S.geo(new THREE.BoxGeometry(b*0.84,0.012,t*0.82),K.clone().multiply(tm(0,-0.002,0)),0xffffff,'leucht');
+      koepfe.push(K); };
+    if(art==='wand'){
+      S.box(0.14,0.2,0.02,0,h,0.01,A,'lackMetall');
+      if(L>0) for(const [x,y] of [[-0.045,0.07],[0.045,0.07],[-0.045,-0.07],[0.045,-0.07]]) S.box(0.014,0.014,0.01,x,h+y,0.024,G,'lackMetall');
+      S.zyl(0.022,0.022,0.3,sg,0,h,0.17,A,'lackMetall',Math.PI/2,0,0);
+      kopf(tm(0,h-0.02,0.42,-nei,0,0),0.32,0.26);
+    } else {
+      S.box(0.34,0.025,0.34,0,0.0125,0,A,'lackMetall');
+      for(const x of [-0.12,0.12]) for(const z of [-0.12,0.12]){ S.box(0.022,0.07,0.022,x,0.05,z,G,'lackMetall'); if(L>0) S.box(0.034,0.018,0.034,x,0.034,z,G,'lackMetall'); }
+      S.zyl(0.1,0.115,0.16,sg,0,0.105,0,A,'lackMetall');
+      if(L>1) for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; S.box(0.012,0.12,0.07,Math.cos(a)*0.1,0.085,Math.sin(a)*0.1,A,'lackMetall',0,-a,0); }
+      S.zyl(0.055,0.085,h-0.18,sg,0,0.18+(h-0.18)/2,0,A,'lackMetall');
+      S.box(0.07,0.3,0.014,0,0.7,0.081,A,'lackMetall');
+      S.zyl(0.062,0.062,0.04,sg,0,h+0.02,0,A,'lackMetall');
+      if(n===2){
+        S.box(1.5,0.07,0.07,0,h-0.12,0,A,'lackMetall');
+        for(const sx of [-1,1]){ S.box(0.05,0.14,0.05,sx*0.72,h-0.2,0,A,'lackMetall'); kopf(tm(sx*0.72,h-0.29,0.05,nei,0,0),0.46,0.34); }
+      } else {
+        const a=LAMPE_AUSSEN.arm;
+        S.box(0.12,0.14,0.12,0,h-0.09,0.02,A,'lackMetall');
+        S.zyl(0.03,0.034,a,sg,0,h-0.08+Math.sin(0.08)*a/2,a/2,A,'lackMetall',Math.PI/2-0.08,0,0);
+        kopf(tm(0,h-0.08+Math.sin(0.08)*a,a+0.2,-nei,0,0),0.3,0.56);
+      }
+    }
+    /* Licht je Kopf: Fleck am Boden (links im Bild), ab Niedrig ein Kegel (rechts im Bild) vom Kopf zum Fleck */
+    const licht=[];
+    for(const K of koepfe){ const p=new THREE.Vector3().setFromMatrixPosition(K), d=new THREE.Vector3(0,-1,0).transformDirection(K).normalize();
+      const t=d.y<-0.2?p.y/-d.y:p.y, ziel=p.clone().addScaledVector(d,t); ziel.y=0.03;
+      const R=Math.max(3.0,p.y*0.95);
+      const f=new THREE.PlaneGeometry(2*R,2*R), uv=f.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,uv.getX(i)*0.5);
+      licht.push({geo:f,m:tm(ziel.x,0.03,ziel.z,-Math.PI/2,0,0)});
+      if(L>0){ const hk=p.distanceTo(ziel)-0.05, c=new THREE.CylinderGeometry(0.16,R*0.4,hk,12,1,true), cu=c.attributes.uv; for(let i=0;i<cu.count;i++) cu.setX(i,0.52+cu.getX(i)*0.46);
+        const mitte=p.clone().add(ziel).multiplyScalar(0.5), q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),p.clone().sub(ziel).normalize());
+        licht.push({geo:c,m:new THREE.Matrix4().compose(mitte,q,new THREE.Vector3(1,1,1))}); } }
+    S.pivot();
+    return {korpus:S.geometrie('lackMetall'),leucht:S.geometrie('leucht'),licht:merge(licht)}; });
+}
 bk.lampe=function(o){
+  if(o.art==='mast'||o.art==='wand'){ const G=_bkLampeGeo(o), LM=_bkLampeMat(), y=o.art==='wand'?0:(o.y||0);
+    const M=o.punkte.map(([x,z,ry])=>tm(x,y,z,0,ry||0,0)), opt={parent:o.parent,bauteil:'lampe',art:o.art};
+    const meshes=[bk.inst(G.korpus,MAT.vc('lackMetall'),M,opt),bk.inst(G.leucht,LM.leucht,M,Object.assign({schatten:false},opt)),bk.inst(G.licht,LM.licht,M,Object.assign({schatten:false},opt))];
+    meshes[2].renderOrder=3;
+    if(o.zone&&typeof zAdd==='function') for(const me of meshes) zAdd(o.zone,me);
+    return {meshes,licht:meshes[2]}; }
   if(o.art==='strasse'){ const add=o.add, D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
     add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
     add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));
@@ -16674,9 +16902,10 @@ function buildWorld(){
   /* Der Dachrand des Ladens darf nach Westen nicht ueber die Wand
      hinausragen: dahinter steht das hoehere Lager, und der
      Ueberstand stand dort als dunkler Balken quer in der Wand. */
-  bbox(16.2,0.25,12.4,MAT.get('anthrazitMatt'),0.1,H+0.13,0);
-  /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen */
-  bbox(12.4,0.25,12.4,MAT.get('anthrazitMatt'),-14,LAGER_H+0.13,-0.1);
+  /* 16.10. (Fundament-Schritt 2): Attika mit Paneelen und Attikablech statt der 25-cm-Platte (bk.dachrand) - gleiche Aussenkanten */
+  bk.dachrand({x0:-8.0,x1:8.2,z0:-6.2,z1:6.2,y:H+0.005});
+  /* Ein Dach ueber das ganze Lager, Rampenraum und Anbau zusammen; Fallrohre an der Hofseite (West) */
+  bk.dachrand({x0:-20.2,x1:-7.8,z0:-6.3,z1:6.1,y:LAGER_H+0.005,fallrohre:[[-20.1,-5.75,'-x'],[-20.1,5.6,'-x']]});
   const ceil=MAT.get('weissMatt');
   /* Beide Decken reichen ueber die Innenseiten aller Waende hinaus und
      stossen in der Trennwand aneinander - kein Spalt, keine Ueberlappung. */
@@ -17184,12 +17413,9 @@ function buildYard(){
   /* Flutlicht */
   /* Der erste Mast stand bei z -7,2 und ragte durch die Decke des
      Lagergangs. Beide sind mit den Stationen nach Sueden gerueckt. */
-  for(const [x,z] of [[-5.6,-13.0],[6.6,-21.0]]){
-    bbox(0.12,3.4,0.12,MAT.std(0x4a4f5a,{metalness:0.5}),x,1.7,z);
-    const head=bbox(0.55,0.3,0.25,MAT.get('anthrazitMatt'),x,3.45,z); head.rotation.x=0.4;
-    const lm=new THREE.MeshStandardMaterial({color:MAT.farbe('gummischwarz'),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    bbox(0.45,0.03,0.2,lm,x,3.33,z+(z<-17?0.1:-0.12),null,false);
-  }
+  /* 16.10. (Fundament-Schritt 2, Toms Foto fassade-0910-hof.jpg: "Kasten auf Stange"): Mastleuchten aus dem Baukasten,
+     Ausleger zur Platzmitte, nachts mit Lichtfleck */
+  bk.lampe({art:'mast',h:5.0,punkte:[[-5.6,-13.0,Math.PI*0.75],[6.6,-21.0,-Math.PI*0.25]]});
 }
 /* =========================================================
    Kanaele (Tom, 25.09.): neun, wie die Zifferntasten.
@@ -18891,8 +19117,8 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
   /* Attika, Gesims und Sockel. Die Farben gehen mit der Fassade:
      anthrazit wie der Sockel in der Textur, nicht mehr das
      Sandsteinbeige von der Ziegelwand. */
-  bbox(w+0.2,0.28,0.4,MAT.get('anthrazitMatt'),cx,H+0.12,zf+0.02,g);
-  bbox(w+0.1,0.1,0.36,MAT.get('weissMatt'),cx,H+0.3,zf+0.04,g,false);
+  /* 16.10. (Fundament-Schritt 2): Attika mit Paneelen und Attikablech (bk.dachrand) statt Anthrazit-Band und weissem Gesims */
+  bk.dachrand({x0:x0-0.1,x1:x1+0.1,z0:zf-0.18,z1:zf+0.22,y:H-0.02,h:0.3,parent:g});
   /* Der Sockel war 50 cm tief und mittig auf der Wand - damit stand
      er zur Haelfte IM Laden und zog dort ein schwarzes Band unter
      der ganzen Fensterfront entlang. Er gehoert nach draussen. */
@@ -18900,14 +19126,10 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
      am Haupteingang. Vorher lief er durch und stand 62 cm hoch quer in
      der offenen Schiebetuer. Das Stueck in der Luecke steht nur, bis
      der zweite Eingang gekauft ist. */
-  { const sm=MAT.get('graphitMatt'), sx0=x0-0.06, sx1=x1+0.06;
-    const sockel=(a2,b2,par)=>bbox(b2-a2,0.62,0.26,sm,(a2+b2)/2,0.31,zf+0.06,par);
-    if(eingang!==undefined){
-      const [ea,eb]=OEFF[eingang], ec=(ea+eb)/2, l0=ec-1.3, l1=ec+1.3;
-      sockel(sx0,l0,g); sockel(l1,sx1,g);
-      zWand('eingang2',sockel(l0,l1,g));
-    } else sockel(sx0,sx1,g);
-  }
+  /* 16.10.: den Sockel bauen die Wandstuecke selbst (bk.wand, Aussenhaut). Nur vor der zugemauerten Eingangsachse steht ein
+     eigenes Sockelstueck, bis der zweite Eingang gekauft ist. */
+  if(eingang!==undefined){ const [ea,eb]=OEFF[eingang];
+    zWand('eingang2',bk.sockelleiste({art:'aussen',laengs:true,a0:ea,a1:eb,fest:zf-0.1,dicke:0.2,seite:1})); }
 
   /* ---------- Zustand „steht zum Verkauf“ ---------- */
   const gs=new THREE.Group(); g.add(gs); zWand(zid,gs);
@@ -20851,9 +21073,8 @@ function buildFacade(){
      hellgraues Klinkermuster - das passte zu nichts daneben. */
   /* gleich hoch und gleich tief wie an den Erweiterungen (Tom, 26.09.:
      der 87-cm-Block war zu hoch und wirkte billig) */
-  const plinthM=MAT.get('graphitMatt');
-  bbox(6.85,0.62,0.26,plinthM,-4.72,0.31,zf+0.06,null,false);
-  bbox(6.85,0.62,0.26,plinthM, 4.72,0.31,zf+0.06,null,false);
+  /* 16.10. (Fundament-Schritt 2): kein eigener Graphit-Block mehr - die Bruestungswaende bauen den Betonsockel mit
+     Abschlussprofil selbst (bk.wand Aussenhaut), wie an jeder Aussenwand */
   /* Poller auf dem Gehweg: Strassenpoller aus dem Baukasten (bk.poller art 'stadt', ueber stPoller
      in den Stadtmoebel-Sammler, 05e) - vorher eigener Vierkant anthrazit mit Goldkappe (14.10.) */
   for(const x of [-5.4,5.4]){
@@ -21023,17 +21244,11 @@ function buildDock(){
   /* Vordach, Streben und Poller gehoeren seit 13.10. zum Tor (bk.tor) */
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
-  for(const z of [-4.9,0.9]){
-    const wm=MAT.get('stahlGraphit');
-    bbox(0.16,0.22,0.16,wm,-20.16,2.85,z,null,false);              // Wandsockel
-    const arm=bbox(0.34,0.07,0.07,wm,-20.42,2.95,z,null,false); arm.rotation.z=0.22;
-    const geh=rbox(0.3,0.16,0.4,0.03,MAT.get('stahlAnthrazit'),-20.64,3.02,z,null);
-    geh.rotation.z=0.34;
-    const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    const wa=bbox(0.06,0.13,0.34,lm,-20.76,2.94,z,null,false); wa.rotation.z=0.34;
-    bbox(0.34,0.03,0.44,MAT.get('stahlVerzinkt'),-20.62,3.12,z,null,false);
-  }
-  if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
+  /* 16.10. (Fundament-Schritt 2): Wandleuchten und Mastleuchten aus dem Baukasten (bk.lampe wand/mast) - vorher Einzelkaesten mit
+     je eigenem Leuchtmaterial bzw. Strassenlaternen im Hof */
+  bk.lampe({art:'wand',h:3.0,punkte:[[-20.1,-4.9,-Math.PI/2],[-20.1,0.9,-Math.PI/2]]});
+  bk.lampe({art:'mast',h:6.0,punkte:[[-26.4,-5.2,Math.PI/2],[-31.6,-2,Math.PI/2]]});
+  for(const [x,z] of [[-26.4,-5.2],[-31.6,-2]]) col(x-0.2,x+0.2,z-0.2,z+0.2);
   /* Bodenmarkierung fuer den LKW: gestrichelte Fahrspur, Endlinie, Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
   bk.bodenmarkierung({linien:[[-33.3,-3.55,-20.7,-3.55,'gelb',0.12,0.6,0.4],[-33.3,-0.45,-20.7,-0.45,'gelb',0.12,0.6,0.4],[-33.3,-3.7,-33.3,-0.3,'gelb',0.12]],
     schriften:[{text:'ANLIEFERUNG',x:-26,z:2.6,b:5.2,h:1.6}],y:0.012,schatten:true});
@@ -21197,7 +21412,9 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.get('anthrazitMatt'),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
+  /* Attika (bk.dachrand): bis 5,5 m Raumhoehe direkt auf der Wand (1,5 cm ueber der Decke wie Laden/Lager) - sonst blieb unter dem
+     Ueberstand ein dunkler Spalt; darueber 11,5 cm Abstand (Flimmern Decke/Dach bei 12 m) */
+  if(!opt.keinDach) bk.dachrand({x0:r.x0-LW*1.5,x1:r.x1+LW*1.5,z0:r.z0-LW*1.5,z1:r.z1+LW*1.5,y:H+(H>5.5?0.115:0.005),fallrohre:opt.fallrohre});
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -21372,7 +21589,7 @@ function buildLagergang(){
   /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
      Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
      er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.get('anthrazitMatt'),mitteX,G.h+0.13,mitteZ,null,true));
+  zAdd(Z,bk.dachrand({x0:mitteX-(breite+LW)/2,x1:mitteX+(breite+LW)/2,z0:mitteZ-(tiefe+LW)/2,z1:mitteZ+(tiefe+LW)/2,y:G.h+0.005}));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
@@ -21446,7 +21663,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.get('anthrazitMatt'),(S2.x0+xo)/2,H+0.24,mz,null,true);
+  bk.dachrand({x0:S2.x0,x1:xo,z0:mz-ti/2-LW,z1:mz+ti/2+LW,y:H+(H>5.5?0.115:0.005)});
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
@@ -21557,7 +21774,7 @@ function buildAusbau(){
      Ost I und Ost II von der Halle keine Nordwand. */
   halle('shop_gross',LAY.ost1,{aussen:{},ao:{n:true}});
   halle('shop_ost',  LAY.ost2,{aussen:{e:true},ao:{n:true,e:true}});
-  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true},ao:{s:true,e:true,w:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true},ao:{s:true,e:true,w:true},fallrohre:[[7.8,-21.5,'-x'],[30.0,-22.1,'-z']]});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
@@ -22100,22 +22317,11 @@ function lagerFensterWand(){
     wand:{x0:r.x0-LW,x1:r.x1+LW,z0,z1,hoehe:LAGER_H,innen:'-z',flaechen:{innen:lagerWall,laibung:MAT.ober('lichtgrau','matt')}}});
   col(r.x0-LW,r.x1+LW,z0,z1);
 }
-/* Flutlichtmast fuer den Hof */
-function hofMast(x,z,ry){
-  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  g.userData.hof='mast';
-  const mast=MAT.get('zaunPfosten');
-  const dark=MAT.get('stahlAnthrazit');
-  const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
-  const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
-  m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
-  bbox(1.7,0.09,0.09,mast,0,7.7,0,g,false);
-  for(const s of [-1,1]){
-    const geh=rbox(0.62,0.3,0.34,0.04,dark,s*0.62,7.55,0,g); geh.rotation.x=0.42;
-    const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff2d6),emissiveIntensity:0}); lampMats.push(lm);
-    const fl=bbox(0.54,0.03,0.26,lm,s*0.62,7.4,0.06,g,false); fl.rotation.x=0.42;
-  }
-  col(x-0.3,x+0.3,z-0.3,z+0.3);
+/* Flutlichtmasten fuer die Hoefe: liste = [[x,z,ry]] - seit 16.10. bk.lampe mast mit zwei Koepfen (Fundament-Schritt 2; vorher
+   je Mast eine Gruppe aus 7 Teilen mit zwei eigenen Leuchtmaterialien) */
+function hofMasten(liste){
+  bk.lampe({art:'mast',h:7.8,koepfe:2,punkte:liste});
+  for(const [x,z] of liste) col(x-0.2,x+0.2,z-0.2,z+0.2);
 }
 /* Abgestellter Auflieger, von aussen. Kein Innenraum noetig. */
 function abstellAuflieger(x,z,ry,name,farbe,fahrend){
@@ -22226,8 +22432,11 @@ function logiGlas(len,rows){
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
   const blech=bk.flaeche('blech');
-  const sockel=MAT.get('graphitMatt');
-  const attika=MAT.get('lackAnthrazit');
+  /* 16.10.: Attika in Graphit wie das Attikablech aller eigenen Bauten (bk.dachrand), Sockel = Betonsockel der Aussenhaut */
+  const attika=MAT.get('lackGraphit');
+  const sockelRing=(x0,x1,z0,z1)=>{ const t=AUSSEN.vor;
+    for(const [laengs,fest,seite,a0,a1] of [[true,z0,-1,x0-t,x1+t],[true,z1,1,x0-t,x1+t],[false,x0,-1,z0,z1],[false,x1,1,z0,z1]])
+      bk.sockelleiste({art:'aussen',laengs,fest,seite,a0,a1,dicke:0}); };
   const steel=MAT.get('stahlVerzinkt');
   /* --- Halle --- */
   const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
@@ -22235,7 +22444,7 @@ function buildLogistik(){
   halleM.position.set(hcx,H/2,hcz);
   if(HIQ){ halleM.castShadow=true; halleM.receiveShadow=true; }
   scene.add(halleM); occluders.push(halleM); meterUV(halleM);
-  bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
+  sockelRing(ha.x0,ha.x1,ha.z0,ha.z1);
   bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
   bbox(hw+0.2,0.5,hd+0.2,MAT.ober('nachtblau','matt'),hcx,H-1.4,hcz,null,false);
   /* Dach mit Lichtband und Lueftern */
@@ -22254,7 +22463,7 @@ function buildLogistik(){
   if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
   scene.add(bm); occluders.push(bm);
   bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
-  bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
+  sockelRing(bu.x0,bu.x1,bu.z0,bu.z1);
   /* Eingangsvordach und Schriftzug */
   bbox(5.0,0.18,2.4,MAT.get('stahlHell'),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
@@ -22288,9 +22497,7 @@ function buildLogistik(){
   abstellAuflieger(43.6,-8.5,Math.PI/2,'Import',TRUCKCOL.import);
   abstellAuflieger(43.6, 5.0,Math.PI/2,'Premium',TRUCKCOL.premium);
   /* Masten und Deko, alles hinter dem Zaun */
-  hofMast(42.4,ha.z0+1.0,-Math.PI/2);
-  hofMast(42.4,ha.z1-2.0,-Math.PI/2);
-  hofMast(bu.x1+4.0,Z.z1-2.0,Math.PI);
+  hofMasten([[42.4,ha.z0+1.0,-Math.PI/2],[42.4,ha.z1-2.0,-Math.PI/2],[bu.x1+4.0,Z.z1-2.0,Math.PI]]);
   palettenStapel(45.4,ha.z1-1.2,8,0.2);
   palettenStapel(44.0,ha.z1-1.4,6,-0.3);
 }
@@ -23809,10 +24016,8 @@ function logiSuedwand(i,r,H,ex){
   const Z=LHALLE.z;
   const tore=WRAMPEN.map((x,k)=>({x,k})).filter(t=>TOR_STUFE[t.k]<=i&&t.x>r.x0&&t.x<r.x1).sort((a,b)=>a.x-b.x);
   const stueck=(a,b)=>{ if(b-a<0.01) return;
-    wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z);
-    /* Sockelband gegen Spritzwasser, nur an der vollen Wand - frueher
-       lief es auch quer vor den Toren her */
-    bk.sockelleiste({art:'aussen',laengs:true,a0:a,a1:b,fest:Z-LW/2,seite:-1}); };
+    /* Sockel gegen Spritzwasser baut die Wand selbst (bk.wand Aussenhaut, 16.10.) - nur an der vollen Wand, nicht vor den Toren */
+    wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z); };
   let x=r.x0-LW;
   for(const t of tore){
     const a=t.x-WTOR.w/2, b=t.x+WTOR.w/2;
@@ -23895,8 +24100,7 @@ function logiHofBauen(){
     abstellAuflieger(x,-52.0,ry,n,f);
   }
   /* Licht, Paletten, Container, Schnee - alles ausserhalb der Fahrspuren */
-  hofMast(r.x0+1.6,-43.5,Math.PI/2); hofMast(r.x1-1.2,-43.5,-Math.PI/2);
-  hofMast(-36,r.z0+5.6,0);
+  hofMasten([[r.x0+1.6,-43.5,Math.PI/2],[r.x1-1.2,-43.5,-Math.PI/2],[-36,r.z0+5.6,0]]);
   palettenStapel(r.x1-2.4,Z-4.0,7,0.1);
   palettenStapel(r.x1-2.4,Z-5.6,5,-0.2);
   palettenStapel(r.x0+2.4,Z-8.0,6,0.3);
@@ -24759,7 +24963,7 @@ function wkAussen(){
   bk.tor({art:'gitter',breite:7.0,hoehe:2.0,bewegung:'schiebe',pfosten:false,x:ZX-0.18,z:E[0]-3.7,ry:0});
   { const S=bk.werkSammler('schild'); S.box(0.1,2.6,0.1,ZX+0.3,1.3,E[1]+0.9,F('basaltgrau'),'stahl'); S.fertig(scene,{fest:true}); col(ZX+0.22,ZX+0.38,E[1]+0.82,E[1]+0.98);
     bk.schild(scene,{text:'WERK WEST',unter:'Einfahrt · Tor 6 Rohstoffe · Schrittgeschwindigkeit',b:1.8,h:0.6,x:ZX+0.36,y:2.0,z:E[1]+0.9,ry:Math.PI/2}); }
-  hofMast(Hf.x0+1.4,-46.5,Math.PI/2); hofMast(-88,Hf.z0+5.6,0);
+  hofMasten([[Hf.x0+1.4,-46.5,Math.PI/2],[-88,Hf.z0+5.6,0]]);
   /* Mischhaus: Betonzelle 5 x 5 m, Leichtdach, Tuer zur Erdwall-Luecke, Kupferplatte und Ampel; Erdwall rundum */
   { const S=bk.werkSammler('mischhaus'), Lm={rot:[],gruen:[]}, Mi=WK.misch;
     const r=bk.zelle({S,x0:Mi.x0,x1:Mi.x1,z0:Mi.z0,z1:Mi.z1,h:Mi.h,band:false,tueren:[{seite:-1,x:-114}],leuchten:Lm});

@@ -119,106 +119,75 @@
   ],
   "laufzeit": {
     "stand": "2026-10-16",
-    "grund": "Einheit 15.10.: bk.drehtuer heisst bk.tuer (Bauteil tuer statt drehtuer), neue Bauteile regal/kasse/fenster/tuer; SB-Terminal jetzt kasse statt geraet",
+    "grund": "Rueckbau 16.10. (Tom): Logistikhalle, Hochregal, Werk West und Produktion geloescht - Werk-/Hallen-Bauteile entfallen, weniger Tore/Waende/Schilder/Lampen, Zeichenaufrufe Laden -18 %, Lager -22 %",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
     },
     "ansicht": "neues Spiel, Level 99, alle Ausbauten, applyZonen, Stufe Hoch (gespeichert), swiftshader 480x300, Abend (clock 1000), vor der Laufzeit-Buendelung",
-    "tore": 15,
+    "tore": 8,
     "bauteile": {
-      "bodenmarkierung": 47,
-      "wand": 346,
+      "bodenmarkierung": 28,
+      "wand": 227,
       "fenster": 14,
-      "lampe": 42,
-      "tuer": 67,
-      "schild": 142,
+      "dachrand": 10,
+      "lampe": 24,
       "absperrung": 9,
-      "zaun": 68,
-      "palette": 17,
-      "tor": 105,
+      "schild": 41,
+      "zaun": 33,
+      "palette": 5,
+      "tor": 47,
       "versandhof": 1,
+      "tuer": 14,
       "kasse": 9,
       "anfahrschutz": 2,
       "stadtmoebel": 6,
       "stadthaus": 18,
-      "brandschutztor": 3,
-      "hochregal": 7,
-      "foerderer": 29,
-      "packmaterial": 2,
-      "lichtband": 4,
-      "sprinkler": 2,
-      "rbg": 12,
-      "fts": 6,
-      "sprinklertank": 3,
-      "pforte": 3,
-      "werkdach": 3,
-      "tragwerk": 1,
-      "satzkanal": 1,
-      "leitstand": 2,
-      "dragiertrommel": 6,
-      "werkraum": 7,
-      "decke": 2,
-      "treppe": 2,
-      "chemie": 6,
-      "strasse1": 7,
-      "zelle": 8,
-      "strasse2": 7,
-      "strasse3": 7,
-      "glas": 1,
-      "brandwand": 3,
-      "brandschutzabschluss": 6,
-      "feststellanlage": 2,
-      "portalgreifer": 39,
-      "werkstueck": 6,
-      "mischhaus": 6,
-      "erdwall": 2,
-      "hubwagen": 6,
-      "regal": 25
+      "hubwagen": 6
     },
-    "sechsMaterial": 25,
+    "sechsMaterial": 23,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 2336,
-      "materialien": 478,
-      "texturen": 292
+      "meshes": 1469,
+      "materialien": 329,
+      "texturen": 198
     },
     "ansichten": {
       "laden": {
-        "calls": 629,
-        "schatten": 358,
-        "mats": 228,
-        "texs": 136
-      },
-      "lager": {
-        "calls": 543,
-        "schatten": 363,
+        "calls": 517,
+        "schatten": 251,
         "mats": 207,
         "texs": 129
       },
+      "lager": {
+        "calls": 423,
+        "schatten": 222,
+        "mats": 181,
+        "texs": 119
+      },
       "lagerDock": {
-        "calls": 682,
-        "schatten": 366,
-        "mats": 217,
-        "texs": 130
+        "calls": 647,
+        "schatten": 218,
+        "mats": 212,
+        "texs": 131
       },
       "dockHof": {
-        "calls": 790,
-        "schatten": 342,
-        "mats": 231,
+        "calls": 749,
+        "schatten": 204,
+        "mats": 224,
         "texs": 141
       },
       "testfeld": {
-        "calls": 431,
-        "schatten": 372,
-        "mats": 183,
-        "texs": 115
+        "calls": 418,
+        "schatten": 238,
+        "mats": 184,
+        "texs": 121
       },
       "strasse": {
-        "calls": 122,
-        "schatten": 362,
-        "mats": 104,
-        "texs": 81
+        "calls": 125,
+        "schatten": 247,
+        "mats": 107,
+        "texs": 82
       }
     }
   }

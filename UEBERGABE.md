@@ -1,5 +1,5 @@
 # Übergabe Böllerladen Simulator – vollständiger Kontext für den neuen Chat
-Stand: **14.10.2026 abends** (Abschnitt 00 neu; Chat 13.–14.10. Fundament). Ältere Abschnitte ab „1.“ unten gelten weiter, Abschnitt 0 ist der aktuelle Stand.
+Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht, Einheit, Fassade). Ältere Abschnitte ab „1.“ unten gelten weiter, Abschnitt 0 ist der aktuelle Stand.
 
 > **Für den neuen Chat:** Zuerst Abschnitt 0 und 10 lesen, dann `CLAUDE.md` (Regeln), dann
 > `docs/uebergabe/fundament.md` (nächstes Paket) und `docs/uebergabe/warteschlange.md`.
@@ -7,6 +7,35 @@ Stand: **14.10.2026 abends** (Abschnitt 00 neu; Chat 13.–14.10. Fundament). Ä
 > nicht nachfragst, was schon geklärt ist.
 
 ---
+
+## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
+
+**Spiel V141 veröffentlicht (fc3d369)**, Artefakt https://claude.ai/artifact/7zw7iHrZYiYSGzw1QHNwVJ, Branch `claude/artifact-review-task-d47i09`.
+Seit 14.10. erledigt (je Doku in Klammern): V134 EPAL-Paletten + Kartonzelle je Stufe (docs/fundament/paletten.md) ·
+V135–V137 **Große Halle + Werk West** nach Skizze docs/halle/skizze-1410.html (Artefakt DpXBJ4k49w1y33uS2rzV9o; docs/halle/plan-1410.md,
+etappe-a.md, etappe-b.md) · V138 **Licht & Schatten** neu (docs/uebergabe/licht-1510.md), **DDL-Fahrer/Hubwagen** realistisch,
+**Verpackungs-Vorführung 2.0 / Ausstellung** (17f, Laptop → Entwicklung; E = ✓/✗, L = Liste), **Produktion** im Werk (docs/halle/produktion.md,
+Konzept ohne Wartung freigegeben) · V139 **Einheit**: bk.regal/kasse/fenster/tuer/schild/bodenmarkierung (docs/fundament/einheit.md), Tests
+licht/gameplay stabil · V140 **Leistungsbericht** im Spiel (Esc → „Leistung messen“, docs/uebergabe/leistungsbericht.md) · V141 **Fassade**
+(Sandwichpaneele, Betonsockel automatisch an bk.wand, bk.dachrand, Mast-/Wandleuchten bk.lampe; docs/fundament/fassade.md).
+Damit sind Fundament-Punkte 0–2, 4, 5, 6 aus Abschnitt 00 erledigt (Übersicht-Katalog nur auf V133-Stand).
+
+**Offen – Entscheidungen von Tom:**
+1. Produktion: Werksverkauf an Großhandel (85 % EK × Qualität) behalten? Empfehlung: ja, aber Tagesabnahme begrenzen + Preis schwankt.
+2. Rohstoffpreise fest oder schwankend (Empfehlung: leicht schwankend)?
+3. DDL-Verladen dauert jetzt ~120 s statt 57 s (realistisch) → im Balancing berücksichtigen (Pauschale 39 €).
+4. Abnahmen: Palettenholz/Vergrauung, Karton 512 px auf Maximum (~320 MB GPU gerechnet), Verpackungen (Ausstellung), Fassade/Lampen, Licht.
+5. Leistungsbericht von Toms PC (i7-4790) abwarten; Ultra Low im Werk war in Software-Läufen ~20 % langsamer – prüfen.
+
+**Offen – technisch (Reihenfolge Vorschlag):**
+1. **Balancing** nach Zielkurve ohne Silvester-Rekordtag (balancing-0910.md) – jetzt inkl. Produktion, Hochregal-Betrieb, DDL-Dauer.
+2. Möglicher Ein-Bild-Flackern nach Teleport (Bündelung bWaechter/bSammeln, 03b-post.js) – im Spiel noch nicht gesehen, nur im Test.
+3. Licht-Grenzen: Hallenboden Ultra Low dunkel, ~1 m Schattenstreifen an Straßenwänden, Halle/Werk ohne Echtzeitschatten.
+4. Fassade-Grenzen: Fallrohre nur an 2 Gebäuden, Eckprofile an kurzen Wandstücken dicht, Lichtkegel-Kante aus der Nähe.
+5. Hochregal: Schnellplätze und Ausgang R5 nur markiert (ohne Funktion).
+6. Übersicht (Katalog, Artefakt 4fTTh8HyVbz6qNYF47yFg9) auf V141 neu erzeugen.
+**Wochenlimit:** 16.10. 08:20 bei 78 %; Reset Sa 14 Uhr. Faustwert neu: ~150 000 Agenten-Tokens ≈ 1 %. Regel „Qualität vor Token-Sparen“ (CLAUDE.md).
+Worktree-Muster für parallele Agenten: `git worktree add -b claude/<name> ../gaming-<name> HEAD`, gemeinsame Browser-Sperre, ich merge + baue + veröffentliche.
 
 ## 00. STAND 14.10.2026 ABENDS – ZUERST LESEN (danach Abschnitt 0 für Hintergrund)
 

@@ -33,7 +33,7 @@ const GP_ORTE=[
   ['Versand',     -13.0,-19.0, 0.1, -0.1],
   /* 09.10.: DDL auf Anruf - Blick vom Wandtelefon auf Ladezone und Rolltor V1 */
   ['DDL-Tor',     -14.6,-27.4, -0.62, -0.05],
-  /* Rueckbau 16.10.: Logistik, Hochregal und Werk sind weg - Tasten 1-7 */
+  /* Rueckbau 16.10.: Logistik, Hochregal und Werk sind weg - Tasten 1-8 (mit Werkbank) */
   ['Testfeld',      0.3,-8.5, 0, 0.05]
 ];
 /* 03.10. (Tom: "die Gameplay-Vorfuehrung haengt, am Handy geht gar
@@ -270,7 +270,7 @@ function* gpAufbau(){
   if(!HIQ||gfxNiedrig(GFX)) yield* gpStatisch();
   gpFertig=true;
   gpPanel(); gpZeichnen(); requestAnimationFrame(gpFpsLauf);
-  toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–7 springen in die Bereiche, T Zeitraffer, B beendet.','money');
+  toast('Gameplay-Vorführung: alles gebaut, Personal da, der Laden läuft. Tasten 1–8 springen in die Bereiche, T Zeitraffer, B beendet.','money');
 }
 /* 04.10. (Tom: am Handy "maximal fluessig, 30 fps"): gemessen kostete der
    Blick von den Kassen in den Laden rund 870 Zeichenaufrufe - allein die

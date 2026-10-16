@@ -138,6 +138,7 @@ function pauseSeite(id){
   if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); sfxAnzeige(); }
   if(id==='pHaupt') tutKnopf();
   if(id==='pGrafik') gfxAnzeige();
+  if(id==='pLeistung'&&typeof lmSeite==='function') lmSeite();
 }
 /* Grafik-Seite: gewaehlter Knopf hervorgehoben, darunter was die Stufe tut */
 const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kantenglättung, Schattenkarte 8192, Spiegelungen am Boden in voller Auflösung, Umgebungsverschattung in hoher Auflösung, Oberflächenrelief in 2048 Pixeln je Kachel, Wände in doppelter Auflösung, fast doppelt so viele Funken. Nur für sehr starke Grafikkarten.',
@@ -159,7 +160,7 @@ function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on')
 function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true;
   /* Maus freigeben - sonst gehen Klicks auf die Spielflaeche statt ins Menue */
   if(locked) document.exitPointerLock(); for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
-function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
+function closePause(){ if(!pauseOpen) return; if(LM.halt){ location.reload(); return; } /* nach der Leistungsmessung: nur neu laden (17g) */ pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
 $('pause').addEventListener('click',e=>{
   const b=e.target.closest('[data-pseite]'); if(b){ pauseSeite(b.dataset.pseite); return; }

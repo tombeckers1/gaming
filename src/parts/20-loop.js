@@ -169,12 +169,15 @@ let noLoop=location.hash.indexOf('test')>=0;
 function frame(now){
   requestAnimationFrame(frame);
   if(noLoop) return;
+  const lmT0=LM.an?performance.now():0;   /* Leistungsbericht (17g): CPU-Zeit je Bild */
   let dt=(now-last)/1000; last=now; const roh=dt; if(dt>0.05) dt=0.05;
-  if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen());
+  if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen()&&!LM.an);
+  if(LM.an) lmVor();
   if(S&&!paused){ step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); }
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   regaleImBlick();
   if(vp2An) vp2Takt();
   renderFrame(dt);
+  if(LM.an) lmNach(roh,performance.now()-lmT0);
 }

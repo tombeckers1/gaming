@@ -327,6 +327,25 @@ body.compact .kan span{display:none}
 .pmenu{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:18px auto 10px}
 .pmenu button{font-size:20px;padding:13px 18px}
 .gfxwahl button.an{background:#ffd23f;color:#1a1204;border-color:#ffd23f}
+.lmtext{font-size:15px;line-height:1.4;margin:0 0 10px}
+.lmwahl{display:flex;gap:12px;align-items:center;font-size:17px;min-height:44px;max-width:340px;margin:6px auto}
+.lmwahl input{width:24px;height:24px;flex:none}
+#lmTab h4{margin:14px 0 4px;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--signal)}
+#lmTab h4 small{text-transform:none;letter-spacing:0;color:var(--muted)}
+.lmkopf{font-size:14px;line-height:1.4;margin-top:12px}
+.lmtab{overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.lmtab table{border-collapse:collapse;font-size:13px;white-space:nowrap;width:100%}
+.lmtab th,.lmtab td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}
+.lmtab th{color:var(--signal);font-weight:600}
+.lmtab th:first-child,.lmtab td:first-child{text-align:left;position:sticky;left:0;background:var(--panel-strong)}
+.lmtab td.lmrot{color:var(--fire);font-weight:700}
+.lmtab td.lmgelb{color:var(--signal);font-weight:700}
+#pLeistung .pmenu button{min-height:44px}
+#lmText{width:100%;height:150px;font:12px/1.3 monospace;-webkit-user-select:text;user-select:text;background:var(--ink);color:var(--snow);border:1px solid var(--line);border-radius:8px;margin-top:8px}
+#lmOv{position:fixed;inset:0;z-index:60;display:none;touch-action:none}
+#lmOv .lmbox{position:absolute;left:50%;top:10px;transform:translateX(-50%);max-width:min(560px,94vw);background:var(--panel-strong);border:2px solid var(--signal);border-radius:12px;padding:10px 14px;text-align:center;display:flex;flex-direction:column;gap:6px;font-size:15px}
+#lmOv .lmbox b{color:var(--signal);font-size:17px}
+#lmOv .lmbox button{font-size:15px;padding:10px 14px;min-height:44px}
 .phint{display:block;text-align:center;opacity:.6;font-size:13px}
 .pkopf{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;margin-bottom:10px}
 .pkopf h2{margin:0}
@@ -673,6 +692,7 @@ body.compact .pdahead2 b{font-size:16px}
       <button class="ghost" data-pseite="pSteuer">Steuerung</button>
       <button class="ghost" data-pseite="pMusikSeite">Audio</button>
       <button class="ghost" data-pseite="pGrafik">Grafik</button>
+      <button class="ghost" data-pseite="pLeistung">Leistung messen</button>
       <button class="ghost" id="pTut">Tutorial ausblenden</button>
       <button class="ghost" id="pHome">Zum Startbildschirm</button>
     </div>
@@ -695,6 +715,27 @@ body.compact .pdahead2 b{font-size:16px}
       <button class="ghost" data-gfx="ultralow">Ultra Low</button>
     </div>
     <small class="phint" id="gfxInfo"></small>
+  </div>
+  <div class="pseite" id="pLeistung">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Leistung</h2><span></span></div>
+    <div class="pscroll" id="lmSeite">
+      <p class="lmtext">Das Spiel fährt eine feste Route (Laden, Kasse, Halle, Lager, Hochregal, Werk, Straße, Hof, Feuerwerk) und misst an jedem Ort 10 Sekunden. Am Ende gibt es eine Tabelle zum Kopieren und Weiterschicken. Dein Spielstand wird währenddessen nicht gespeichert und danach unverändert neu geladen.</p>
+      <label class="lmwahl"><input type="checkbox" id="lmAlle"><span>Alle Grafikstufen nacheinander</span></label>
+      <div class="pmenu">
+        <button id="lmGo">Leistung messen (mein Spielstand)</button>
+        <button class="ghost" id="lmGoVoll">Leistung messen (Vollausbau)</button>
+      </div>
+      <small class="phint" id="lmDauer"></small>
+      <div id="lmErgebnis" hidden>
+        <div id="lmTab"></div>
+        <div class="pmenu">
+          <button id="lmKopie">Bericht kopieren</button>
+          <button class="ghost" id="lmZurueck">Zurück ins Spiel</button>
+        </div>
+        <small class="phint" id="lmKopieStatus"></small>
+        <textarea id="lmText" readonly hidden></textarea>
+      </div>
+    </div>
   </div>
   <div class="pseite" id="pMusikSeite">
     <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Audio</h2><span></span></div>

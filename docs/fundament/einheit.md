@@ -144,8 +144,9 @@ eingang2, lagerFenster (innen), lagerFensterAussen, versand (Packmaterial-Regal,
 - Laufzeit-Wächter: Budgets grün, Ausgangswerte neu mit Grund (Bauteil `drehtuer` → `tuer`, neue Bauteile regal/kasse/fenster/tuer);
   die Zeichenaufruf-Budgets sanken dabei (z. B. 688 → 629, 781 → 682, 928 → 790).
 - Tests (real.html, Sperre `/tmp/bb-testlock-einheit`): gameplay, kasse, einraeumer, regalsicht, stufen, verpackung, ausstellung, ausbau,
-  waechter, material grün. kasse und stufen erkannten Kasse/Schild an der alten Bauweise (Materialfarbe, Texturgröße 280 × 70) – Tests auf
-  `bk.kasse`/`bk.schild` angepasst. personen: siehe Bericht (Test braucht schon vorher ~12,1 GB, Grenze 12,5 GB).
+  waechter, material, personen grün. kasse und stufen erkannten Kasse/Schild an der alten Bauweise (Materialfarbe, Texturgröße 280 × 70) – Tests auf
+  `bk.kasse`/`bk.schild` angepasst. personen braucht schon vorher 12,1 GB Spitze (nachher 12,4 GB) – mit Nachbar-Browser über
+  der Grenze 12,5 GB abgebrochen, allein mit `BB_MAX_MB=13500` grün.
 - Bekannt/offen: Versand-Bild nachher zeigt noch die Packplatz-Schraffur unter dem Arbeitsboden (danach behoben: Markierung 1 mm über dem
   Boden, Bild nicht neu aufgenommen). Nicht umgestellt (eigene Pakete): Stadthäuser (Fenster/Türen/Schilder im hausKit, Kennzeichen,
   Läden-Schilder), Gravur-Automat/Lager-PC-Gehäuse (Geräte), dynamische Anzeigen bleiben eigene Bilder (Preis/Kopf/Lagerplatz/Status).

@@ -20,7 +20,7 @@
    - WIRT ist tief eingefroren: wer zur Laufzeit hineinschreibt, faellt
      sofort auf (TypeError im strict mode) statt still zu driften.
    - Gespeicherte Kopien (Kredit im Spielstand, Restposten-Angebot,
-     Bestellungen, Eigenrezepte) aendern sich NICHT rueckwirkend - neue
+     Bestellungen, eigene Batterien) aendern sich NICHT rueckwirkend - neue
      Werte wirken auf Neues. WIRT.historie bleibt fuer immer eingefroren.
    - Jede absichtliche Wertaenderung zeigt der Snapshot
      (node tools/fundament/wirtschaft-snapshot.js) - im Bericht nennen.
@@ -189,8 +189,16 @@ const WIRT={
       grosskunden:500, onlineshop:3200, kundenkarte:2600, tafel:4200, lizenz:6500, klima:5400,
       meister:12000, shop_halb:1400, testfeld:3200, shop_gross:7500, lager:1200, lager_nord:1900,
       lager_gross:6200, shop_ost:16000, shop_sued:34000, lager_sued:11000, lager_sued2:15000,
-      packstation:6400, packstation2:5900, packstation3:6900, eingang2:11500, kasse2:3400, labor:9800,
-      labor2:16500, gravur:1200
+      packstation:6400, packstation2:5900, packstation3:6900, eingang2:11500, kasse2:3400, gravur:1200,
+      /* Werkbank (Kapitel 5 Eigene Marke, 16.10.): labor = Werkbank im Lager samt Stufe 1 (25 Schuss), labor2-5 = die
+         naechste Batteriegroesse (60 / 110 / 200 / 500 Schuss). Begruendung und Amortisation: WIRT.werkbank unten,
+         docs/werkbank/werkbank.md. Alte labor2 (zweite Zuendstufe, 16.500) wird erstattet: historie.erstattung.labor2 */
+      /* Amortisation (gemessen 16.10.: im Vollsortiment verkauft eine Batterie-Sorte ~0,8 Stueck am Tag - 109 Batterien in
+         3 Tagen ueber 47 Sorten, Gameplay-Vorfuehrung; im kleinen Laden um Level 20 deutlich mehr, Werkbank-Test bis 13 am Tag ->
+         Planwert 1-1,5 Stueck je eigene Batterie und Tag). Deckungsbeitrag je Stueck bei 3 Sternen: 20 / 46 / 61 / 98 / 245 EUR.
+         Werkbank (Stufe 1): drei Batterien x 1,5 x 20 EUR = 90 EUR am Tag -> 32 Tage, mit fuenf 20 Tage.
+         Stufe 2-5: je zwei Batterien der Groesse (1,3 / 1,1 / 0,9 / 0,7 am Tag) -> 25 / 27 / 27 / 25 Tage. */
+      labor:2900, labor2:3000, labor3:3600, labor4:4800, labor5:8500
     }
   },
   lizenz:{
@@ -266,14 +274,44 @@ const WIRT={
       tage:[100,500,2000,7500]
     }
   },
-  /* ---------- Entwicklungslabor (02d): Formeln fuer Eigenrezepte; Ergebnis wird im Spielstand gespeichert ---------- */
-  rezept:{
-    wow:{schussGrund:0.85,schussLog:0.24,zweiFarben:1.06,farbAuf:0.5,stufe2:1.18,stufe2Wow:0.14},
-    kosten:{grund:0.72,jeKlasse:0.19,farbAuf:0.62,stufe2:1.22,stufe2Klasse:0.06},
-    markt:{grund:1.75,jeWow:0.42},      // VK = Kosten x (1,75 + 0,42 Wow)
-    hype:{jeWowSchuss:3.2,grund:6},
-    entwicklung:{grund:320,jeBasis:95,jeKlasse:0.22,stufe2:1.45},   // einmalige Entwicklungskosten
-    vola:0.55
+  /* ---------- Werkbank (02d-werkbank, 17h): eigene Batterien entwerfen, extern fertigen lassen (Tom 16.10.) ----------
+     Wirkt auf: Stueckkosten (Einkauf beim Lohnfertiger), Marktwert (was Kunden erwarten), Nachfrage (P.weight),
+     Hype je gezuendetem Stueck, einmalige Entwicklung, Mindestmenge und Lieferzeit der Serie.
+     Finanzbildung: Entwicklung = Fixkosten (Break-even = Entwicklung / Deckungsbeitrag je Stueck), Mindestmenge
+     = gebundenes Kapital (Vorkasse), Mengenrabatt lockt zu grossen Serien (Risiko: Ware liegt, Geld fehlt).
+     Vergleich Kaufware (gemessen 16.10. im Katalog): Einkauf = Ladenpreis / 2,2; Einkauf je Schuss 0,76 EUR
+     (25 Schuss) ... 0,39 EUR (409 Schuss). Eigene Fertigung spart den Zwischenhaendler: Stueckkosten bei
+     mittlerer Effektwahl rund 70-80 % des Einkaufs gleich grosser Kaufware, Ladenpreis bei 3 Sternen etwa wie
+     Kaufware gleicher Groesse -> Spanne 1 : 2,5-2,7 statt 1 : 2,2. */
+  werkbank:{
+    slots:5,                 // hoechstens fuenf eigene Batterien gleichzeitig (Tom 16.10.)
+    /* je Groesse: schuss, kal (mm), lvl (frei ab), up (Ausbau), jeSchuss (EUR je Schuss bei Effektklasse 1, Kaliber
+       normal), verpackung (EUR je Stueck, bedruckter Karton), entwicklung (einmalig: Muster, Pruefung/Zulassung,
+       Druckvorlage; Break-even nach 15-25 Tagen Verkauf einer Batterie bei 3 Sternen), mindest (Kartons je Serie = rund
+       2-3 Wochen Verkauf: lieber zweimal fertigen als zu viel Geld im Lager), liefertage, ref (Marktwert bei 3 Sternen), gewicht (Nachfrage wie
+       P.weight der Kaufware 2-10), hype (je Stueck bei 3 Sternen) */
+    stufen:[
+      {schuss:25, kal:20,lvl:20,up:'labor', jeSchuss:0.30,verpackung:1.0,entwicklung:450, mindest:4, liefertage:2,ref:30, gewicht:6,  hype:40},
+      {schuss:60, kal:25,lvl:23,up:'labor2',jeSchuss:0.27,verpackung:1.8,entwicklung:900, mindest:5, liefertage:2,ref:68, gewicht:5,  hype:55},
+      {schuss:110,kal:30,lvl:26,up:'labor3',jeSchuss:0.25,verpackung:3.0,entwicklung:1300,mindest:8, liefertage:3,ref:100,gewicht:4,  hype:70},
+      {schuss:200,kal:30,lvl:29,up:'labor4',jeSchuss:0.22,verpackung:5.0,entwicklung:1800,mindest:10,liefertage:3,ref:150,gewicht:3,  hype:85},
+      {schuss:500,kal:25,lvl:32,up:'labor5',jeSchuss:0.20,verpackung:9.0,entwicklung:3000,mindest:5, liefertage:3,ref:360,gewicht:2.5,hype:105}
+    ],
+    kosten:{
+      klasse:[1,1.2,1.45,1.75],   // Effektklasse 1-4 (Peonie ... Kamuro): teure Sterne, Titan, Glitzer
+      kaliber:[0.85,1,1.2],       // klein / normal / gross im Abschnitt
+      hoehe:[0.95,1,1.08],        // tief / mittel / hoch (Ausstossladung)
+      farbAuf:0.5,                // Aufschlag seltener Farben (Blau, Violett ...) x 0,5
+      abschnitt:0.15,             // EUR je Abschnitt und Stueck (Verzoegerer in der Zuendschnur)
+      entwicklungJeAbschnitt:30   // EUR je Abschnitt (Zuendfolge einrichten)
+    },
+    /* Bewertung 0..1 = effekt (Effektwert) + abwechslung + ablauf, gewichtet; Sterne = 1 + 4 x Bewertung */
+    bewertung:{effekt:0.45,abwechslung:0.30,ablauf:0.25},
+    markt:{grund:0.7,spanne:0.6},       // Marktwert = ref x (0,7 + 0,6 x Bewertung): 1 Stern 70 %, 5 Sterne 130 %
+    nachfrage:{grund:0.6,spanne:0.8},   // Gewicht = gewicht x (0,6 + 0,8 x Bewertung)
+    hypeF:{grund:0.8,spanne:0.4},       // Hype = hype x (0,8 + 0,4 x Bewertung)
+    rabatt:[{ab:2,d:0.05},{ab:4,d:0.10}],   // ab 2- bzw. 4-facher Mindestmenge
+    vola:0.3                    // Marktschwankung der eigenen Marke (Kaufware 0,55-0,85): man setzt den Preis selbst
   },
   /* ---------- Bank: Kredit, Dispo ---------- */
   kredit:{
@@ -342,7 +380,7 @@ const WIRT={
     wochenzielTeiler:3,              // Wochenziel: Praemie/3
     auftragAngenommen:20, auftragErfuellt:{jeEuro:0.4,grund:40},
     restposten:20,                   // Wundertuete / Restposten-Angebot gekauft
-    eigeneRezeptur:180,
+    eigeneBatterie:180,              // eigene Batterie entwickelt (Werkbank)
     zuenden:{hypeTeiler:3,min:1},    // je gezuendetem Stueck: max(1, Hype/3)
     serieStufen:[5,10,20,35,50,75,100], serieJeKunde:6,   // Serie zufriedener Kunden: n*6 XP an den Stufen
     diebGestellt:25, regalAufbau:12, einbau:20, gravur:12, paketGepackt:3, dreckWeg:3, fensterPutzen:4, sbHilfe:4, packmaterialEinlagern:1
@@ -351,7 +389,7 @@ const WIRT={
      Wer alte Ausbauten hatte, bekommt GENAU das zurueck, was er damals bezahlt hat -
      unabhaengig davon, was dieselbe Sache heute kostet. */
   historie:{
-    erstattung:{kasse3:3800, sbBetreuer:650, packstation:6400, packstation2:14000, packstation3:26000, packer:700, packer2:750, packer3:800,
+    erstattung:{labor2:16500, kasse3:3800, sbBetreuer:650, packstation:6400, packstation2:14000, packstation3:26000, packer:700, packer2:750, packer3:800,
       /* Rueckbau 16.10. (Tom: grosse Halle, Werk und Produktion komplett weg): Kaufpreise der entfernten Ausbauten (Stand V141)
          und die Rohstoffpreise des Werks je kg (Standard; premium = Aufschlag) - gutgeschrieben beim Laden alter Staende */
       ausbau:{lager_west:22000, rampe2:12000, lager_west2:30000, rampe3:15000, rampe4:20000, lager_west3:42000, rampe5:26000,
@@ -387,6 +425,7 @@ const WF={
   kreditGesamtzinsText:()=>WIRT.kredit.stufen.map(st=>{ const g=WF.kreditGesamtzins(st); return `${WF.euro(st.amount)}: ${WF.zahl(g.anteil*100,1)} % in ${g.tage} Tagen`; }).join(', '),
   /* XP bis zum naechsten Level (xpFor in 02-data) */
   xpBis:(l)=>Math.round(WIRT.xp.kurve.a*Math.pow(l,WIRT.xp.kurve.exp)),
+  wbMarktMax:()=>WF.zahlKurz(+(WIRT.werkbank.markt.grund+WIRT.werkbank.markt.spanne).toFixed(2)),
   onlinePauschale:(ruf,level)=>Math.round(WIRT.versand.pauschale.grund+ruf*WIRT.versand.pauschale.jeRuf+level*WIRT.versand.pauschale.jeLevel)
 };
 
@@ -399,7 +438,7 @@ const WF={
 const WIRT_KETTEN=[
   {id:'zuviel_kaufen',entscheidung:'Zu viel auf einmal kaufen (Ware, Lizenz, Ausbau, Regale)',
    folgen:[
-     {text:'Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, Rezepte nur mit echtem Guthaben.',ort:'16-day.js:verfuegbar',werte:['kredit.dispo']},
+     {text:'Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, eigene Batterien (Entwicklung und Serie) nur mit echtem Guthaben.',ort:'16-day.js:verfuegbar',werte:['kredit.dispo']},
      {text:'Dispo-Rahmen = {kredit.dispo.grund} € + {kredit.dispo.jeLevel} € je Level (erst ab Level {kredit.dispo.abLevel}).',ort:'16-day.js:dispoLimit',werte:['kredit.dispo']},
      {text:'Im Minus kostet jeder Tag {kredit.dispo.zinsTag|%} des Minusbetrags an Zinsen ({WF:dispoJahrText}) und {ruf.kontoMinus} Ruf.',ort:'16-day.js:endDay',werte:['kredit.dispo.zinsTag','ruf.kontoMinus']},
      {text:'Weniger Ruf heisst weniger Kunden (x(0,55 + Ruf/100)) - und ohne Geld keine Ware, ohne Ware kein Umsatz: Abwaertsspirale, der Tagesabschluss warnt und nennt Auswege.',ort:'16-day.js:spawnInterval',werte:['kunden.takt']},
@@ -501,6 +540,16 @@ const WIRT_KETTEN=[
      {text:'Hoch pokern ueber die Grenze kostet Versuche; Meisterbrief x{auftrag.meister} auf die Auszahlung.',ort:'10b-pyro.js:haggle',werte:['auftrag.nachgeben','auftrag.meister']},
      {text:'Erfuellt: Ruf +{ruf.auftragErfuellt}, XP; Kartons fehlen bei Abholung: Ruf {ruf.auftragVerfehlt}.',ort:'10b-pyro.js:finishOrder',werte:['ruf.auftragErfuellt','ruf.auftragVerfehlt','xp.auftragErfuellt']}],
    warum:'B2B-Geschäft: große Mengen, kleinere Marge, Lieferfähigkeit entscheidet.',luecken:[]},
+  {id:'werkbank',entscheidung:'Eigene Batterie entwerfen, entwickeln und in Serie fertigen lassen (Werkbank, Kapitel 5)',
+   folgen:[
+     {text:'Werkbank {ausbau.preis.labor|€} (Batterien mit {werkbank.stufen.0.schuss} Schuss), groessere Batterien je Stufe: {ausbau.preis.labor2|€} ({werkbank.stufen.1.schuss}), {ausbau.preis.labor3|€} ({werkbank.stufen.2.schuss}), {ausbau.preis.labor4|€} ({werkbank.stufen.3.schuss}), {ausbau.preis.labor5|€} ({werkbank.stufen.4.schuss} Schuss).',ort:'02-data.js:UPGRADES',werte:['ausbau.preis.labor','werkbank.stufen']},
+     {text:'Entwicklung einmalig ({werkbank.stufen.0.entwicklung|€} bis {werkbank.stufen.4.entwicklung|€} + {werkbank.kosten.entwicklungJeAbschnitt|€} je Abschnitt): Muster, Pruefung, Druckvorlage - Fixkosten, die sich erst ueber verkaufte Stuecke zurueckholen.',ort:'02d-werkbank.js:wbEntwicklung',werte:['werkbank.stufen','werkbank.kosten.entwicklungJeAbschnitt']},
+     {text:'Stueckkosten = Schuss x {werkbank.stufen.2.jeSchuss|€} (Stufe 3) x Effektklasse ({werkbank.kosten.klasse.0} ... {werkbank.kosten.klasse.3}) x Kaliber x Hoehe x Farbaufschlag + Verpackung + Verzoegerer je Abschnitt.',ort:'02d-werkbank.js:wbStueckkosten',werte:['werkbank.stufen','werkbank.kosten']},
+     {text:'Serie nur ab Mindestmenge ({werkbank.stufen.0.mindest} ... {werkbank.stufen.4.mindest} Kartons) gegen Vorkasse, Lieferung nach {werkbank.stufen.0.liefertage}-{werkbank.stufen.4.liefertage} Tagen mit dem naechsten LKW; ab {werkbank.rabatt.0.ab}-facher Menge {werkbank.rabatt.0.d|%}, ab {werkbank.rabatt.1.ab}-facher {werkbank.rabatt.1.d|%} Rabatt.',ort:'02d-werkbank.js:wbSerie',werte:['werkbank.stufen','werkbank.rabatt']},
+     {text:'Bewertung (Effektwert {werkbank.bewertung.effekt|%}, Abwechslung {werkbank.bewertung.abwechslung|%}, Ablauf {werkbank.bewertung.ablauf|%}) setzt Marktwert (x{werkbank.markt.grund} bis x{WF:wbMarktMax}), Nachfrage und Hype; der Verkaufspreis gegen den Marktwert entscheidet wie bei jeder Ware ueber die Kaufbereitschaft.',ort:'02d-werkbank.js:wbBewertung',werte:['werkbank.bewertung','werkbank.markt','werkbank.nachfrage']}],
+   warum:'Handelsmarke: ohne Zwischenhaendler bleibt mehr Marge je Stueck, dafuer traegt man Entwicklung (Fixkosten), Mindestmenge (gebundenes Kapital, Vorkasse) und das Absatzrisiko selbst. Wer zu viel auf einmal fertigen laesst, spart ein paar Prozent und hat das Geld wochenlang im Regal liegen.',
+   quelle:'Handelsmarken im Einzelhandel: hoehere Spanne gegen Entwicklung und Mindestabnahme (Lohnfertigung mit MOQ); Pruefpflicht fuer Feuerwerk der Kategorie F2 (Konformitaetsbewertung, BAM)',
+   luecken:['Nachfrage der eigenen Marke folgt nur Bewertung und Preis, nicht Saison-Trends oder Werbung fuer die Marke.','Eine Serie kommt immer vollstaendig und ohne Ausschuss.']},
   {id:'restposten',entscheidung:'Restposten und Wundertueten kaufen',
    folgen:[
      {text:'Preis = mittlerer Karton-Einkauf x Kartons x Faktor ({einkauf.pakete.sonstige} ... {einkauf.pakete.rabatt.palette}), gerundet auf {einkauf.pakete.runden} €.',ort:'17-laptop.js:packPreis',werte:['einkauf.pakete']},

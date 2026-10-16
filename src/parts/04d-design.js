@@ -27,8 +27,9 @@ function produktInfo(t){
   if(sh==='rocketset') schuss=p.stueck||Math.max(3,Math.round(((p.dims&&p.dims[2])||0.15)/0.026));
   let dauer=0; try{ if(typeof SHOWS!=='undefined'&&SHOWS[t]) dauer=showLength(t); }catch(e){}
   if(!dauer) dauer=sh==='cylinder'||sh==='fountainset'?Math.round(25+lvl*1.5):sh==='sparkler'?40:0;
-  const kal=lvl<8?15:lvl<14?20:lvl<20?25:30;
-  const hoehe=sh==='rocketset'?Math.round(40+lvl*2):sh==='battery'||sh==='fan'?Math.round(15+lvl*1.2):sh==='shell'?Math.round(60+lvl*4):0;
+  /* eigene Batterie (Werkbank): Kaliber und Steighoehe aus ihrer Groesse */
+  const kal=p.kal||(lvl<8?15:lvl<14?20:lvl<20?25:30);
+  const hoehe=p.hoeheM||(sh==='rocketset'?Math.round(40+lvl*2):sh==='battery'||sh==='fan'?Math.round(15+lvl*1.2):sh==='shell'?Math.round(60+lvl*4):0);
   const nem=schuss?Math.round(schuss*(kal/4)):Math.round(20+lvl*6);
   return {schuss,dauer,kal,hoehe,nem,lvl};
 }
@@ -48,13 +49,14 @@ function fotoStil(t){
 const LINIEN=['sternwerk','aurum','blitz','nordlicht','funkenkind','titan'];
 function linieVon(t){
   const p=P[t]||{}, s=((p.name||'')+t).toLowerCase();
+  if(p.werk||(p.art&&p.art.hausmarke)) return 'hausmarke';
   if(p.cat===1) return 'funkenkind';
   if(typeof istVerbundKarton==='function'&&p.shape==='battery'&&istVerbundKarton(t)) return /kaiser|krone|gold|tor|royal/.test(s)?'aurum':'titan';
   if(/kaiser|krone|gold|royal|juwel|kristall|diamant|premium|mond/.test(s)) return 'aurum';
   return ['sternwerk','blitz','nordlicht','sternwerk','blitz'][hashStr(t)%5];
 }
-const LINIE_NAME={sternwerk:'STERNWERK',aurum:'AURUM',blitz:'BLITZ·WERK',nordlicht:'NORDLICHT',funkenkind:'FUNKENKIND',titan:'TITAN PRO'};
-const LINIE_ZUSATZ={sternwerk:'Classic Line',aurum:'First Class',blitz:'Power Line',nordlicht:'Green Line · Pappe statt Plastik',funkenkind:'Familienfeuerwerk',titan:'Pro Series'};
+const LINIE_NAME={hausmarke:'HAUSMARKE',sternwerk:'STERNWERK',aurum:'AURUM',blitz:'BLITZ·WERK',nordlicht:'NORDLICHT',funkenkind:'FUNKENKIND',titan:'TITAN PRO'};
+const LINIE_ZUSATZ={hausmarke:'Eigene Marke',sternwerk:'Classic Line',aurum:'First Class',blitz:'Power Line',nordlicht:'Green Line · Pappe statt Plastik',funkenkind:'Familienfeuerwerk',titan:'Pro Series'};
 
 function hexRgb(h){ const n=parseInt(String(h||'#888888').slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
 function rgba(h,a){ const c=hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
@@ -133,8 +135,34 @@ function nameText(g,txt,x,y,maxW,size,font,fill,outline,lw,skew){
   g.fillStyle=fill; g.fillText(txt,0,0); g.restore(); return s; }
 const FNT={bun:s=>`${s}px Bungee, Impact, sans-serif`, bar:s=>`700 ${s}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`, barIt:s=>`italic 700 ${s}px "Barlow Condensed", "Arial Narrow", Arial, sans-serif`, cin:s=>`700 ${s}px Cinzel, Georgia, serif`};
 
+/* ---------- Hausmarke (Werkbank, 16.10.): die eigene Batterie des Spielers ----------
+   Oben das Markenfeld des Ladens (Ladenname auf Nachtblau, Goldstreifen - wie Schild und Kasse), darunter das
+   Effektfoto in den Farben der ersten Abschnitte, der Name gross, Schussstern, Infozeile mit Schuss, Dauer, Hoehe,
+   Kaliber. Auch ohne Katalogeintrag aufrufbar (Vorschau an der Werkbank): a = art, info = {schuss,dauer,hoehe,kal}. */
+function hausmarkeFront(g,W,H,a,info,rnd,stil){
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,a.bg1); gr.addColorStop(1,a.bg2); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  /* Effektfoto ueber zwei Drittel */
+  g.save(); g.beginPath(); g.rect(0,H*0.13,W,H*0.55); g.clip(); fotoHimmel(g,0,H*0.13,W,H*0.55,rnd,true);
+  const B=[[0.3,0.36,0.24],[0.7,0.3,0.22],[0.5,0.55,0.17]];
+  B.forEach(([fx,fy,fr],i)=>{ const cx=W*fx, cy=H*(0.13+fy*0.55); steigSpur(g,W*(0.4+rnd()*0.2),H*0.68,cx,cy,i%2?a.ac2:a.ac);
+    fotoBurst(g,cx,cy,Math.min(W,H)*fr,i===1?a.ac2:a.ac,i===1?a.ac:a.ac2,stil||'dahlie',rnd); });
+  g.restore();
+  /* Markenfeld des Ladens */
+  g.fillStyle='#1b2340'; g.fillRect(0,0,W,H*0.13); g.fillStyle='#ffd23f'; g.fillRect(0,H*0.125,W,H*0.012);
+  const marke=(typeof shopName==='function'?shopName():'').toUpperCase();
+  nameText(g,'★ '+marke,W*0.5,H*0.065,W*0.9,Math.round(H*0.07),FNT.bun,'#ffd23f');
+  /* Name: gross, weiss mit Kontur in der Effektfarbe */
+  nameText(g,a.title||'',W*0.5,H*0.77,W*0.92,Math.round(H*0.15),FNT.bun,'#ffffff',a.ac,Math.max(3,H*0.022),-0.08);
+  nameText(g,'EIGENE MARKE · '+(a.sub||''),W*0.5,H*0.86,W*0.9,Math.round(H*0.045),FNT.bar,'#ffd23f');
+  /* Schussstern */
+  if(info.schuss){ g.save(); g.translate(W*0.86,H*0.24); stern(g,0,0,H*0.1,14,0.78); g.fillStyle='#ffd23f'; g.fill(); g.fillStyle='#1b1b1b'; g.textAlign='center'; g.textBaseline='middle';
+    g.font=FNT.bar(Math.round(H*0.07)); g.fillText(String(info.schuss),0,-H*0.01); g.font=`700 ${Math.round(H*0.026)}px Arial`; g.fillText('SCHUSS',0,H*0.04); g.restore(); }
+  g.fillStyle='rgba(6,8,20,.82)'; g.fillRect(0,H*0.9,W,H*0.1); infoZeile(g,W*0.03,H*0.9,W*0.8,H*0.1,info,'#ffd23f','#ffffff');
+  siegel(g,W*0.92,H*0.95,H*0.04,'F2','#fff','#1b1b1b');
+}
 /* ---------- Vorderseiten der Linien ---------- */
 const DESIGN_FRONT={
+  hausmarke(g,W,H,t,a,info,rnd){ hausmarkeFront(g,W,H,a,info,rnd,fotoStil(t)); },
   sternwerk(g,W,H,t,a,info,rnd){
     effektFoto(g,0,0,W,H,t,a,rnd);
     /* Markenlogo oben links */

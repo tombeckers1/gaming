@@ -113,7 +113,7 @@ const T0=Date.now();
           const v=S.money; orderRegal(id); if(S.money<v){ invest+=v-S.money; kauf.push('Regal:'+id); } }
       }
       /* Ausbau: Reihenfolge eines vernuenftigen Spielers */
-      const REIHE=['shop_halb','lager','plakat','grosskunden','terminal','lager_nord','testfeld','shop_gross','sackkarre','tag4','heizung','musik','gravur','radio','wagen','cams','regallicht','lager_gross','onlineshop','kasse2','alarm','labor','lager_sued','shop_ost','kundenkarte','tafel','lager_sued2','packstation','eingang2','shop_sued','lizenz','packstation2','klima','labor2','lager_west','rampe2','lager_west2','rampe3','packstation3','meister','rampe4','lager_west3','rampe5'];
+      const REIHE=['shop_halb','lager','plakat','grosskunden','terminal','lager_nord','testfeld','shop_gross','sackkarre','tag4','heizung','musik','gravur','radio','wagen','cams','regallicht','lager_gross','onlineshop','kasse2','alarm','labor','lager_sued','shop_ost','kundenkarte','tafel','lager_sued2','packstation','eingang2','shop_sued','lizenz','packstation2','klima','labor2','labor3','packstation3','meister','labor4','labor5'];
       for(const id of REIHE){
         const u=UPGRADES.find(x=>x.id===id);
         if(!u||S.level<u.lvl||u.done()||(u.req&&!S.up[u.req])) continue;

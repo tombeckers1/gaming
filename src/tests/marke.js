@@ -1,4 +1,4 @@
-/* Herausforderungen und eigene Rezeptur */
+/* Herausforderungen und eigene Marke (Werkbank, seit 16.10. statt Labor-Rezeptur - ausfuehrlich: werkbank.js) */
 async function neuesSpiel(p){
   await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",{timeout:30000});
   await p.click('#startBtns button:last-child');
@@ -64,84 +64,36 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.nachZuenden=bb.bruchListe().length;
     o.waechstDurchSpielen=o.nachZuenden>o.nachZwei;
     /* nur echte Bruchbilder, kein Muell */
-    o.alleGueltig=bb.S.gesehen.every(e=>!!bb.BRUCH[e]);
+    o.alleGueltig=bb.S.gesehen.every(e=>!!bb.wbEffekt(e));
     return o;
   });
   console.log('GESEHEN',JSON.stringify(seh));
 
-  /* --- Die Formel darf nicht ausnutzbar sein --- */
+  /* --- Die Kalkulation darf nicht ausnutzbar sein: jede Kombination hat Marge, teure Effekte kosten mehr --- */
   const form=await p.evaluate(()=>{
     const bb=window.__bb,o={};
     bb.BRUCH_IDS.forEach(e=>bb.bruchGesehen(e));
-    const bau=(traeger,eff,A,B,eff2)=>({traeger,eff,A:A||'gold',B:B||'blau',eff2:eff2||null,etikett:'klassik',name:'X'});
-    /* Marge muss ueber alle Kombinationen gesund bleiben */
-    let minM=9, maxM=0, minP=1e9, maxP=0, ungueltig=0;
-    bb.TRAEGER.forEach(t=>bb.BRUCH_IDS.forEach(e=>{
-      const r=bau(t.id,e);
-      const k=bb.rezeptKosten(r), m=bb.rezeptMarkt(r);
-      if(!(k>0)||!(m>k)) ungueltig++;
-      const marge=m/k; minM=Math.min(minM,marge); maxM=Math.max(maxM,marge);
-      minP=Math.min(minP,m); maxP=Math.max(maxP,m);
-    }));
-    o.ungueltigeKombis=ungueltig;
-    o.margeVon=+minM.toFixed(2); o.margeBis=+maxM.toFixed(2);
-    o.preisVon=+minP.toFixed(2); o.preisBis=+maxP.toFixed(2);
-    /* Teure Bruchbilder muessen auch teurer sein */
-    const billig=bau('rakete3','kugel'), teuer=bau('rakete3','zeitregen');
-    o.teuresKostetMehr=bb.rezeptKosten(teuer)>bb.rezeptKosten(billig);
-    o.teuresBringtMehr=bb.rezeptMarkt(teuer)>bb.rezeptMarkt(billig);
-    /* Zweite Stufe kostet und bringt */
-    const s2=bau('rakete3','kugel',null,null,'kamuro');
-    o.zweiteStufeKostet=bb.rezeptKosten(s2)>bb.rezeptKosten(billig);
-    o.zweiteStufeBringt=bb.rezeptMarkt(s2)>bb.rezeptMarkt(billig);
-    /* Vergleich mit der Kaufware: die eigene Marke darf nicht absurd sein */
-    const kaufMargen=['raketenklein','raketen','knatter','kugel75','fontaene']
-      .map(t=>+(bb.P[t].market/bb.P[t].cost).toFixed(2));
-    o.kaufwareMargen=kaufMargen;
+    let minM=9, maxM=0, ungueltig=0;
+    for(let st=0;st<5;st++) bb.BRUCH_IDS.forEach(e=>{ const N=bb.WIRT.werkbank.stufen[st].schuss, d={stufe:st,abschnitte:[bb.wbAbschnitt({e,n:N})]};
+      const k=bb.wbStueckkosten(d), m=bb.wbMarkt(d); if(!(k>0)||!(m>k)) ungueltig++; minM=Math.min(minM,m/k); maxM=Math.max(maxM,m/k); });
+    o.ungueltigeKombis=ungueltig; o.margeVon=+minM.toFixed(2); o.margeBis=+maxM.toFixed(2);
+    const d=e=>({stufe:2,abschnitte:[bb.wbAbschnitt({e,n:110})]});
+    o.teuresKostetMehr=bb.wbStueckkosten(d('zeitregen'))>bb.wbStueckkosten(d('kugel'));
+    o.teuresBringtMehr=bb.wbMarkt(d('zeitregen'))>bb.wbMarkt(d('kugel'));
+    o.kaufwareMargen=['raketenklein','raketen','knatter','kugel75','fontaene'].filter(t=>bb.P[t]).map(t=>+(bb.P[t].market/bb.P[t].cost).toFixed(2));
     return o;
   });
   console.log('FORMEL',JSON.stringify(form));
 
-  /* --- Entwicklung durchspielen --- */
+  /* --- Entwickeln und liefern --- */
   const dev=await p.evaluate(()=>{
     const bb=window.__bb,o={};
-    o.ohneLaborGesperrt=bb.renderRezeptur().indexOf('Entwicklungslabor')>=0&&!bb.S.up.labor;
-    bb.S.up.labor=true; bb.S.up.labor2=true; bb.S.level=30; bb.S.money=300000;
-    bb.entwurf=null; bb.entwurfInit();
-    bb.entwurf.traeger='kugel100'; bb.entwurf.eff='kamuro'; bb.entwurf.eff2='salut';
-    bb.entwurf.A='violett'; bb.entwurf.B='gold'; bb.entwurf.name='Nordlicht';
-    const g0=bb.S.money;
-    bb.rezBauen();
-    o.kostetGeld=bb.S.money<g0;
-    o.inEntwicklung=bb.eigeneListe().filter(e=>!e.fertig).length;
-    o.nochNichtImKatalog=bb.ORDER.filter(t=>bb.P[t].eigen).length===0;
-    /* Tage vergehen lassen */
-    for(let d=0;d<8;d++) bb.rezepteTick();
-    const e=bb.eigeneListe()[0];
-    o.fertig=!!e.fertig;
-    o.imKatalog=!!bb.P[e.id];
-    o.inORDER=bb.ORDER.indexOf(e.id)>=0;
-    o.hatPreis=bb.S.prices[e.id]>0;
-    o.marktIndex=typeof bb.S.mi[e.id]==='number';
-    o.name=bb.P[e.id]?bb.P[e.id].name:null;
-    o.station=bb.stationOf(e.id);
-    /* Regalplatz und Bestellbarkeit */
-    for(let i=0;i<4;i++) bb.regalStellen('standard');
-    o.regalPlatz=bb.shelfCapOf(e.id);
-    o.einraeumbar=!!bb.emptyLevel(e.id);
-    bb.cartClear(); bb.cartAdd(e.id,1,'mertens');
-    o.bestellbar=bb.cartBoxes()>0;
-    bb.cartClear();
-    /* zuenden */
-    const leben=()=>{ let n=0; for(const ps of [bb.psHuge,bb.psBig,bb.psMid,bb.psSmall]) for(let i=0;i<ps.life.length;i++) if(ps.life[i]>0) n++; return n; };
-    bb.run(10,0.05);
-    const v0=leben(); bb.igniteType(e.id); bb.run(4,0.05);
-    o.zuendetPartikel=leben()-v0;
-    bb.run(16,0.05);
-    /* Verkauf zaehlt auf die eigene Marke */
-    const st0=bb.stat('v_eigene');
-    bb.statVerkauf(e.id,3);
-    o.zaehltAlsEigene=bb.stat('v_eigene')-st0===3;
+    bb.S.level=30; bb.S.money=300000; ['shop_halb','lager','lager_nord','labor'].forEach(id=>bb.testKauf(id));
+    const d=bb.wbEntwurfNeu(0); d.name='Nordlicht'; const r=bb.wbEntwickeln(d,0,0);
+    o.ok=r.ok; const e=bb.eigeneListe()[0]; if(!e) return o;
+    o.imKatalog=!!bb.P[e.id]; o.inORDER=bb.ORDER.indexOf(e.id)>=0; o.hatPreis=bb.S.prices[e.id]>0; o.station=bb.stationOf(e.id);
+    bb.wbTick(); bb.wbTick(); o.unterwegs=bb.pendingListe().filter(x=>x.type===e.id).length;
+    const st0=bb.stat('v_eigene'); bb.statVerkauf(e.id,3); o.zaehltAlsEigene=bb.stat('v_eigene')-st0===3;
     return o;
   });
   console.log('ENTWICKLUNG',JSON.stringify(dev));
@@ -157,15 +109,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.erfZeilen=document.querySelectorAll('#hApp .row').length;
     o.erfBalken=document.querySelectorAll('#hApp .erfbar').length;
     o.erfBilder=document.querySelectorAll('#hApp img.pic').length;
-    klick('rez');
-    o.rezFelder=document.querySelectorAll('#lbody .rezfeld').length;
-    o.farbknoepfe=document.querySelectorAll('#lbody .farbw button').length;
-    o.vorschau=!!document.querySelector('#lbody .rezr img');
-    o.protoKnopf=!!document.querySelector('#lbody button[data-a="rzproto"]');
-    /* Auswahl umschalten */
-    const bt=document.querySelector('#lbody button[data-a="rz"][data-f="A"][data-v="magenta"]');
-    if(bt) bt.click();
-    o.farbeGesetzt=bb.entwurf.A==='magenta';
+    o.keinReiterEntwicklung=o.tabs.indexOf('rez')<0;
     return o;
   });
   console.log('MASKE',JSON.stringify(ui));

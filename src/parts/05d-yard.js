@@ -508,7 +508,7 @@ const ROHR_KALIBER=['75–100 mm','150–200 mm','300 mm'], ROHR_NAME=['kleine R
    anderen Sorten ueber ihren Durchmesser. Vorher landeten Sternenstaub
    und Sternkranz (150), Goldkrone (200) und Kaiserkrone (300) im
    kleinen Rohr, weil nur die fuenf Stammkugeln bekannt waren. */
-function kugelTyp(t){ const p=P[t]; const k=p&&p.rezept?p.rezept.traeger:t; if(KUGEL_R[k]) return k;
+function kugelTyp(t){ const p=P[t]; const k=t; if(KUGEL_R[k]) return k;
   const d=p&&p.dims?p.dims[0]:0.09; let best='kugel75', bd=9;
   for(const [n,v] of [['kugel75',0.09],['kugel100',0.12],['kugel150',0.165],['kugel200',0.21],['kugel300',0.3]]){ const dd=Math.abs(v-d); if(dd<bd){ bd=dd; best=n; } }
   return best; }
@@ -578,7 +578,6 @@ function brennDauer(t){
   const fest={wunder:5,knallerbsen:2.2,knallfrosch:2.8,tisch:3,schwaermer:3.8,vulkan:14,wasserfall:23,
     sternenbrunnen:6,fontaene:12,goldgeysir:22,feuerbrunnen:19,feuersaeule:30,fontaene30:13,fontaene50:15,furzrakete:6,boeller:5,monsterboeller:4,atomboeller:6};
   if(fest[t]) return fest[t];
-  if(p.rezept) return 7;
   const sh=p.shape;
   if(sh==='shell') return {kugel150:4.5,kugel200:5,kugel300:6.5}[kugelTyp(t)]||3.5;
   if(sh==='tubepack') return 2.6;

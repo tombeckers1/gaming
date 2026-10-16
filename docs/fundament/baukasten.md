@@ -200,3 +200,13 @@ Wächter: `regal`, `kasse`, `tuer` (mit den Drehtür-Wörtern und `streifenvorha
 - `bk.dachrand({x0,x1,z0,z1,y,h,fallrohre})` – Attika mit Paneelen, Attikablech Graphit, Fallrohre (`bk.DACHRAND`).
 - `bk.lampe({art:'mast'|'wand',punkte:[[x,z,ry]],h,koepfe,neigung,zone})` – Hof-/Mast-/Wandleuchte, Instanzen, nachts Leuchtfläche
   (`lampeAussen`) + Lichtfleck/-kegel (`lichtfleck`), `bk.LAMPE_AUSSEN`. Flutlichtmasten: `hofMasten(liste)` (05h).
+
+## Werkbank (Kapitel 5 Eigene Marke, 16.10.2026) – Doku `docs/werkbank/werkbank.md`
+- **`bk.werkbank({parent,x,z,ry,laenge,malen,pw,ph})`** → `{g, schirm, laenge, tiefe, hoehe}`: Werktisch 2,0 × 0,75 m, Arbeitshöhe 0,92 m
+  (Werkbank-Norm 0,85–0,95 m). Stahlgestell Anthrazit (`lackMetall`), Multiplexplatte `holzPalette` (`matt`) mit Stahlkante, Schubladenblock
+  `signalblau` (Werkstattmöbel), Lochwand 1,0 m aus `MAT.get('lochblechKasse')` (UV in Metern, 0,4 m je Kachel), Schraubstock, zwei Spulen
+  Zündschnur (`signalgruen`/`signalrot`), Musterbatterie 5 × 5 Pappe-Rohre (`graphit`/`wellpappe`) auf Alu-Platte, Musterkartons, Tablet auf
+  Ständer (Bildschirm = `bk.schild` mit `malen`, eigene Textur, darf neu gemalt werden), Arbeitsleuchte (`lampeWarm`, `leucht`), Hausschild
+  „WERKBANK · EIGENE MARKE“ (`bk.schild`, Stil haus). Ein Sammler je Oberflächenklasse, Zylinder 6/10/14 Segmente nach `bk.lod()`,
+  Ultra Low ohne Fasen. Verwendet in `06c-werkbank.js` (`wbBauen`, Lager Nord an der Westwand, verschiebbar wie der Gravur-Automat;
+  Kontaktschatten über `movables`).

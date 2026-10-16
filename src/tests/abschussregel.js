@@ -5,7 +5,7 @@
    Produkt dasteht"). Regelwerk: docs/fundament/feuerwerk-regeln.md.
    Fuer JEDES Feuerwerksprodukt an JEDEM Zuend-Ort (Testfeld-Station im
    Spiel = auch Teststation und Zuend-Handy; Vorfuehrung = alle drei Listen,
-   PC und Handy) und fuer den Prototyp jeder Rezeptur-Traegerart:
+   PC und Handy) und fuer die Vorschau der Werkbank (eigene Batterie, je Groesse):
    - R1 AUSGEPACKT: Darstellung kommt aus dem Abschuss-Baustein (14z4) und
      ist nie die Ladenverpackung (keine Folie, kein Klarsicht-/Acrylteil);
      Verpackungsform nur, wo die Form selbst das Produkt ist (AB_KOERPER)
@@ -89,8 +89,8 @@ function einmal(){
     const rohrGeo=g=>{ const L=[]; g.traverse(q=>{ const pr=q.geometry&&q.geometry.parameters; if(q.geometry&&q.geometry.type==='CylinderGeometry'&&pr.openEnded&&(pr.radiusTop===0.062||pr.radiusTop===0.056)) L.push(pr.radiusTop+'/'+pr.height.toFixed(3)); }); return L.sort().join(','); };
     anl.stRohrArt=[...new Set(rohrGeo(bb.stations.rampe.g).split(','))].join(','); anl.vfRohrArt=va?[...new Set(rohrGeo(va).split(','))].join(','):'';
     bb.vorfuehrungAus();
-    /* Prototyp: alle Traeger und der Bruch 'kugel' freigeschaltet */
-    S.lic=(bb.LIZENZEN||[]).map(l=>l.id); S.gesehen=Array.from(new Set((S.gesehen||[]).concat(['kugel'])));
+    /* Werkbank-Vorschau: alle Lizenzen; die Effekte schaltet der Lauf selbst frei */
+    S.lic=(bb.LIZENZEN||[]).map(l=>l.id);
     return {ids,anl,offen:A.AB_OFFEN}; },nur);
   const mangel=[], offen=[], zeilen=[];
   const regel=(r,t,txt)=>{ mangel.push(`${r} ${t}: ${txt}`); };
@@ -105,9 +105,9 @@ function einmal(){
     const log=[]; log.brueche=[]; bb.fwLog(log); bb.ROHR_LOG=[]; window.__lochschuss.start(3);
     const AL=[]; A.log(AL);
     const out={t,ort};
-    if(proto){ /* Prototyp: Rezeptur mit diesem Traeger, Zuendung ueber den Laptop-Knopf */
-      bb.entwurf=null; const e0=bb.entwurfInit(); bb.entwurf=Object.assign({},e0,{traeger:proto,eff:'kugel',eff2:null,A:'rot',B:'gold',name:'Probe '+proto});
-      out.vorP=Object.keys(P).length; bb.rezProto(); }
+    if(proto){ /* Vorschau der Werkbank (17h) je Groesse: Probestueck auf dem Vorschau-Zuendtisch, Zuendung nach WB_VS.vor */
+      bb.BRUCH_IDS.forEach(e=>bb.bruchGesehen(e)); const d=bb.wbEntwurfNeu(+proto); d.name='Probe '+proto;
+      out.vorP=Object.keys(P).length; bb.wbVorschauStart(d); bb.run(bb.WB_VS.vor+0.1,0.05); }
     else if(ort==='station'){ const st=bb.stations[bb.stationOf(t)]; S.carrying={type:t,count:1,q:1}; bb.placeOnStation(st); S.carrying=null;
       const it=st.items[st.items.length-1]; if(it) bb.zuendeItem?bb.zuendeItem(st,it,true):bb.zuendeKanal(it.kanal); }
     else { bb.vorfuehrungAn(); bb.vfZuenden(t); }
@@ -146,8 +146,8 @@ function einmal(){
       if(h.modell){ const g=h.modell; out.flug={drin:!!g.parent,y:+(g.position.y-o.y).toFixed(2)}; }
       else out.flug={weg:h.h.pool.h.indexOf(h.h)<0}; }
     for(;s<D;s+=0.25) bb.run(0.25,0.125);
-    /* Prototyp: das Probestueck verlaesst den Katalog wieder (12 s nach dem Abbrand) */
-    if(proto){ bb.run(13,0.25); out.protoP=Object.keys(P).length-out.vorP; }
+    /* Vorschau: das Probestueck verlaesst den Katalog wieder (nach dem Abbrand) */
+    if(proto){ for(let i=0;i<80&&bb.wbVs;i++) bb.run(0.5,0.25); out.protoP=Object.keys(P).length-out.vorP; }
     const Z=window.__lochschuss.stop(), RL=bb.ROHR_LOG||[]; bb.ROHR_LOG=null; bb.fwLog(null); A.log(null);
     out.nachher={modell:h.modell?!!h.modell.parent:null,weg:!!h.weg_,stationLeer:ort==='vorf'||proto?null:bb.stations[bb.stationOf(t)].items.length===0};
     const art={}; for(const e of log){ const k=e.art==='perle'&&/^licht:/.test(e.eff||'')?'licht':e.art; art[k]=(art[k]||0)+1; }
@@ -165,8 +165,8 @@ function einmal(){
     return out; },[t,ort,proto||null]);
   const erg={};
   for(const t of vorab.ids){ erg[t]={}; for(const ort of ['station','vorf']){ const r=await lauf(t,ort); erg[t][ort]=r; } }
-  /* Prototyp je Traegerart (nur im vollen Lauf) */
-  const protos=nur?[]:['rakete3','rakete5','batterie','kugel75','kugel100','fontaene'];
+  /* Werkbank-Vorschau je Groesse (nur im vollen Lauf) */
+  const protos=nur&&!process.env.WB?[]:['0','1','2','3','4'];   /* Werkbank-Vorschau, fuenf Groessen (25 ... 500 Schuss) */
   for(const tr of protos){ const r=await lauf(null,'station',tr); erg['proto:'+tr]={station:r}; }
   /* Auswertung */
   for(const [t,v] of Object.entries(erg)){

@@ -36,6 +36,8 @@ function lFunken(p,v,g,t0,t1,rate,c,o){ o=o||{}; rkFunken(p,v,g,t0,t1,rate,c,o);
   if(!o.ps||o.ps===psMid){ const L=o.life||[0.4,0.8]; rkFunken(p,v,g,t0,t1,rate*0.32,kgMal(c,1.1),Object.assign({},o,{ps:psBig,life:[L[0]*0.8,L[1]*0.9]})); } }
 function lichtSchuss(o,name,A,B,s,opt){
   const m=lMund(o);
+  /* einmal gesehen = an der Werkbank verbaubar (02c bruchGesehen, 02d WB_LICHT) */
+  if(typeof bruchGesehen==='function') bruchGesehen('licht:'+name);
   if(FW_LOG) FW_LOG.push({t:FW_UHR,art:'perle',kal:0,pw:0,sz:s||1,eff:'licht:'+name,A,B,stufenEff:[],hoehe:0,brueche:0,groesste:s||1,ang:+(opt.ang||0).toFixed(3),x:+m.x.toFixed(2),y:+m.y.toFixed(2),z:+m.z.toFixed(2),tag:FW_TAG});
   LICHTYP[name](o,A,B,Math.max(0.6,Math.min(1.8,s||1)),opt||{});
 }

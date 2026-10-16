@@ -47,7 +47,7 @@ const FREI=[
   {dateien:/^01c-wirtschaft\.js$/,arten:['geld'],grund:'Wirtschaftszentrale selbst'},
   {dateien:/^14(?!z4)/,arten:['material','std','hex','css','geld','bauteil'],grund:'Feuerwerks-Effekte und Produktmodelle der Drehbuecher = Anomalie (Tom 26.09.); die Mechanik (14z4) ist NICHT frei'},
   {dateien:/^(04c-rohre|04d-design|04e-ware|04f-|04g-|04h-|04i-|04j-|04k-|04l-|17c-verpackung)/,arten:['material','std','hex','css','bauteil'],grund:'Verpackungen/Produktformen und ihre Motive = bewusst je Produkt eigen (Tom 13.10.)'},
-  {dateien:/^(02d-rezeptur|02e-neuware|02f-themen|02g-runde4|02h-kugeln5|02i-kugeln6|02j-batterien7)\.js$/,arten:['css'],grund:'Produktdaten: Verpackungsfarben und Effektfarben der Sorten (Anomalie)'}
+  {dateien:/^(02d-werkbank|02e-neuware|02f-themen|02g-runde4|02h-kugeln5|02i-kugeln6|02j-batterien7)\.js$/,arten:['css'],grund:'Produktdaten: Verpackungsfarben und Effektfarben der Sorten (Anomalie)'}
 ];
 /* Produktkatalog: Preise je Sorte (P[t].cost/.market) sind Katalog wie Name und Masse
    (docs/fundament/wirtschaft.md "Was bewusst nicht in der Zentrale steht"). Erkannt: Zahl hinter
@@ -93,7 +93,9 @@ const BAUTEILE=[
   {bk:'bodenmarkierung',woerter:['bodenmarkierung','markierungen'],wofuer:'Bodenmarkierung (Fahrweg, Sperrflaeche, Freihalteflaeche, Stellplatz, Bodenschrift)'},
   {bk:'hubwagen',woerter:['hubwagen','handhubwagen','ameise'],wofuer:'Handhubwagen (Gabeln passen in die Euro-Palette; DDL-Fahrer, Versandhof)'},
   /* Verpackungs-Ausstellung 2.0 (15.10.) */
-  {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'}
+  {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'},
+  /* Werkbank (Kapitel 5 Eigene Marke, 16.10.) */
+  {bk:'werkbank',woerter:['werkbank','werktisch'],wofuer:'Werkbank im Lager: Werktisch, Lochwand, Schraubstock, Musterbatterie, Tablet (Bauprogramm eigene Batterien)'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
 const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];

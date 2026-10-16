@@ -276,7 +276,7 @@ function endDay(){
     statRekord('rek_tag',Math.round(DS.revenue));
     statRekord('rek_kunden',DS.customers);
     statAdd('tage',1);
-    S.day++; goalTick(); rollMarket(); rollEvent(); rezepteTick();
+    S.day++; goalTick(); rollMarket(); rollEvent(); wbTick();
     /* Neue Einkaufspreise des Tages: spuerbare Aenderung gleich melden */
     { const e=ekTag(), f=x=>(x>0?'+':'')+x.toFixed(1).replace('.',',')+' %';
       if(Math.abs(e.schnitt)>=0.5) toast(`Lieferanten: Einkauf heute im Schnitt ${f(e.schnitt)}${e.hoch&&e.hoch.d>=5?` · ${P[e.hoch.t].short} ${f(e.hoch.d)}`:''}`,e.schnitt>0?'bad':'money');

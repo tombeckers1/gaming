@@ -62,7 +62,7 @@ probe('KONSTANTEN',1,`return {OPEN_T,CLOSE_T,MIN_PER_SEC,START_DOY,SORT_VOLL,LIE
   VS_CFG_STD,VS_PORTO,VS_KOSTEN_MAX,VS_FREI_MAX,VS_KORB,VS_STUFE_MUL,VS_GR,DDL_PAUSCHALE,DDL_ANFAHRT,VM,VM_FOLIE,VM_BAND,VM_KARTON,
   WAGES,WDMULT,KARREN,KISTE_STUECK,SB_SELBST,KASSE_GRIFF,SERIE_STUFEN,DEMO,
   frisch:(()=>{ const f=freshState(); delete f.prices; return f; })()};`);
-probe('REZEPTUR',1,`return {TRAEGER,BRUCH,REZ_FARBEN,ETIKETT};`);
+probe('WERKBANK',1,`return {BRUCH,WB_LICHT,WB_FARBEN,WB_STUFEN,WB_TAKT,muster:Object.keys(WB_MUSTER)};`);
 
 /* ---------- 2. Zeitreihen ---------- */
 probe('SAISON',1,`const r=[]; for(let n=0;n<=800;n++){ const i=dateInfo(n), s=seasonInfo(n); r.push([i.m,i.d,i.wd,s[0],s[1],dayMult(n),isSunday(n)?1:0,silvesterNah(n)?1:0]); } return r;`);
@@ -178,13 +178,15 @@ probe('AUFTRAEGE',37,`const r=[]; for(const L of [7,10,15,25]){ __neu({level:L,u
   return {r,T:__T.slice()};`);
 probe('ERFOLGE_BELOHNUNG',41,`const r=[]; for(const e of ERFOLGE) for(let st=0;st<e.stufen.length;st++){ __neu({level:30,money:0}); S.erf={}; S.erf[e.id]=st; try{ erfBelohnen(e,st); }catch(x){ r.push([e.id,st,'F:'+x.message]); continue; } r.push([e.id,st,S.money,S.gutschrift,S.xp,S.level]); }
   return {r,T:__T.slice(0,60)};`);
-probe('REZEPT',43,`const r=[]; for(const t of TRAEGER) for(const b of BRUCH_IDS.slice(0,8)) for(const e2 of [null,BRUCH_IDS[3]]){ const rz={traeger:t.id,eff:b,eff2:e2,A:REZ_FARBEN[0].id,B:REZ_FARBEN[2].id,etikett:ETIKETT[0].id,name:'T'};
-  try{ r.push([t.id,b,e2,rezeptWow(rz),rezeptKosten(rz),rezeptMarkt(rz),rezeptHype(rz),rezeptDauer(rz),rezeptEntwicklung(rz)]); }catch(x){ r.push([t.id,b,'F:'+x.message]); } } return r;`);
+probe('WERKBANK_RECHNUNG',43,`const r=[]; const E=[['kugel','gold','weiss'],['chrys','rot','gold'],['kamuro','gold','blau'],['licht:goldkomet','gold','violett']];
+  WIRT.werkbank.stufen.forEach((st,i)=>{ for(const [e,A,B] of E) for(const fin of [false,true]){ const N=st.schuss, a=Math.round(N*0.7);
+    const d={stufe:i,abschnitte:[wbAbschnitt({e,A,B,n:fin?a:N,takt:2,muster:'lr'})].concat(fin?[wbAbschnitt({e:'chrys',A:B,B:A,n:N-a,muster:'finale',hoehe:2,kal:2})]:[])};
+    try{ const b=wbBewertung(d), q={stufe:i,cost:wbStueckkosten(d)}; r.push([i,e,fin,b.gesamt,b.sterne,wbStueckkosten(d),wbMarkt(d,b),wbGewicht(d,b),wbHype(d,b),wbEntwicklung(d),wbDauer(d),wbSerie(q,st.mindest).preis,wbSerie(q,st.mindest*4).preis]); }catch(x){ r.push([i,e,'F:'+x.message]); } } }); return r;`);
 
 /* ---------- 10. Texte, die Werte wiederholen ---------- */
 probe('HANDBUCH',1,`__neu({level:10}); return handbuchHTML();`);
 probe('LAPTOP',47,`const r={}; for(const L of [5,16,26]){ __neu({level:L,money:2000,day:40,up:{lager:true,onlineshop:L>20,packstation:L>20}}); S.lic=LIZENZEN.filter(l=>l.lvl<=L).map(l=>l.id);
-  for(const [ger,tab,sup] of [['buero','order','ware'],['buero','order','gross'],['buero','order','rest'],['buero','order','regal'],['buero','order','vm'],['buero','price'],['buero','liz'],['buero','up'],['buero','deko'],['buero','rez'],['buero','shop'],['lager','online'],['lager','staff']]){
+  for(const [ger,tab,sup] of [['buero','order','ware'],['buero','order','gross'],['buero','order','rest'],['buero','order','regal'],['buero','order','vm'],['buero','price'],['buero','liz'],['buero','up'],['buero','deko'],['buero','order','eigen'],['buero','shop'],['lager','online'],['lager','staff']]){
     lapGeraet=ger; ltab=tab; if(sup) lsup=sup; try{ renderLaptop(); r[L+tab+(sup||'')]=__html(['lbody']).lbody; }catch(e){ r[L+tab+(sup||'')]='F:'+e.message; } }
   handyOpen=true; for(const a of HANDY_APPS){ happ=a.id; try{ renderHandy(); r['h'+L+a.id]=__html(['hInhalt','hApp']); }catch(e){ r['h'+L+a.id]='F:'+e.message; } } handyOpen=false; happ=null; }
   return r;`);

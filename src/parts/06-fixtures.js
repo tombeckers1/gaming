@@ -460,7 +460,7 @@ function rasterKandidaten(x,L,lo,hi){ const g=0.012, out=[];
   for(let n=1;n<=60;n++){ const v=Math.floor(((L+g/2)/n-g-0.001)*1000)/1000, q=v/x; if(q>=lo&&q<=hi) out.push(q); }
   return out; }
 function massRaster(t){
-  const p=P[t]; if(!p||!p.dims||!p.grid||p.noOrder||p.rezept||p.dims0) return;
+  const p=P[t]; if(!p||!p.dims||!p.grid||p.noOrder||p.werk||p.dims0) return;
   p.dims0=p.dims.slice();
   /* die Raketenzahl im Set haengt sonst an der Tiefe der Packung */
   if(p.shape==='rocketset'&&p.stueck===undefined) p.stueck=Math.max(3,Math.round(p.dims[2]/0.026));

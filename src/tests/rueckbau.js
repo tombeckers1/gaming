@@ -8,7 +8,9 @@
                  Ausbauten und Rohstoffe aus dem Spielstand nachgerechnet; Meldung "Rueckerstattung" einmal
    - WARE        je Sorte: Stueck in Lagerregalen/Boden/Hochregal/Werk vorher = Lagerregale + Boden + gutgeschrieben nachher
    - REGALE      alle Lagerregale im Lager (x > -20,1), keine Ueberlappung
-   - EINMAL      Speichern und neu laden: keine zweite Gutschrift
+   - WERKBANK    (seit Merge mit der Werkbank 17.10.) alte Labor-Rezepturen: Batterie -> eigene Batterie Stufe 1, Raketenset -> Altbestand,
+                 Werkbank steht, labor2-Erstattung im Konto, je EINE Meldung (Rueckerstattung, Labor -> Werkbank)
+   - EINMAL      Speichern und neu laden: keine zweite Gutschrift, keine der beiden Meldungen
    - WESTWAND    Lager Sued: Strahlen von innen nach Westen treffen auf ganzer Laenge (z -29,6 ... -6,4) und Hoehe die
                  Lagerwand bei x -19,9; Spieler kommt nicht hindurch; Kollision durchgehend
    - SZENE       kein Mesh mehr im alten Hallen-/Werkgebiet, keine Halle-Bauteile, keine Halle-Schnittstellen in __bb
@@ -19,8 +21,14 @@ const fs=require('fs'), path=require('path');
 const H=require(path.join(__dirname,'../../tools/test/start-hilfe.js'));
 const GP=process.env.GEGENPROBE==='1';
 (async()=>{
-  const stand=fs.readFileSync(path.join(__dirname,'daten','v141-vollausbau.json'),'utf8');
-  const D=JSON.parse(stand);
+  const D=JSON.parse(fs.readFileSync(path.join(__dirname,'daten','v141-vollausbau.json'),'utf8'));
+  /* Merge Rueckbau+Werkbank (17.10.): der V141-Stand hat Labor + zweite Zuendstufe; dazu zwei alte Labor-Rezepturen (Batterie ->
+     eigene Batterie, Raketenset -> Altbestand) mit Kartons im Hochregal. Beide Umstellungen muessen zusammen laufen: Werkbank-Umstellung
+     (je eine Meldung, labor2-Erstattung) und Rueckbau (Rezeptur-Kartons aus dem Hochregal landen im Lager, nicht im Nichts). */
+  D.eigene=[{id:'eigenalt1',name:'Alte Batterie',traeger:'batterie',eff:'chrys',eff2:null,A:'rot',B:'gold',etikett:'klassik',cost:9,market:21,hype:30,rest:0,fertig:true},
+            {id:'eigenalt2',name:'Altes Raketenset',traeger:'rakete3',eff:'kugel',eff2:null,A:'gold',B:'blau',etikett:'klassik',cost:3,market:7,hype:10,rest:0,fertig:true}];
+  { const k=D.hr.p.findIndex(x=>!x); D.hr.p[k]=[{t:'eigenalt1',c:6,q:1},{t:'eigenalt2',c:8,q:1}]; }
+  const stand=JSON.stringify(D);
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:960,height:600}});
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
@@ -46,6 +54,9 @@ const GP=process.env.GEGENPROBE==='1';
     const racks=bb.racks.map(rk=>({x:+rk.g.position.x.toFixed(2),z:+rk.g.position.z.toFixed(2),ry:rk.g.rotation.y,kind:rk.kind}));
     return {money:S.money,R:R?JSON.parse(JSON.stringify(Object.assign({},R,{ware:R.ware.length}))):null,lager,racks,
       up:bb.RUECKBAU_UP.filter(id=>S.up[id]),staff:bb.RUECKBAU_STAFF.filter(id=>S.staff[id]),hr:S.hr,ll:S.ll,pd:S.pd,toast:toasts.find(t=>/Rückerstattung/.test(t))||'',toastN:toasts.filter(t=>/Rückerstattung/.test(t)).length,
+      wbToast:toasts.find(t=>/Aus dem Labor wird die Werkbank/.test(t))||'',wbToastN:toasts.filter(t=>/Aus dem Labor wird die Werkbank/.test(t)).length,
+      wbErst:Math.round((bb.WIRT.historie.erstattung.labor2-bb.WIRT.ausbau.preis.labor2)*100)/100,
+      wb:{eigene:bb.eigeneListe().map(e=>e.id+':'+e.stufe+':'+bb.wbSchuss(e)),alt:(S.eigeneAlt||[]).map(a=>a.id),altNoOrder:!!(bb.P.eigenalt2&&bb.P.eigenalt2.noOrder),labor:!!S.up.labor,labor2:!!S.up.labor2,labor2Alt:!!S.up.labor2_alt,werkbank:!!bb.wbG},
       level:S.level,day:S.day,racksN:bb.racks.length};
   },GP);
   /* --- Erwartung aus dem Spielstand --- */
@@ -72,9 +83,12 @@ const GP=process.env.GEGENPROBE==='1';
   pruef('GUTSCHRIFT-ROH',Math.abs(R.roh-rohSoll)<0.02&&rohSoll>1000,'Rohstoffe '+R.roh+' statt '+rohSoll);
   const diff=Math.round((r.money-D.money)*100)/100;
   /* 4 s Spielzeit bei geschlossenem Laden: kein Umsatz, keine Kosten - Geld aendert sich nur durch die Gutschrift */
-  pruef('GUTSCHRIFT-KONTO',Math.abs(diff-R.summe)<0.02&&Math.abs(R.summe-(R.ausbau+R.roh+R.regalGeld+R.wareGeld))<0.02,'Konto +'+diff+', Gutschrift '+R.summe);
+  /* dazu die Werkbank-Umstellung: alte zweite Zuendstufe (16.500) minus heutige 60-Schuss-Stufe */
+  pruef('GUTSCHRIFT-KONTO',Math.abs(diff-R.summe-r.wbErst)<0.02&&r.wbErst>0&&Math.abs(R.summe-(R.ausbau+R.roh+R.regalGeld+R.wareGeld))<0.02,'Konto +'+diff+', Gutschrift '+R.summe+' + Werkbank '+r.wbErst);
   pruef('MELDUNG',r.toastN===1&&/gutgeschrieben/.test(r.toast),'Meldung ('+r.toastN+'x): '+r.toast);
-  console.log('MELDUNG',r.toast);
+  console.log('MELDUNG',r.toast,'|',r.wbToast); console.log('WERKBANK',JSON.stringify(r.wb));
+  pruef('WERKBANK-MELDUNG',r.wbToastN===1&&/eigene Batterie/.test(r.wbToast)&&/Zündstufe/.test(r.wbToast),'Meldung ('+r.wbToastN+'x): '+r.wbToast);
+  pruef('WERKBANK',r.wb.eigene.join()==='eigenalt1:0:25'&&r.wb.alt.join()==='eigenalt2'&&r.wb.altNoOrder&&r.wb.labor&&r.wb.labor2&&!r.wb.labor2Alt&&r.wb.werkbank,'Umstellung: '+JSON.stringify(r.wb));
   const fehl=[]; for(const t of new Set(Object.keys(vorher).concat(Object.keys(r.lager)))) if((vorher[t]||0)!==(r.lager[t]||0)) fehl.push(t+' '+(vorher[t]||0)+'->'+(r.lager[t]||0));
   const summe=o=>Object.values(o).reduce((a,c)=>a+c,0);
   console.log('WARE vorher',summe(vorher),'Stueck in',Object.keys(vorher).length,'Sorten, nachher',summe(r.lager),'| Regal',R.inRegal,'Boden',R.amBoden,'Geld',R.zuGeld,'| Regale um',R.regalUm,'weg',R.regalWeg,'Anbruch',R.anbruch);
@@ -115,8 +129,8 @@ const GP=process.env.GEGENPROBE==='1';
   await H.neuladen(p);
   await p.evaluate(()=>{ setTimeout(()=>document.querySelector('#startBtns button:first-child').click(),0); });
   await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:900000,polling:1000});
-  const m2=await p.evaluate(()=>{ const bb=window.__bb; bb.stoppSchleife(); bb.run(4,0.05); return {money:bb.S.money,R:bb.RUECKBAU,toast:bb.toastLast}; });
-  pruef('EINMAL',m2.R===null&&Math.abs(m2.money-m1.money)<0.02&&!/Rückerstattung/.test(m2.toast||''),'zweites Laden: '+JSON.stringify({vor:m1.money,nach:m2.money,R:!!m2.R,toast:m2.toast}));
+  const m2=await p.evaluate(()=>{ const bb=window.__bb; bb.stoppSchleife(); bb.run(4,0.05); return {money:bb.S.money,R:bb.RUECKBAU,toast:[...document.querySelectorAll('#toasts .toast')].map(e=>e.textContent).join(' / ')}; });
+  pruef('EINMAL',m2.R===null&&Math.abs(m2.money-m1.money)<0.02&&!/Rückerstattung|Aus dem Labor/.test(m2.toast||''),'zweites Laden: '+JSON.stringify({vor:m1.money,nach:m2.money,R:!!m2.R,toast:m2.toast}));
   if(GP){ const ok=mangel.some(m=>/^WARE/.test(m))&&mangel.some(m=>/^WESTWAND/.test(m));
     console.log(ok?'GEGENPROBE OK: WARE und WESTWAND schlagen an':'GEGENPROBE FEHLGESCHLAGEN: '+mangel.join(' | ')); }
   else console.log(mangel.length?'MANGEL: '+mangel.join(' | '):'ALLES OK');

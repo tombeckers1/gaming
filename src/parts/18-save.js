@@ -217,7 +217,6 @@ function startGame(fresh){
   /* Vor dem 24.09. gab es die Logistikhalle nur in voller Groesse (alle drei Stufen) - seit dem Rueckbau 16.10.
      wird jede gekaufte Stufe einzeln erstattet, alte Staende ohne Stufe 2/3 bekommen sie mit erstattet */
   if(d&&d.up&&d.up.lager_west&&d.up.lager_west2===undefined){ S.up.lager_west2=true; S.up.lager_west3=true; }
-  const rueckbau=rueckbauDaten(d);
   if(d&&d.up&&d.up.shop_halb===undefined){
     S.up.shop_halb=true; S.up.lager_nord=true; S.up.testfeld=true;
   }
@@ -232,6 +231,9 @@ function startGame(fresh){
   S.eigeneAlt=(Array.isArray(S.eigeneAlt)?S.eigeneAlt:[]).filter(a=>a&&a.id&&a.dims);
   eigeneAlleEintragen();
   if(wbm) later(3,()=>toast(wbMigrationText(wbm),'money'));
+  /* Rueckbau 16.10. NACH der Werkbank-Umstellung: alte Rezeptur-Sorten (Kartons im Hochregal/Werk) sind erst jetzt in P eingetragen -
+     vorher fielen sie in rbWare als "unbekannte Sorte" stillschweigend weg (Merge Rueckbau+Werkbank 17.10.) */
+  const rueckbau=rueckbauDaten(d);
   const F=freshState();
   S.prices=Object.assign(F.prices,S.prices||{}); for(const t in S.prices) if(!P[t]) delete S.prices[t]; /* aus dem Sortiment genommene Sorten */ S.up=Object.assign(F.up,S.up||{}); S.staff=Object.assign({},S.staff||{}); S.prio=Object.assign({},S.prio||{}); S.grime=clamp(+S.grime||0,0,1); S.mkt=clamp(+S.mkt||1,WIRT.markt.ladeMktMin,WIRT.markt.ladeMktMax); S.comp=clamp(+S.comp||1,WIRT.markt.konkurrenz.ladeMin,WIRT.markt.konkurrenz.ladeMax); if(S.ev&&!eventById(S.ev)) S.ev=null; S.wage=Object.assign({},S.wage||{}); S.pause=Object.assign({},S.pause||{}); S.tut=S.tut||{}; S.paint=S.paint||[]; S.stamm=S.stamm||{};
   S.shopName=(typeof S.shopName==='string'&&S.shopName.trim())?S.shopName.trim().slice(0,22):SHOP_DEFAULT;

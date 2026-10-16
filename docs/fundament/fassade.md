@@ -39,28 +39,34 @@ Attikablech und Fallrohre Graphit (dunkle Bleche), Profile Aluminium. Kein neuer
   Straße bleiben `bk.lampe({art:'strasse'})` (mit Lichtkarte auf dem Gehweg). Das Strahlerpaar über dem Ladenschild (05f) gehört zum Schild.
 
 ## 3. Messung (`tools/fundament/fassade-bilder.js`, Gameplay-Vorführung + Vollausbau, 1280 × 720, swiftshader)
-Zeichenaufrufe je Bild inkl. Schattenkarten und Bildeffekte (Mittel über 2 Bilder), vorher e5da0a6 → nachher 6069aa5:
+Zeichenaufrufe je Bild inkl. Schattenkarten und Bildeffekte (Mittel über 2 Bilder), vorher e5da0a6 → nachher b57b4f1 (Endstand):
 
 | Ansicht | Hoch Tag | Hoch Nacht | Ultra Low Tag | Ultra Low Nacht |
 |---|---|---|---|---|
-| Straße/Front | 4001 → 3949 | 3965 → 3919 | 2174 → 2149 | 2152 → 2130 |
-| Straße Ost (Erweiterungen) | 3668 → 3637 | 3701 → 3665 | 2417 → 2400 | 2445 → 2423 |
+| Straße/Front | 4001 → 3948 | 3965 → 3918 | 2174 → 2148 | 2152 → 2129 |
+| Straße Ost (Erweiterungen) | 3668 → 3636 | 3701 → 3664 | 2417 → 2399 | 2445 → 2422 |
 | Hof R1 | 4204 → 4163 | 4229 → 4180 | 2342 → 2315 | 2360 → 2325 |
-| Feuerwerkshof (Toms Foto) | 3726 → 3693 | 3729 → 3696 | 1785 → 1769 | 1790 → 1773 |
-| Versandhof | 2460 → 2445 | 2471 → 2450 | 1101 → 1094 | 1111 → 1098 |
-| Hof West / Werk | 1598 → 1592 | 1596 → 1592 | 708 → 708 | 706 → 708 (±2 = Rauschen, vorher Tag/Nacht ebenso) |
+| Feuerwerkshof (Toms Foto) | 3726 → 3692 | 3729 → 3695 | 1785 → 1768 | 1790 → 1772 |
+| Versandhof | 2460 → 2444 | 2471 → 2449 | 1101 → 1093 | 1111 → 1097 |
+| Hof West / Werk | 1598 → 1593 | 1596 → 1593 | 708 → 708 | 706 → 708 (±2 = Rauschen, vorher Tag/Nacht ebenso) |
 | Wand nah (Lager West) | 4197 → 4157 | 4201 → 4157 | 2246 → 2222 | 2250 → 2222 |
 
-- **Dreiecke:** Hoch 23,05–24,08 Mio. → +0,07 % (+16–19 Tsd., Eckprofile/Sockel/Leuchten inkl. Schattenpass); danach (Commit
-  „Leuchten auf Hoch schlanker“) Fase, Rippen und Kühlrippen der Leuchten erst ab Maximum, Bolzen als Kasten – nicht neu gemessen
-  (Wochenlimit), Erwartung ≈ ±0. Ultra Low ±0,0 %.
+- **Dreiecke:** Hoch +7 … +12 Tsd. je Bild auf 23–24 Mio. (+0,04 %; Sockel, Tropfkante und Eckprofile inkl. Schattenpass –
+  ehrlich: nicht null, gemessen und bewusst gelassen, Eckprofile sind Toms „Ecken sauber“). Ultra Low ±0 (−1 … +1 Tsd.).
 - **Texturspeicher** (Summe aller Texturen der Szene inkl. Mipmaps): Hoch 1360,0 → 1359,8 MB, Ultra Low 713,5 → 713,4 MB
   (Fassade 256 × 1024 → 1024 × 256, Trapezblech 256 × 64 → 256 × 128, neu Sockel 256 × 64 und Lichtfleck 128 × 64; Leuchtmaterialien
-  je Lampe entfallen). Materialien 1161 → 1143.
+  je Lampe entfallen). Materialien 1161 → 1143, Geometrien auf der Grafikkarte 3315 → 3254.
+- **Szenen-Objekte:** Außenhaut je Wand und jeder Dachrand sind EIN Mesh (Gruppen je Material) – Laufzeit-Wächter-Budget eingehalten
+  (erster Entwurf mit Einzelteilen: 2755 > 2468, behoben).
 - Warum weniger Zeichenaufrufe: Leuchten als Instanzen (drei Aufrufe je Aufrufstelle statt 5–8 je Mast, ein geteiltes
-  Leuchtmaterial statt eines je Kopf), Sockel/Attikablech/Fallrohre im Wandbild als **ein** Mesh für die ganze Welt (`wbFeld 'alle'`),
+  Leuchtmaterial statt eines je Kopf), Sockel/Attikablech/Fallrohre im Wandbild als **ein** Mesh für die ganze Welt (`wbAlle`),
   Profile im vorhandenen Laibungs-Material, Graphit-Blöcke weg. Der Lichtfleck kostet nachts einen Aufruf je Aufrufstelle, tags keinen.
 - Bilder: `docs/fundament/fassade/<ansicht>-<tag|nacht>-<hoch|ultralow>-<vorher|nachher>.jpg`, Zählung `zaehlen-<stufe>-<vorher|nachher>.json`.
+
+## Tests (Endstand b57b4f1, real.html, Sperre /tmp/bb-testlock-f)
+Node-Wächter grün (+ Gegenprobe 13/13), Laufzeit-Wächter grün (Budget, BAUTEILE, WACHE 0; Hinweis: neues Bauteil `dachrand` beim
+nächsten `BUDGET_SCHREIBEN` aufnehmen), fassade, sockel, ausbau, gameplay grün; material grün (auf 3d9fe32 „Leuchten schlanker“,
+danach nur Verlauf der Lichtkegel-Textur geändert).
 
 ## 4. Vergleich mit Toms Fotos (selbst geprüft)
 - Hof-Foto: Kasten auf Stange → Mast mit Fußplatte/Flansch, Ausleger und flachem LED-Kopf; schwarzer Dachbalken → Attika mit
@@ -75,6 +81,6 @@ Zeichenaufrufe je Bild inkl. Schattenkarten und Bildeffekte (Mittel über 2 Bild
   wirken zwei Profile dicht nebeneinander – bei Bedarf Profil nur an echten Ecken (bräuchte Nachbarwissen im Wandbau).
 - **Später:** Zugemauerte Eingangsachse der Ladenzeile hat ein eigenes Sockelstück (fällt mit Eingang 2); andere zugemauerte
   Öffnungen haben keinen Sockel.
-- **Später:** Dreiecke nach dem letzten Leuchten-Commit nicht neu gemessen; Laufzeit-Wächter/Tests siehe Bericht.
+- **Später:** Lichtkegel der 7,8-m-Flutlichtmasten zeigt aus nächster Nähe noch eine schwache Kante (additiver Kegel ohne Randverlauf).
 - Licht der Hofleuchten ist kein echtes Licht (additiver Fleck/Kegel) – Figuren/Objekte werden davon nicht heller (bewusst, Leistung).
 - Straßenlaternen an der Straße und das Strahlerpaar über dem Ladenschild unverändert.

@@ -1,66 +1,66 @@
 {
  "front-tag": {
-  "calls": 2149,
-  "tris": 2587529
+  "calls": 2148,
+  "tris": 2587121
  },
  "frontOst-tag": {
-  "calls": 2400,
-  "tris": 2652809
+  "calls": 2399,
+  "tris": 2652233
  },
  "hofR1-tag": {
   "calls": 2315,
-  "tris": 2491977
+  "tris": 2491521
  },
  "hofPyro-tag": {
-  "calls": 1769,
-  "tris": 2539770
+  "calls": 1768,
+  "tris": 2539638
  },
  "versandhof-tag": {
-  "calls": 1094,
-  "tris": 2346750
+  "calls": 1093,
+  "tris": 2346426
  },
  "hofWest-tag": {
   "calls": 708,
-  "tris": 2250724
+  "tris": 2250460
  },
  "nah-tag": {
   "calls": 2222,
-  "tris": 2456253
+  "tris": 2455785
  },
  "front-nacht": {
-  "calls": 2130,
-  "tris": 2590715
+  "calls": 2129,
+  "tris": 2590307
  },
  "frontOst-nacht": {
-  "calls": 2423,
-  "tris": 2662899
+  "calls": 2422,
+  "tris": 2662323
  },
  "hofR1-nacht": {
   "calls": 2325,
-  "tris": 2491739
+  "tris": 2491283
  },
  "hofPyro-nacht": {
-  "calls": 1773,
-  "tris": 2540394
+  "calls": 1772,
+  "tris": 2540262
  },
  "versandhof-nacht": {
-  "calls": 1098,
-  "tris": 2347350
+  "calls": 1097,
+  "tris": 2347026
  },
  "hofWest-nacht": {
   "calls": 708,
-  "tris": 2251314
+  "tris": 2251050
  },
  "nah-nacht": {
   "calls": 2222,
-  "tris": 2457305
+  "tris": 2456837
  },
  "_graf": {
-  "meshes": 4783,
+  "meshes": 4443,
   "materialien": 1122,
   "texturen": 687,
   "texturMB": 713.4,
   "gpuTexturen": 639,
-  "gpuGeometrien": 3221
+  "gpuGeometrien": 3220
  }
 }

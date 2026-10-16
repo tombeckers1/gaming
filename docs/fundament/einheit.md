@@ -138,3 +138,14 @@ Ansichten: regalLaden, regalEingang, regalLager, kuehl (Regal nah, Lochblech/Pre
 eingang2, lagerFenster (innen), lagerFensterAussen, versand (Packmaterial-Regal, Packplatz), dockHof (Markierung, Schrift), halle, streifen.
 
 ## 5. Ergebnisse
+- Wächter Node grün, Gegenprobe 13/13; Ausnahmeliste **132 → 117 Einträge, 3 157 → 2 993 Stellen**; BAUTEIL-Ausnahmen 15 → 9
+  (weg: Schilder 05d/05e warnSchild/05f/11d/11e, lagerFensterWand, Gitterbox-Wand 06; **neu mit Grund**: `tuerTex` 05e – Haustüren der
+  Stadthäuser im hausKit-Atlas, Außenwelt-Paket wie hausKit selbst; die Regel `tuer` ist erst mit `bk.tuer` aktiv geworden).
+- Laufzeit-Wächter: Budgets grün, Ausgangswerte neu mit Grund (Bauteil `drehtuer` → `tuer`, neue Bauteile regal/kasse/fenster/tuer);
+  die Zeichenaufruf-Budgets sanken dabei (z. B. 688 → 629, 781 → 682, 928 → 790).
+- Tests (real.html, Sperre `/tmp/bb-testlock-einheit`): gameplay, kasse, einraeumer, regalsicht, stufen, verpackung, ausstellung, ausbau,
+  waechter, material grün. kasse und stufen erkannten Kasse/Schild an der alten Bauweise (Materialfarbe, Texturgröße 280 × 70) – Tests auf
+  `bk.kasse`/`bk.schild` angepasst. personen: siehe Bericht (Test braucht schon vorher ~12,1 GB, Grenze 12,5 GB).
+- Bekannt/offen: Versand-Bild nachher zeigt noch die Packplatz-Schraffur unter dem Arbeitsboden (danach behoben: Markierung 1 mm über dem
+  Boden, Bild nicht neu aufgenommen). Nicht umgestellt (eigene Pakete): Stadthäuser (Fenster/Türen/Schilder im hausKit, Kennzeichen,
+  Läden-Schilder), Gravur-Automat/Lager-PC-Gehäuse (Geräte), dynamische Anzeigen bleiben eigene Bilder (Preis/Kopf/Lagerplatz/Status).

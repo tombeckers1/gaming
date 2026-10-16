@@ -879,6 +879,10 @@ const MAT=(function(){
     /* Werk West (Etappe B, 15.10.): eigene Bedeutung - Erdung/Entladen (Kupferplatte an jeder Zellentuer, Pflicht in Pyro-Werken) */
     kupfer:           [0xb5713f,'Kupfer','Erdungsplatten an Zellentueren (Entladen), Kupferschienen','–'],
     glasKlar:         [0xd6ecff,'Glas klar','Toenung fuer Glas (immer transparent)','–'],
+    /* Anzeigen/LEDs an Geraeten (Einheit 15.10.): eigene Bedeutung - leuchtende Bedienanzeigen (Klasse leucht, unbeleuchtet) */
+    anzeigeGruen:     [0x37d977,'Anzeige gruen','LED/Signalleuchte bereit/frei (Kasse, SB-Kasse, Automat)','–'],
+    laserRot:         [0xd8262a,'Laser rot','Scannerlaser, rote Anzeige an Kassen','–'],
+    anzeigeBlau:      [0x3b7fd0,'Anzeige blau','Display Kartenterminal, Bildschirm-Grundton','–'],
     /* Licht (nur emissive, nicht angeglichen - Licht-Paket 05p) */
     lampeWarm:        [0xfff0d0,'Lampenlicht warm','Leuchtflaechen warmweiss','–']
   };
@@ -949,13 +953,31 @@ const MAT=(function(){
     markierungGruen:  {f:'signalgruen',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Bodenmarkierung Gehweg gruen (Halle, Kartonlager)'},
     markierungPikto:  {f:0xffffff,tex:'fussgaenger',k:'matt',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Fussgaenger-Piktogramm auf dem Gehweg (Textur fussgaenger, gruenes Feld)'},
     lichtband:        {f:'glasKlar',emissive:LIN(0xe4edf7),emissiveIntensity:0.9,k:'kunststoff',w:'Lichtband im Hallendach (Tageslicht, zugleich RWA) - nur MAT.neu, Leuchtstaerke folgt der Sonne (11f)'},
+    freihalteflaeche: {f:0xffffff,tex:'freihalteschraffur',transparent:true,depthWrite:false,k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Freihalteflaeche am Boden: gelbe Schraffur 45° auf dem Belag (Versandbereich, kuenftige Stationen; UV in Metern / 0,4)'},
+    bodenSchrift:     {f:0xffffff,k:'matt',transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4,w:'Bodenschrift (ANLIEFERUNG, VERSANDHOF): eigene Textur je Text ueber bk.bodenmarkierung - nur MAT.neu mit map'},
     sperrflaeche:     {f:0xffffff,tex:'warnschraffur',k:'matt',polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2,w:'Sperrflaeche gelb-schwarz am Boden (Warnschraffur, UV in Metern / 0,4)'},
     /* Werk West (Halle Etappe B, 15.10.): Betonzellen, Glas (Leitstand, Schnelllauftor), Erdwall, PVC-Behang */
     betonZelle:       {f:'cremeweiss',tex:'beton',k:'matt',w:'Betonzellen, Brandwaende und Satz-Bunker im Werk (bk.zelle) - UV in Metern / 2,4; Toenung Cremeweiss x graue Betontextur = sichtbar Steingrau (Steingrau selbst x Textur waere fast schwarz)'},
     glasScheibe:      {f:'glasKlar',k:'blank',transparent:true,opacity:0.24,depthWrite:false,w:'Glasscheibe klar (Leitstand-Front, Sichtfenster Schnelllauftor) - durchsichtig, getoent'},
     erdwall:          {f:0xffffff,tex:'rasen',k:'matt',w:'Erdwall/Boeschung mit Winterwiese (bk.erdwall) - UV in Metern / 4'},
     pvcBehang:        {f:'signalgelb',k:'kunststoff',side:THREE.DoubleSide,w:'Behang Schnelllauftor PVC (bk.tor art schnelllauf) - Warnfarbe, schnell bewegtes Teil'},
-    torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'}
+    torWarn:          {f:0x3a2208,emissive:LIN(0xffb02a),emissiveIntensity:0,k:'kunststoff',w:'Rundumleuchte ueber dem Torantrieb (blinkt, solange das Tor faehrt) - nur MAT.neu'},
+    /* Einheit (15.10., Regale/Kassen/Fenster/Tueren/Schilder/Bodenmarkierung, docs/fundament/einheit.md): vorher je Bauort eigene
+       Materialien (pegMat, kasseRueckMat, _postM/_deckM in 06, coldGlass, Glas je Tuer/Fenster, regalPaketMat in 08b) */
+    lochblech:        {f:0xffffff,tex:'lochblech',k:'kunststoff',w:'Rueckwand Verkaufsregal: pulverbeschichtetes Lochblech, Loch 5 cm (UV 0,4 m je Kachel); Farbe folgt der Wand - nur MAT.neu'},
+    lochblechKasse:   {f:'lichtgrau',tex:'lochblech',k:'kunststoff',w:'Rueckwand Kassenregal: Lochblech lichtgrau wie die Kasse (UV 0,4 m je Kachel)'},
+    regalStuetze:     {f:'signalblau',tex:'lochprofil',k:'lackMetall',w:'Stuetzen der Lagerregale: Lochprofil Signalblau (wie Hochregal und Packmaterial-Regal), Kachel 2,34 m hoch (Lochabstand 10 cm)'},
+    regalBoden:       {f:0xffffff,tex:'stahlboden',k:'stahl',w:'Fachboden Lagerregal: verzinkte Stahlblechauflage mit Kantung (Kachel = 0,8 m)'},
+    regalPaket:       {f:0xffffff,tex:'regalPaket',k:'kunststoff',w:'Flachpaket eines Regals in Folie (LKW, getragen, abgestellt)'},
+    gitterBox:        {f:'aluminium',tex:'drahtgitter',alphaTest:0.4,side:THREE.DoubleSide,k:'stahl',w:'Drahtgitter der Gitterbox (UV 0,2 m je Kachel); Farbe folgt dem Regalgestell - nur MAT.neu'},
+    lichtleiste:      {f:'weiss',emissive:LIN(0xfff2dc),emissiveIntensity:0,k:'kunststoff',w:'Lichtleiste unter den Regalboeden - ein Material fuer alle Regale, das Upgrade Regallicht schaltet die Leuchtstaerke (nur MAT.neu)'},
+    lichtleisteKuehl: {f:'weiss',emissive:LIN(0xd6ecff),emissiveIntensity:1.1,k:'kunststoff',w:'Kuehlschrank-Innenlicht (kaltweiss, immer an)'},
+    etikett:          {f:0xffffff,k:'kunststoff',w:'bedrucktes Schild/Etikett mit eigener Textur (Hausstil-Schilder, Lagerplatz-Schild) - MAT.neu mit map, beleuchtet'},
+    scannerGlas:      {f:'gummischwarz',tex:'scannerGlas',k:'blank',w:'Scannerscheibe in der Kassenplatte (Glas mit Kratzern)'},
+    kassenTastatur:   {f:0xffffff,tex:'kassenTastatur',k:'kunststoff',w:'Kassentastatur (Tasten beschriftet, Summentaste gruen)'},
+    kassenband:       {f:0xffffff,tex:'kassenband',k:'matt',w:'Laufband der Kasse (Gummi mit Rillen; eigene Kopie der Textur, weil sie laeuft - offset)'},
+    pvcStreifen:      {f:0xffffff,vertexColors:true,transparent:true,opacity:0.38,side:THREE.DoubleSide,depthWrite:false,k:'kunststoff',w:'PVC-Streifenvorhang (bk.tuer art streifen): halbdurchsichtige Streifen'},
+    fensterSchmutz:   {f:0xffffff,tex:'fensterSchmutz',transparent:true,opacity:0,depthWrite:false,k:'matt',w:'Schmutzschicht auf den Schaufenstern (Spielzustand S.grime, Deckkraft je Fenster) - nur MAT.neu'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
   const VC_KLASSE={
@@ -1042,6 +1064,10 @@ const MAT=(function(){
   function stdGeteilt(hex,o){ return geteilt(schluessel('std',hex,o),()=>std(hex,o),{farbe:tonVon(hex),klasse:null,wofuer:''}); }
   function tonVon(hex){ for(const k in FARBE) if(FARBE[k]===hex) return k; return null; }
   /* geteiltes MeshBasicMaterial (Farbe wie new MeshBasicMaterial({color:hex}) - ohne Linearisierung) */
+  /* eigenes unbeleuchtetes Bildmaterial (Schilder mit veraenderlichem Bild, Bildschirme, Preisschilder): Bild wird nicht vom Licht
+     veraendert (kein Tonwert). Eigen, nicht geteilt - die Textur gehoert genau einer Stelle (Einheit 15.10., vorher
+     new MeshBasicMaterial({map,toneMapped:false}) an ~30 Stellen) */
+  function bild(map,o){ zaehle('bild'); return new THREE.MeshBasicMaterial(Object.assign({map,toneMapped:false},o||{})); }
   function basic(hex,o){ return geteilt(schluessel('basic',hex,o),()=>new THREE.MeshBasicMaterial(Object.assign({color:hex},o||{}))); }
   /* Vertexfarben-Material je Klasse */
   function vc(klasse){ const kl=klasse||'standard';
@@ -1052,7 +1078,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
      wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
   const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
@@ -1178,6 +1204,79 @@ const MAT=(function(){
         g.font='bold 20px Arial, sans-serif'; g.fillText('HT',144,49); g.font='9px Arial, sans-serif'; g.fillText('EPAL 4711 10 25',168,50);
         g.beginPath(); g.moveTo(228,12); g.lineTo(228,26); g.moveTo(228,16); g.lineTo(223,12); g.moveTo(228,16); g.lineTo(233,12); g.moveTo(228,21); g.lineTo(223,17); g.moveTo(228,21); g.lineTo(233,17); g.lineWidth=1.4; g.stroke(); });
       t.anisotropy=4; return t; },
+    /* Lochblech (vorher pegMat in 06, Malcode unveraendert): neutral hell, Farbe ueber das Material. Kachel = 8 x 8 Loecher = 0,4 m (Loch 5 cm) */
+    lochblech:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
+        for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Lochprofil der Regalstuetzen (vorher holeT in rackMats, 06): jetzt neutral, Signalblau kommt ueber das Material. Kachel = ganze Profilbreite x 2,34 m (23 Loecher) */
+    lochprofil:()=>{ const t=tex(64,512,(c,W,H)=>{
+        c.fillStyle='#ffffff'; c.fillRect(0,0,W,H);
+        c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
+        c.fillStyle='rgba(0,0,0,.24)'; c.fillRect(W-7,0,7,H);
+        for(let y=10;y<H-8;y+=22){ c.fillStyle='#7a8496'; c.fillRect(W/2-7,y,14,11); c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(W/2-7,y+9,14,2); }
+        for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Stahlblechauflage Lagerregal (vorher boardT in rackMats, 06, Malcode unveraendert) */
+    stahlboden:()=>{ const t=tex(256,256,(c,W,H)=>{
+        const g0=c.createLinearGradient(0,0,0,H); g0.addColorStop(0,'#9aa1ac'); g0.addColorStop(0.45,'#aeb5c0'); g0.addColorStop(1,'#8f959f');
+        c.fillStyle=g0; c.fillRect(0,0,W,H);
+        for(let x=0;x<W;x+=64){ c.fillStyle='rgba(255,255,255,.08)'; c.fillRect(x,0,2,H); c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x+2,0,2,H); }
+        for(let i2=0;i2<600;i2++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4); });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; },
+    /* Flachpaket Regal (vorher regalPaketMat in 08b, Malcode unveraendert) */
+    regalPaket:()=>tex(256,128,(c,W,H)=>{
+        c.fillStyle='#b9bec6'; c.fillRect(0,0,W,H);
+        for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.16})`; c.fillRect(Math.random()*W,Math.random()*H,rand(4,22),1); }
+        c.fillStyle=css('anthrazit'); c.fillRect(W*0.22,0,8,H); c.fillRect(W*0.72,0,8,H);
+        c.fillStyle=css('cremeweiss'); c.fillRect(W*0.34,H*0.28,W*0.32,H*0.44);
+        c.strokeStyle='#8f959e'; c.lineWidth=2; c.strokeRect(W*0.34,H*0.28,W*0.32,H*0.44);
+        c.fillStyle=css('nachtblau'); c.font=BUN(15); c.textAlign='center'; c.textBaseline='middle';
+        c.fillText('REGALBAU',W*0.5,H*0.42);
+        c.fillStyle='#5a6070'; c.font=BAR(13); c.fillText('Stegemann',W*0.5,H*0.58); }),
+    /* Schmutz auf Schaufenstern (vorher grimeTex in 05f, Malcode unveraendert): Kachel = halbe Fensterbreite (UV 2 x 1) */
+    fensterSchmutz:()=>{ const t=tex(256,128,(g,W,H)=>{
+        g.clearRect(0,0,W,H); g.fillStyle='rgba(176,168,150,.5)'; g.fillRect(0,0,W,H);
+        for(let i=0;i<900;i++){ g.fillStyle=`rgba(120,110,92,${Math.random()*0.35})`; g.fillRect(Math.random()*W,Math.random()*H,rand(1,4),rand(1,4)); }
+        for(let i=0;i<26;i++){ const x=Math.random()*W, w=rand(2,9); const gr=g.createLinearGradient(x,0,x,H); gr.addColorStop(0,'rgba(90,84,70,.34)'); gr.addColorStop(1,'rgba(90,84,70,0)'); g.fillStyle=gr; g.fillRect(x,0,w,H); }
+        g.strokeStyle='rgba(210,205,190,.3)'; g.lineWidth=7;
+        for(let i=0;i<7;i++){ g.beginPath(); const y=rand(10,H-10); g.moveTo(0,y); g.bezierCurveTo(W*0.3,y+rand(-14,14),W*0.7,y+rand(-14,14),W,y+rand(-10,10)); g.stroke(); }
+        for(let i=0;i<14;i++){ g.fillStyle='rgba(150,142,120,.26)'; g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(3,6),rand(4,8),Math.random(),0,Math.PI*2); g.fill(); }
+        const eg=g.createLinearGradient(0,H,0,H-26); eg.addColorStop(0,'rgba(90,82,66,.45)'); eg.addColorStop(1,'rgba(90,82,66,0)'); g.fillStyle=eg; g.fillRect(0,H-26,W,26); });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
+    /* Freihalteschraffur (Einheit 15.10., vorher reserveTex in 05h je Flaeche neu gemalt): gelbe Linien 45° auf transparent, Kachel 0,4 m */
+    freihalteschraffur:()=>{ const t=tex(128,128,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=css('signalgelb',0.6); g.lineWidth=11;
+        for(let d=-W;d<=2*W;d+=W){ g.beginPath(); g.moveTo(d,H); g.lineTo(d+H,0); g.stroke(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=4; return t; },
+    /* Kasse (vorher in buildCheckout, 06, Malcode unveraendert): Scannerscheibe, Tastatur, Laufband */
+    scannerGlas:()=>tex(512,512,(g,W,H)=>{
+        g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
+        const gl=g.createLinearGradient(0,0,W*0.7,H);
+        gl.addColorStop(0,'rgba(210,226,244,.24)'); gl.addColorStop(0.35,'rgba(210,226,244,.05)'); gl.addColorStop(0.62,'rgba(210,226,244,.14)'); gl.addColorStop(1,'rgba(210,226,244,.03)');
+        g.fillStyle=gl; g.fillRect(0,0,W,H);
+        for(let i=0;i<70;i++){ g.strokeStyle=`rgba(230,238,250,${rand(0.02,0.07)})`; g.lineWidth=rand(0.6,1.6); const x=Math.random()*W, y=Math.random()*H; g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-18,18)); g.stroke(); }
+        for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } }),
+    kassenTastatur:()=>{ const t=tex(768,384,(g,W,H)=>{
+        g.fillStyle='#1b1f28'; g.fillRect(0,0,W,H);
+        const cols=8, rows=4, mx=26, my=22, cw=(W-mx*2)/cols, ch=(H-my*2)/rows;
+        const label=['7','8','9','STORNO','4','5','6','KARTE','1','2','3','BAR','0','00',',','SUMME'];
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+          const x=mx+c*cw+3, y=my+r*ch+3, w=cw-6, h=ch-6, isFn=c>=6, isSum=(r===3&&c>=6);
+          g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(x+2,y+3,w,h);
+          const base=isSum?'#2f7a48':isFn?'#3d4658':'#e8e9ec', top=isSum?'#3f9a5c':isFn?'#4e596e':'#f7f8fa';
+          const gr=g.createLinearGradient(0,y,0,y+h); gr.addColorStop(0,top); gr.addColorStop(1,base); g.fillStyle=gr; g.fillRect(x,y,w,h);
+          g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y,w,2); g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+h-2,w,2);
+          const t2=label[(r*4+(c%4))%label.length]; g.fillStyle=isFn||isSum?'#eef2f8':'#1b1f28'; g.textAlign='center'; g.textBaseline='middle'; g.font=BAR(t2.length>3?15:26); g.fillText(t2,x+w/2,y+h/2+1); }
+        g.strokeStyle='#0f1218'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
+        for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } });
+      t.anisotropy=8; return t; },
+    kassenband:()=>{ const t=tex(512,256,(g,W,H)=>{
+        g.fillStyle='#17181d'; g.fillRect(0,0,W,H);
+        for(let x=0;x<W;x+=26){ g.fillStyle='#252830'; g.fillRect(x,0,11,H); g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(x+11,0,2,H); g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+24,0,2,H); }
+        for(let i=0;i<5200;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
+        for(let i=0;i<22;i++){ g.fillStyle=`rgba(0,0,0,${rand(0.05,0.14)})`; g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(6,22),rand(4,12),Math.random()*3,0,Math.PI*2); g.fill(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },
     torBlatt:()=>{ const t=tex(512,512,(c,W,H)=>{ const RH=H/4, M=W/3.26, MV=RH/0.588;
         const sektion=y0=>{ c.fillStyle=css('lichtgrau'); c.fillRect(0,y0,W,RH);
           /* Fuge: Nut oben, Feder unten (am alten Tor eigene Profile im Spalt) */
@@ -1282,7 +1381,7 @@ const MAT=(function(){
      der Szene) nur ein Hauch Lack und stark unscharf. */
   function bodenGlanz(f){ f=f||{}; const rau=f.rau!==undefined?f.rau:0.6, gl=f.glanz||0, teppich=f.art==='velours';
     return {roughness:teppich?1:Math.min(0.9,0.6+0.3*rau), env:teppich?0:Math.min(0.12,gl*0.25), lack:teppich?0:Math.min(0.12,0.04+gl*0.16), unschaerfe:0.35}; }
-  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,bodenGlanz,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
+  return {FARBE,PALETTE,PALETTE_UV:PAL_UV,KLASSE,REZEPT,bodenGlanz,get,ober,eigen,neu,kopie,std:stdGeteilt,basic,bild,vc,farbe,css,tex:texGet,kachel,atlas,atlasPatch,atlasObc,stufe,liste,verstoesse,get wache(){ return wacheAn; }};
 })();
 /* =========================================================
    WIRTSCHAFTSZENTRALE (Fundament Etappe 4, 13.10.2026)
@@ -14283,29 +14382,58 @@ bk.sammler=function(opt){
    Stil wie hvSchild (Halle): Hintergrund #1b2340, Goldstreifen unten, Text hell (BUN),
    Untertitel gold (BAR). Material je Textur geteilt (MAT-Regel: nie veraendern). */
 const _bkSchildT=new Map(), _bkSchildM=new Map();
+/* Schildstile (Einheit 15.10., stilregeln.md §6): Bedeutung waehlt die Farben - nie frei malen.
+   haus  = Hausstil Nachtblau, Goldstreifen unten, Schrift hell (Bungee), Unterzeile Gold (Tore, Gassen, Abteilungen, Kassen)
+   info  = Hinweis Signalblau, Schrift weiss (Geraete, Lager-PC, Kuehlschrank, Packmittel)
+   warn  = Warnung Signalgelb, Schrift und Streifen Gummischwarz (Gefahr, Zutritt, Ladezone)
+   tafel = helle Tafel Weiss, Schrift Nachtblau, Streifen Signalblau (Hinweistafeln an Pfosten, Bauschilder)
+   brand = Brandschutz Feuerrot, Schrift und Streifen weiss (Brandwand, Feuerschutztor, Sprinkler, Gefahrstoff)
+   flucht = Rettungsweg Signalgruen, Schrift und Streifen weiss (Notausgang, Fluchtweg) */
+bk.SCHILD={haus:{bg:'nachtblau',streifen:'schildgold',text:'weiss',unter:'schildgold'},info:{bg:'signalblau',streifen:null,text:'weiss',unter:'weiss'},
+  warn:{bg:'signalgelb',streifen:'gummischwarz',text:'gummischwarz',unter:'gummischwarz'},tafel:{bg:'weiss',streifen:'signalblau',text:'nachtblau',unter:'signalblau'},
+  brand:{bg:'feuerrot',streifen:'weiss',text:'weiss',unter:'weiss'},flucht:{bg:'signalgruen',streifen:'weiss',text:'weiss',unter:'weiss'}};
 bk.schildTex=function(o){
-  const W=Math.round(o.w||512), H=Math.round(o.h||160), bg=o.bg||'#1b2340', fg=o.fg||MAT.css('schildgold');
-  const k=[o.text,o.unter||'',bg,fg,W,H].join('|'); let t=_bkSchildT.get(k);
+  const W=Math.round(o.w||512), H=Math.round(o.h||160), St=bk.SCHILD[o.stil||'haus']||bk.SCHILD.haus;
+  const bg=o.bg||MAT.css(St.bg), fg=o.fg||(St.streifen?MAT.css(St.streifen):null), tx=o.textFarbe||MAT.css(St.text), un=o.fg||MAT.css(St.unter);
+  const k=[o.text,o.unter||'',bg,fg,tx,W,H].join('|'); let t=_bkSchildT.get(k);
   if(!t){ t=tex(W,H,(g,W2,H2)=>{
       g.fillStyle=bg; g.fillRect(0,0,W2,H2);
-      g.fillStyle=fg; g.fillRect(0,H2-8,W2,8);
-      g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#eef2f8';
+      if(fg){ g.fillStyle=fg; g.fillRect(0,H2-8,W2,8); }
+      g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx;
       fitFont(g,o.text,W2*0.9,o.unter?Math.round(H2*0.42):Math.round(H2*0.55),BUN); g.fillText(o.text,W2/2,o.unter?H2*0.38:H2/2-3);
-      if(o.unter){ g.fillStyle=fg; fitFont(g,o.unter,W2*0.9,Math.round(H2*0.24),BAR); g.fillText(o.unter,W2/2,H2*0.74); } });
+      if(o.unter){ g.fillStyle=un; fitFont(g,o.unter,W2*0.9,Math.round(H2*0.24),BAR); g.fillText(o.unter,W2/2,H2*0.74); } });
     _bkSchildT.set(k,t); }
   return t;
 };
+/* bk.schild(parent,{text,unter,stil,b,h,x,y,z,ry,bg,fg,px,leucht,doppel,pfosten,rueck}) -> Mesh (mit pfosten: Gruppe, .userData.flaeche = Mesh).
+   Standard: Text im Stil (bk.SCHILD), Textur-Cache je Text+Stil+Groesse, Material je Textur geteilt (nie veraendern).
+   Sonderschild: o.malen(g,W,H) malt selbst (Ladenlogo, Carrier-Schild, Kategorie-Marke; o.pw/o.ph Pixel) - mit o.schluessel geteilt,
+   sonst eigene Textur und eigenes Material (darf neu gemalt werden: redraw(me.material.map, ...)).
+   leucht = unbeleuchtet (Leuchtschild/Anzeige), doppel = beidseitig, rueck = Rueckblech (Tiefe), pfosten = auf zwei Rohrpfosten
+   (Hinweis-/Stationsschild: Pfosten Stahl anthrazit mit Fuss und Kappe, Rueckblech, Schrift vorn und hinten; y = Schildmitte) */
 bk.schild=function(parent,o){
-  const px=Math.round(160*(o.px||1)), w=Math.round(px*Math.min(6.4,Math.max(1,o.b/o.h))), h=px;
-  const t=bk.schildTex({text:o.text,unter:o.unter,bg:o.bg,fg:o.fg,w,h});
-  let m=_bkSchildM.get(t); if(!m){ m=new THREE.MeshStandardMaterial({map:t,roughness:0.6}); m.userData.mat='schild'; _bkSchildM.set(t,m); }
-  const me=new THREE.Mesh(new THREE.PlaneGeometry(o.b,o.h),m);
-  me.position.set(o.x||0,o.y||0,o.z||0); me.rotation.y=o.ry||0; me.userData.bauteil='schild';
-  (parent||scene).add(me); return me;
+  let t, geteilt=true;
+  if(o.malen){ const W=Math.round(o.pw||512), H=Math.round(o.ph||128), k=o.schluessel?'m:'+o.schluessel+'|'+W+'|'+H:null;
+    t=k&&_bkSchildT.get(k); if(!t){ t=tex(W,H,o.malen); if(k) _bkSchildT.set(k,t); else geteilt=false; } }
+  else { const px=Math.round(160*(o.px||1)), w=Math.round(px*Math.min(6.4,Math.max(1,o.b/o.h)));
+    t=bk.schildTex({text:o.text,unter:o.unter,stil:o.stil,bg:o.bg,fg:o.fg,textFarbe:o.textFarbe,w,h:px}); }
+  const x2=(o.doppel||o.pfosten)?{side:THREE.DoubleSide}:undefined, neu=()=>o.leucht?MAT.bild(t,x2):MAT.neu('etikett',Object.assign({map:t},x2||{}));
+  let m; if(geteilt){ const mk=(o.leucht?'L':'')+(x2?'D':''); let mm=_bkSchildM.get(t); if(!mm){ mm={}; _bkSchildM.set(t,mm); } m=mm[mk]; if(!m){ m=mm[mk]=neu(); m.userData.mat='schild'; } }
+  else m=neu();
+  const flaeche=(par,x,y,z,ry)=>{ const me=new THREE.Mesh(new THREE.PlaneGeometry(o.b,o.h),m); me.position.set(x,y,z); me.rotation.y=ry||0; me.userData.bauteil='schild'; par.add(me); return me; };
+  if(o.pfosten){ const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='schild'; (parent||scene).add(g);
+    const y=o.y||1.2, S=bk.sammler({bauteil:'schild'}), ST=MAT.farbe('anthrazit'), px2=o.b/2-0.06;
+    for(const sx of [-px2,px2]){ S.zyl(0.028,0.028,y+o.h/2,10,sx,(y+o.h/2)/2,0,ST,'stahl'); S.box(0.11,0.02,0.11,sx,0.012,0,ST,'stahl'); S.zyl(0.03,0.03,0.02,8,sx,y+o.h/2+0.01,0,ST,'stahl'); }
+    S.box(o.b+0.05,o.h+0.05,0.025,0,y,-0.016,MAT.farbe('basaltgrau'),'stahl');
+    S.fertig(g);
+    const f=flaeche(g,0,y,0.002,0); flaeche(g,0,y,-0.032,Math.PI); g.userData.flaeche=f; return g; }
+  if(o.rueck){ const S=bk.sammler({bauteil:'schild'}), c=Math.cos(o.ry||0), sn=Math.sin(o.ry||0);
+    S.box(o.b+0.04,o.h+0.04,0.02,(o.x||0)-0.012*sn,o.y||0,(o.z||0)-0.012*c,MAT.farbe(o.rueck===true?'anthrazit':o.rueck),'lackMetall',0,o.ry||0,0); S.fertig(parent||scene,{schatten:false}); }
+  return flaeche(parent||scene,o.x||0,o.y||0,o.z||0,o.ry);
 };
 /* Schild wieder abbauen (zeitweilige Schilder, z. B. Ausstellung 2.0): Mesh, Geometrie, Material und Textur frei, auch aus dem Cache */
 bk.schildWeg=function(me){ const m=me.material, t=m&&m.map;
-  for(const [k,v] of [..._bkSchildM]) if(v===m) _bkSchildM.delete(k);
+  for(const [k,v] of [..._bkSchildM]) for(const q in v) if(v[q]===m) delete v[q];
   for(const [k,v] of [..._bkSchildT]) if(v===t) _bkSchildT.delete(k);
   if(me.parent) me.parent.remove(me); me.geometry.dispose(); if(m) m.dispose(); if(t) t.dispose(); };
 bk.liste=function(){ return {schildTexturen:_bkSchildT.size,schildMaterialien:_bkSchildM.size}; };
@@ -15214,31 +15342,63 @@ bk.lampe=function(o){
     bk.inst(geoL,MAT.vc('leucht'),M,{parent:o.parent,bauteil:'lampe',art:'halle',schatten:false})];
   return {meshes,lampen};
 };
-/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall.
-   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'),breite]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb 0,08 m),
-        rahmen:[{x0,x1,z0,z1,farbe,breite}] (Stellplatz/Feld umrandet), flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'}]
-        (Gehweg gruen, Sperrflaeche gelb-schwarz 45°), piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), parent,
+/* Bodenmarkierung (ASR A1.8): gleiche Breiten und Farben ueberall - JEDE Bodenmarkierung im Spiel (Einheit 15.10.: vorher
+   zusaetzlich ~60 Einzel-flat() in 05g/05m/05h/05r, MAT.basic-Striche in 11e, vier gemalte Texturen fuer Schrift und Sperrflaechen).
+   o = {linien:[[x0,z0,x1,z1,farbe('gelb'|'weiss'|'gruen'|'sperr' = Warnrand gelb-schwarz),breite,strich,luecke]] (Fahrwege gelb 0,12 m, Stellplaetze weiss/gelb
+          0,08 m; strich/luecke = gestrichelt, z. B. Fahrspur im Hof 0,6/0,4),
+        rahmen:[{x0,x1,z0,z1,farbe,breite,strich,luecke}] (Stellplatz/Feld umrandet, auch gestrichelt),
+        flaechen:[{x0,x1,z0,z1,art:'gehweg'|'sperr'|'frei'}] (Gehweg gruen, Sperrflaeche gelb-schwarz 45°, Freihalteflaeche
+          gelbe Schraffur 45° auf Beton),
+        lkw:[{x,z,ry,laenge,breite,v0}] (LKW-Stellplatz vor einem Tor: zwei Seitenlinien 14 m ab v0 = 0,4 m vor der Wand, Stopplinie,
+          fuenf Mittelstriche 0,1 x 0,5 m; x,z = Tormitte an der Wand, ry = Richtung vom Tor weg (0 = -z)),
+        schriften:[{text,x,z,b,h,ry}] (Bodenschrift Signalgelb auf dunklem Feld mit Rand - ANLIEFERUNG, VERSANDHOF),
+        piktos:[{x,z,ry,g}] (Fussgaenger 0,8 m), y (Boden), boden(x,z) (Hoehe des Untergrunds, z. B. Gehweg mit Gefaelle), parent,
         schatten (true = empfaengt Sonnenschatten wie Aussenboeden; innen aus, wie die Hallenboeden)}
-   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel) */
-bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8};
+   -> {meshes} je Material EIN Mesh (UV in Metern, Schraffur 0,4 m je Kachel); Schrift je Text ein Mesh (Textur-Cache) */
+bk.MARKIERUNG={fahrweg:0.12,stellplatz:0.08,gehweg:0.12,pikto:0.8,lkwLaenge:14,lkwBreite:3.8,strich:0.1,strichL:0.5};
+const _bkBodenSchrift=new Map();
 bk.bodenmarkierung=function(o){
-  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],pikto:[]};
-  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const gg=new THREE.PlaneGeometry(w,d); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz);
+  const y=o.y===undefined?0.015:o.y, T={gelb:[],weiss:[],gruen:[],sperr:[],frei:[],pikto:[]};
+  /* o.boden(x,z) = Hoehe des Untergrunds (z. B. Gehweg mit Gefaelle): Flaechen werden unterteilt und folgen ihm */
+  const folge=(gg,dy)=>{ if(!o.boden) return; const p=gg.attributes.position; for(let i=0;i<p.count;i++) p.setY(i,o.boden(p.getX(i),p.getZ(i))+dy); p.needsUpdate=true; };
+  const quad=(k,cx,cz,w,d,ry,dy,uvM)=>{ const n=o.boden?[Math.max(1,Math.ceil(w/0.25)),Math.max(1,Math.ceil(d/0.25))]:[1,1];
+    const gg=new THREE.PlaneGeometry(w,d,n[0],n[1]); gg.rotateX(-Math.PI/2); if(ry) gg.rotateY(ry); gg.translate(cx,y+dy,cz); folge(gg,dy);
     if(uvM){ const p=gg.attributes.position, uv=gg.attributes.uv; for(let i=0;i<p.count;i++) uv.setXY(i,p.getX(i)/uvM,-p.getZ(i)/uvM); }
     T[k].push({geo:gg,m:new THREE.Matrix4()}); };
-  const linie=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005); };
-  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5]);
+  const strich=(x0,z0,x1,z1,f,b)=>{ const L=Math.hypot(x1-x0,z1-z0); if(L<0.01) return; quad(f||'gelb',(x0+x1)/2,(z0+z1)/2,L+(b||0.12),b||0.12,Math.atan2(-(z1-z0),x1-x0),0.005,f==='sperr'?0.4:0); };
+  const linie=(x0,z0,x1,z1,f,b,st,lu)=>{ if(!st){ strich(x0,z0,x1,z1,f,b); return; }
+    const L=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/L, uz=(z1-z0)/L, sb=b||0.12; let t=0;
+    while(t<L-0.001){ const e=Math.min(L,t+st); /* Strichlaenge ohne die Ueberlaenge der Linie (b) */
+      strich(x0+ux*(t+sb/2),z0+uz*(t+sb/2),x0+ux*(e-sb/2),z0+uz*(e-sb/2),f,sb); t=e+(lu||st); } };
+  for(const l of (o.linien||[])) linie(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7]);
   for(const r of (o.rahmen||[])){ const b=r.breite||bk.MARKIERUNG.stellplatz, f=r.farbe||'gelb', h=b/2;
-    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b);
-    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b); }
+    linie(r.x0+h,r.z0+h,r.x1-h,r.z0+h,f,b,r.strich,r.luecke); linie(r.x0+h,r.z1-h,r.x1-h,r.z1-h,f,b,r.strich,r.luecke);
+    linie(r.x0+h,r.z0+h,r.x0+h,r.z1-h,f,b,r.strich,r.luecke); linie(r.x1-h,r.z0+h,r.x1-h,r.z1-h,f,b,r.strich,r.luecke); }
+  for(const q of (o.lkw||[])){ const M=bk.MARKIERUNG, L=q.laenge||M.lkwLaenge, B=q.breite||M.lkwBreite, c=Math.cos(q.ry||0), s=Math.sin(q.ry||0);
+    /* lokale (quer u, vom Tor weg v) -> Welt; v laeuft nach -z bei ry 0 */
+    const P=(u,v)=>[q.x+u*c-v*s,q.z-u*s-v*c];
+    const v0=q.v0===undefined?0.4:q.v0, b2=M.fahrweg/2;
+    for(const sx of [-1,1]){ const a=P(sx*B/2,v0+b2), e=P(sx*B/2,v0+L-b2); strich(a[0],a[1],e[0],e[1],'gelb',M.fahrweg); }
+    { const a=P(-B/2+b2,v0+L), e=P(B/2-b2,v0+L); strich(a[0],a[1],e[0],e[1],'gelb',M.fahrweg); }
+    for(let j=0;j<5;j++){ const a=P(0,1.2+j*1.1-M.strichL/2+M.strich/2), e=P(0,1.2+j*1.1+M.strichL/2-M.strich/2); strich(a[0],a[1],e[0],e[1],'gelb',M.strich); } }
   for(const f of (o.flaechen||[])){ const w=f.x1-f.x0, d=f.z1-f.z0;
-    if(f.art==='sperr') quad('sperr',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
+    if(f.art==='sperr'||f.art==='frei') quad(f.art,(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003,0.4); else quad('gruen',(f.x0+f.x1)/2,(f.z0+f.z1)/2,w,d,0,0.003); }
   for(const p of (o.piktos||[])){ const gg=new THREE.PlaneGeometry(p.g||0.8,p.g||0.8); gg.rotateX(-Math.PI/2); gg.rotateY(p.ry||0); gg.translate(p.x,y+0.006,p.z); T.pikto.push({geo:gg,m:new THREE.Matrix4()}); }
-  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),pikto:MAT.get('markierungPikto')};
+  const MM={gelb:MAT.get('markierungGelb'),weiss:MAT.get('weissMatt'),gruen:MAT.get('markierungGruen'),sperr:MAT.get('sperrflaeche'),frei:MAT.get('freihalteflaeche'),pikto:MAT.get('markierungPikto')};
   const meshes=[];
-  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose());
-    if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
-    (o.parent||scene).add(me); meshes.push(me); }
+  const fertig=(me,k)=>{ if(HIQ&&o.schatten) me.receiveShadow=true; me.userData.bauteil='bodenmarkierung'; me.userData.bauteilArt=k; me.matrixAutoUpdate=false; me.updateMatrix();
+    (o.parent||scene).add(me); meshes.push(me); return me; };
+  for(const k in T){ if(!T[k].length) continue; const me=new THREE.Mesh(merge(T[k]),MM[k]); T[k].forEach(t=>t.geo.dispose()); fertig(me,k); }
+  /* Bodenschrift: Signalgelb auf halbdunklem Feld mit gelbem Rand (Pixel je Meter fest), Textur je Text geteilt */
+  for(const q of (o.schriften||[])){ const PXM=200, W=Math.round(q.b*PXM), H=Math.round(q.h*PXM), key=q.text+'|'+W+'|'+H;
+    let m=_bkBodenSchrift.get(key);
+    if(!m){ const t=tex(W,H,(g,W2,H2)=>{ g.clearRect(0,0,W2,H2); g.fillStyle=MAT.css('tiefschwarz',0.62); g.fillRect(0,0,W2,H2);
+        const r=Math.max(6,Math.round(0.03*PXM)); g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=r; g.strokeRect(r/2,r/2,W2-r,H2-r);
+        g.textAlign='center'; g.textBaseline='middle'; fitFont(g,q.text,W2*0.86,Math.round(H2*0.48),BUN);
+        g.fillStyle=MAT.css('tiefschwarz',0.75); g.fillText(q.text,W2/2+H2*0.02,H2/2+H2*0.04); g.fillStyle=MAT.css('signalgelb'); g.fillText(q.text,W2/2,H2/2+H2*0.01); });
+      t.anisotropy=8; m=MAT.neu('bodenSchrift',{map:t}); _bkBodenSchrift.set(key,m); }
+    const gg=new THREE.PlaneGeometry(q.b,q.h,o.boden?Math.ceil(q.b/0.1):1,o.boden?Math.ceil(q.h/0.1):1); gg.rotateX(-Math.PI/2); if(q.ry) gg.rotateY(q.ry); gg.translate(q.x,y+0.007,q.z); folge(gg,0.007);
+    fertig(new THREE.Mesh(gg,m),'schrift').renderOrder=2; }
   return {meshes};
 };
 /* Fahrerloses Transportfahrzeug (FTS) fuer Paletten: flacher Fahrkoerper Lichtgrau, Hubdeck verzinkt, Rammschutz-Leiste
@@ -15334,12 +15494,12 @@ function _bkLokal(S,x,z,ry){ const c=Math.cos(ry||0), s=Math.sin(ry||0);
   return { P:(lx,lz)=>[x+lx*c+lz*s,z-lx*s+lz*c],
     box:(w,h,d,lx,y,lz,f,k)=>S.box(w,h,d,x+lx*c+lz*s,y,z-lx*s+lz*c,f,k,0,ry||0,0) }; }
 
-/* Drehfluegeltuer (Werk West, bk.drehtuer - Schiebe- und Haustueren stellt der Schritt Tueren um): Stahltuer, Brandschutztuer (T30, Feststellanlage) oder Glastuer. Zarge Anthrazit durch die Wand, Blatt Lichtgrau
+/* Drehfluegeltuer (Werk West; seit Einheit 15.10. bk.tuer art 'stahl'|'brand'|'glas'): Stahltuer, Brandschutztuer (T30, Feststellanlage) oder Glastuer. Zarge Anthrazit durch die Wand, Blatt Lichtgrau
    (Brandschutz mit rotem Kennzeichnungsschild), Druecker Stahl, Glastuer Alu-Rahmen mit Scheibe.
    Lokal: Wand laeuft in x (ry 0), Wandnormale z. o = {S (fremder Sammler: Tuer zu und unbeweglich), x, z, ry, breite 1,0, hoehe 2,1,
      dicke (Wand) 0,2, art 'stahl'|'brand'|'glas', anschlag ±1 (Band bei -x | +x), auf ±1 (oeffnet nach +z | -z), offen 0..1, parent}
    -> {g, fluegel, t, set(t01), kollision:{x0,x1,z0,z1} (Oeffnung, Welt - der Aufrufer legt sie an, solange die Tuer zu ist)} */
-bk.drehtuer=function(o){
+function _bkDrehtuer(o){
   o=Object.assign({breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:1,auf:1,offen:0,ry:0},o||{});
   const F=MAT.farbe, B=o.breite, H=o.hoehe, D=o.dicke, ANTH=F('anthrazit');
   const blattF=o.art==='glas'?F('aluminium'):F('lichtgrau');
@@ -15358,15 +15518,15 @@ bk.drehtuer=function(o){
   const T={g:null,fluegel:null,t:0,set(){},kollision:null};
   { const ax=Math.abs(c)*(B/2)+Math.abs(s)*(D/2+0.02), az=Math.abs(s)*(B/2)+Math.abs(c)*(D/2+0.02); T.kollision={x0:o.x-ax,x1:o.x+ax,z0:o.z-az,z1:o.z+az}; }
   if(o.S){ const L=_bkLokal(o.S,o.x,o.z,o.ry); zarge(L); blatt(L,-o.anschlag*(B/2-0.01),0); return T; }
-  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.ry; g.userData.bauteil='drehtuer'; g.userData.bauteilArt=o.art; (o.parent||scene).add(g);
-  const Sz=bk.werkSammler('drehtuer'); zarge(_bkLokal(Sz,0,0,0)); Sz.fertig(g,{bauteil:'drehtuer',fest:true});
+  const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.rotation.y=o.ry; g.userData.bauteil='tuer'; g.userData.bauteilArt=o.art; (o.parent||scene).add(g);
+  const Sz=bk.werkSammler('tuer'); zarge(_bkLokal(Sz,0,0,0)); Sz.fertig(g,{bauteil:'tuer',fest:true});
   const fl=new THREE.Group(); fl.position.x=-o.anschlag*(B/2-0.01); g.add(fl);
-  const Sb=bk.werkSammler('drehtuer'); blatt(_bkLokal(Sb,0,0,0),0,0); Sb.fertig(fl,{bauteil:'drehtuer'});
+  const Sb=bk.werkSammler('tuer'); blatt(_bkLokal(Sb,0,0,0),0,0); Sb.fertig(fl,{bauteil:'tuer'});
   T.g=g; T.fluegel=fl;
   T.set=t=>{ T.t=Math.max(0,Math.min(1,t)); fl.rotation.y=-o.auf*o.anschlag*T.t*1.55; };
   T.set(o.offen);
   return T;
-};
+}
 /* Treppe (Stahl, Werk West: Leitstand-Galerie): gerader Lauf in der Draufsicht von o.von nach o.bis ([x,z], Mitte), y0 -> y1.
    Wangen Anthrazit, Stufen verzinkt mit gelber Kante (Trittkante = Warnung), Gelaender Signalgelb (wie bk.zaun 'gelaender').
    o = {S, von, bis, breite, y0, y1, gelaender:[links,rechts]} -> {stufen, laenge, steigung} */
@@ -15578,7 +15738,7 @@ bk.zelle=function(o){
     if(!t){ W(d,h,z1-z0,xw,h/2,(z0+z1)/2); continue; }
     const tb=0.9, th=2.05, ta=t.z-tb/2, te=t.z+tb/2;
     W(d,h,ta-z0,xw,h/2,(z0+ta)/2); W(d,h,z1-te,xw,h/2,(te+z1)/2); W(d,h-th,tb,xw,(th+h)/2,t.z);
-    bk.drehtuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
+    bk.tuer({S,x:xw,z:t.z,ry:Math.PI/2,breite:tb,hoehe:th,dicke:d,art:'stahl'});
     const nx=id==='w'?-1:1; vorTuer(xw+nx*d/2,t.z,nx,0,[0,1]); out.tueren.push({x:xw,z:t.z,seite:id}); }
   /* Stirnwaende mit Durchreiche, Rahmen (Signalgelb) und Klappe (offen, pneumatisch) */
   if(B) for(const xw of [x0+d/2,x1-d/2]){ const za=B.z-B.b/2, zb=B.z+B.b/2, s=xw<(x0+x1)/2?-1:1, xa=xw+s*(d/2+0.013), kl=B.y1-B.y0, a=1.2;
@@ -15605,7 +15765,7 @@ bk.zelle=function(o){
       for(const sz of [-1,1]){ const zf=zw+sz*(d/2+0.012);
         for(const y of [fen.y-0.03,fen.y+fen.h+0.03]) S.box(fen.b+0.12,0.06,0.025,wx,y,zf,F('anthrazit'),'lackMetall');
         for(const x of [wx-fen.b/2-0.03,wx+fen.b/2+0.03]) S.box(0.06,fen.h,0.025,x,fy,zf,F('anthrazit'),'lackMetall'); } }
-    bk.drehtuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
+    bk.tuer({S,x:t.x,z:zw,ry:0,breite:tb,hoehe:th,dicke:d,art:'stahl',anschlag:t.x<(x0+x1)/2?1:-1});
     const zo=zw+seite*(d/2);
     vorTuer(t.x,zo,0,seite,[t.x<(x0+x1)/2?1:-1,0]);
     if(o.schild&&seite>0) bk.schild(o.parent||scene,{text:o.schild.text,unter:o.schild.unter,b:1.25,h:0.4,x:(x0+x1)/2,y:Math.min(th+0.75,h-0.25),z:zo+0.012,ry:0});
@@ -15697,6 +15857,432 @@ bk.schildAtlas=function(o){
   pg.computeBoundingSphere(); sg.computeBoundingSphere();
   (o.parent||scene).add(platte); (o.parent||scene).add(schrift);
   return A;
+};
+
+/* =========================================================
+   Regal (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md)
+
+   Tom 15.10. (Fundament-Schritt 4): "Regale, Kassen, Fenster, Tueren, Schilder, Bodenmarkierungen einheitlich bauen -
+   Groessen und Arten bleiben, nur die Bauweise wird einheitlich." Vorher drei Regal-Bauweisen mit drei Farbsystemen:
+   createShelf/bauMoebel (06, Laden), createRack/rackMats (06, Lager: eigene Lochtextur je Stuetze, Boden je Ebene ein Mesh,
+   Traversen mit zwei Extra-Orangetoenen) und vmRegalBauen (11d, Packmaterial: Boeden Alu statt verzinkt).
+   Jetzt EIN Bauteil, die Art waehlt die Bauweise:
+     art 'laden'       Verkaufsmoebel nach SHELFKIND (klein, standard, hoch, kuehl, gondel, eck, gross, kasse = Wandregal/Gondel;
+                       tisch, tischgross = Verkaufstisch; gitter, gitter2, gitter3 = Gitterbox). Gestell je Warenseite EIN Mesh
+                       (Vertexfarben nach Rolle, Material MAT.vc('kunststoff'), Farben aus regalFarben - folgt der Wand),
+                       Rueckwand Lochblech (UV 0,4 m), Preisschild je Fach + Kopfschild (Bild, veraenderlich), Trefferflaeche je Fach.
+     art 'lager'       Lagerregal nach RACKKIND (standard, hoch, schwer): Stuetzen Lochprofil Signalblau (ein Mesh fuer alle 4),
+                       Rahmen/Traversen Signalblau/Signalorange (ein Mesh), Boeden verzinkt (ein Mesh), Inhaltsschild.
+     art 'fachboden'   kleines Fachbodenregal in einen fremden Sammler (Packmaterial an jedem Packplatz): Stuetzen Signalblau,
+                       Boeden verzinkt Silbergrau wie das Lagerregal.
+   Gleiche Sache = gleiche Farbe: Lagertechnik Stuetzen Signalblau, Traversen Signalorange (wie bk.hochregal), Boeden Silbergrau.
+   Die Spiel-Logik (Faecher/Level, Ware, Schilder malen, Stellplaetze, Kollision) bleibt in den Huellen createShelf/createRack/
+   vmRegalBauen - bk.regal baut und gibt die Haken zurueck.
+   o = {art, K (Art-Daten SHELFKIND/RACKKIND), g (Gruppe, steht schon am Platz), farben (laden: Rollenfarben regalFarben(K)),
+        px (laden: Schildaufloesung, REGAL_TEX)}  |  fachboden: {box(w,h,d,farbe,x,y,z,rx,ry,rz), breite, tiefe, hoehe, boeden:[y], rueckwand}
+   -> laden: {gestelle:[Mesh], faecher:[{li,face,tex (Preisbild des Moebels),zelle:{y,h} (Pixelzeile),hit}], preisTex, headTex, kopfG, headY,
+             gitterM, leiste (Material Lichtleiste), top}
+      lager: {faecher:[{li,si,x,y,hit}], schildTex, meshes}
+      fachboden: {} (Teile im Sammler)
+   ========================================================= */
+let _bkLoch=null, _bkLeiste=null;
+function _bkBoxen(){ const GB={}; const f=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d)); f.weg=()=>{ for(const k in GB) GB[k].dispose(); }; return f; }
+bk.regal=function(o){
+  if(o.art==='lager') return _bkRegalLager(o);
+  if(o.art==='fachboden') return _bkRegalFachboden(o);
+  return _bkRegalLaden(o);
+};
+/* Rueckwand aller Verkaufsregale: EIN veraenderliches Material (Farbe folgt der Wand, regaleFaerben) */
+bk.regal.rueckwand=function(){ return _bkLoch||(_bkLoch=MAT.neu('lochblech')); };
+/* Lichtleiste unter den Boeden: EIN veraenderliches Material fuer alle Regale (Upgrade Regallicht schaltet es) */
+bk.regal.leiste=function(){ return _bkLeiste||(_bkLeiste=MAT.neu('lichtleiste')); };
+function _bkRegalLaden(o){
+  const K=o.K, g=o.g, RF=o.farben, PX=o.px||1, box=_bkBoxen();
+  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
+  const R={gestelle:[],faecher:[],headTex:null,kopfG:null,headY:0,gitterM:null,leiste:null,top,preisTex:null};
+  /* Preisschilder: EIN Bild je Moebel (Zeile je Fach, 4 px Rand gegen Ueberblenden) und EIN Mesh je Warenseite - vorher je Fach
+     eigene Textur, eigenes Material, eigener Zeichenaufruf. Die Zeile malt updateLabel (06) ueber lv.zelle. */
+  const nF=K.bau?K.lv.length:seitenVon(K).length*K.lv.length, ZW=Math.round(700*PX), ZB=Math.round(80*PX), ZH=ZB+4;
+  const PT=R.preisTex=tex(ZW,ZH*nF,()=>{}); PT.anisotropy=8; const PM=MAT.bild(PT); let nP=0;
+  const preisQ=new Map();
+  const preis=(parent,y,z)=>{ const k=nP++, y0=k*ZH+2, b=Math.min(0.46,iw*0.46), gg=new THREE.PlaneGeometry(b,0.052), uv=gg.attributes.uv, H=ZH*nF;
+    /* UV in die Zeile k (Bildzeile 0 liegt oben = v 1), halbes Texel nach innen */
+    for(let i=0;i<uv.count;i++){ const u=uv.getX(i), v=uv.getY(i); uv.setXY(i,(0.5+u*(ZW-1))/ZW,1-(y0+0.5+(1-v)*(ZB-1))/H); }
+    gg.translate(0,y,z); if(!preisQ.has(parent)) preisQ.set(parent,[]); preisQ.get(parent).push({geo:gg,m:new THREE.Matrix4()});
+    return {y:y0,h:ZB}; };
+  const preisFertig=()=>{ for(const [par,q] of preisQ){ const m=new THREE.Mesh(merge(q),PM); q.forEach(x=>x.geo.dispose()); m.userData.bauteil='regal'; m.userData.bauteilArt='preisschild'; par.add(m); } preisQ.clear(); };
+  const fach=(parent,li,face,z)=>{ const yl=K.lv[li], h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,parent,false); R.faecher.push({li,face,tex:PT,zelle:z,hit}); };
+  const gestell=(parent,st,schatten)=>{ st.forEach(x=>{ x.color=RF[x.rolle]; });
+    const m=new THREE.Mesh(merge(st),MAT.vc('kunststoff')); m.userData.rollen=st.map(x=>[x.rolle,x._n]); m.userData.regalK=K;
+    m.userData.bauteil='regal'; m.userData.bauteilArt=K.id; if(HIQ&&schatten!==false){ m.castShadow=true; m.receiveShadow=true; }
+    parent.add(m); R.gestelle.push(m); return m; };
+  if(K.bau){
+    const nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, st=[], kopf=[]; let preisY, headY;
+    const fg=new THREE.Group(); g.add(fg);
+    if(K.bau==='tisch'){
+      /* Ladenbau-Tisch: dieselben Teile wie die Verkaufstische der Ausstellung 2.0 (bk.verkaufstischTeile) */
+      st.push(...bk.verkaufstischTeile(K,box)); preisY=[y-0.1];
+      /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - es verschwindet, solange der Tisch leer ist */
+      kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
+      headY=y+fh+0.42; kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
+    } else {
+      /* Gitterbox: Unterbau mit offenen Faechern (Seitenwangen, Rueckwand, Boeden mit Preisleiste), darueber die Wanne
+         (Bodenblech, Eckpfosten, Drahtgitter rundum, Rohrrahmen; vorn niedriger). Sockel 25 mm zurueckgesetzt, Wannenplatte
+         6 mm ueberstehend - keine zwei Flaechen in einer Ebene (03.10., Saegezaehne). */
+      const hw2=Math.min(0.62,fh+0.06), hv=Math.min(hw2-0.1,fh-0.08), SK=0.08;
+      for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
+      st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
+      st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
+      preisY=[];
+      for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
+        st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
+        st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
+      st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
+      for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw2+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw2/2,sz*(D/2-0.018)),rolle:'rahmen'});
+      st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw2,-D/2+0.012),rolle:'rahmen'});
+      st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
+      for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw2,0),rolle:'rahmen'});
+      /* Drahtgitter: vier Flaechen in EINEM Mesh (vorher vier), UV 0,2 m je Kachel; Farbe folgt dem Rahmen (regaleFaerben) */
+      const gm=MAT.neu('gitterBox'); gm.color.copy(LIN(RF.rahmen)); R.gitterM=gm;
+      const wand=(w,h,x,yy,z,ry)=>{ const pg=new THREE.PlaneGeometry(w,h); MAT.kachel(pg,w/0.2,h/0.2); return {geo:pg,m:tm(x,yy,z,0,ry,0)}; };
+      const wg=[wand(W-0.04,hw2,0,y+hw2/2,-D/2+0.012,0),wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0)];
+      for(const sx of [-1,1]) wg.push(wand(D-0.04,hw2,sx*(W/2-0.012),y+hw2/2,0,Math.PI/2));
+      const gw=new THREE.Mesh(merge(wg),gm); gw.userData.bauteil='regal'; gw.userData.bauteilArt='gitter'; fg.add(gw); wg.forEach(x=>x.geo.dispose());
+      preisY.push(y+hv-0.04); headY=y+hv+0.13;
+      /* Klappschild vorn am Rohrrahmen */
+      kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+    }
+    gestell(fg,st);
+    const kg=new THREE.Group(); fg.add(kg); R.kopfG=kg;
+    gestell(kg,kopf,false);
+    /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
+    K.lv.forEach((yl,li)=>{ const z=preis(fg,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003)); fach(fg,li,0,z); });
+    preisFertig();
+    R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{});
+    const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
+    plane(hwid,0.17,MAT.bild(R.headTex,{side:THREE.DoubleSide}),0,headY,hz,0,kg).userData.bauteil='regal';
+    R.headY=headY; box.weg(); return R;
+  }
+  seitenVon(K).forEach((f,fi)=>{
+    const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
+    const st=[], li0=[];
+    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
+    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
+    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
+    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
+    /* Mittelsteher zwischen den Regalmodulen (jedes Modul fasst ganze Kartons) */
+    for(let k=1;k<(K.mod||1);k++) st.push({geo:box(STEHER,top-0.1,D-0.06),m:tm(-iw/2+k*(modBreite(K)+STEHER)-STEHER/2,top/2,-0.02),rolle:'rahmen'});
+    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
+    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
+    /* Rueckwand: Lochblech (UV 0,4 m = 8 Loecher je Kachel, Loch 5 cm - vorher 5 Kacheln je Regal, also je nach Breite 2-5 cm),
+       im Kuehlregal weisser Kunststoff, im Kassenregal Lochblech Lichtgrau wie die Kasse */
+    { const rg=new THREE.BoxGeometry(iw,top-0.1,0.02); if(!K.cold) MAT.kachel(rg,iw/0.4,(top-0.1)/0.4);
+      const rw=new THREE.Mesh(rg,K.cold?MAT.get('kunststoffWeiss'):K.kasse?MAT.get('lochblechKasse'):bk.regal.rueckwand());
+      rw.position.set(0,top/2,-D/2+0.03); rw.userData.bauteil='regal'; rw.userData.bauteilArt='rueckwand'; if(HIQ){ rw.castShadow=true; rw.receiveShadow=true; } fg.add(rw); }
+    /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der Deckplatte und ueber der Sockelblende (ein Mesh) */
+    if(K.kasse){ const S=bk.sammler({bauteil:'regal'}), A=MAT.farbe('aluminium');
+      S.box(W+0.012,0.03,0.02,0,top+0.045,D/2+0.004,A,'blank').box(W-0.04,0.022,0.02,0,0.19,D/2+0.006,A,'blank'); S.fertig(fg,{schatten:false}); }
+    K.lv.forEach((y,li)=>{
+      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
+      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
+      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
+      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
+      if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
+      const z=preis(fg,y-0.02,D/2-0.004); fach(fg,li,fi,z);
+    });
+    preisFertig();
+    /* Kopfschild ueber jeder Warenseite (eine Textur fuer alle Seiten) */
+    if(fi===0){ R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{}); R.headM=MAT.bild(R.headTex); }
+    const hy=top+(K.cold?0.34:0.18);
+    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
+    plane(W-0.1,0.24,R.headM,0,hy,0.051,0,fg).userData.bauteil='regal';
+    gestell(fg,st);
+    if(li0.length){ const m=new THREE.Mesh(merge(li0),K.cold?MAT.get('lichtleisteKuehl'):(R.leiste=bk.regal.leiste())); m.userData.bauteil='regal'; m.userData.bauteilArt='lichtleiste'; fg.add(m); }
+    if(K.cold){
+      /* Glastueren (ein Mesh), Rahmen, Griffe und Kopfblende Alu (ein Mesh), Schild "GEKUEHLT" */
+      const S=bk.sammler({bauteil:'regal'}), AL=MAT.farbe('aluminium'), GR=MAT.farbe('lichtgrau'), gl=[];
+      for(const sx of [-1,1]){
+        gl.push({geo:box(W/2-0.02,top-0.14,0.03),m:tm(sx*W/4,top/2,D/2-0.002)});
+        S.box(0.03,top-0.14,0.04,sx*(W/2-0.03),top/2,D/2,AL,'stahl');
+        S.box(0.035,0.5,0.05,sx*0.06,top*0.55,D/2+0.03,GR,'stahl'); }
+      S.box(W,0.16,D,0,top+0.12,0,AL,'stahl');
+      S.fertig(fg);
+      const gm=new THREE.Mesh(merge(gl),MAT.get('glasScheibe')); gm.userData.bauteil='regal'; gm.userData.bauteilArt='glastuer'; fg.add(gm);
+      bk.schild(fg,{text:'GEKÜHLT  4 °C',stil:'info',b:W*0.8,h:0.11,y:top+0.12,z:D/2+0.005,leucht:true});
+    }
+  });
+  /* Eckregal: zwischen den Schenkeln ein Blindfeld (sonst schaut man durch den Spalt auf die Wand) - Teil des Gestells,
+     faerbt mit (vorher zwei eigene Materialien je Regal) */
+  if(K.art==='ecke'){ const r=(w,h,d)=>roundedBoxGeo(w,h,d,Math.min(0.02,Math.min(w,h,d)*0.17));
+    gestell(g,[{geo:r(0.52,top,0.52),m:tm(-0.6,top/2,-0.6),rolle:'seite'},{geo:r(0.56,0.06,0.56),m:tm(-0.6,top+0.03,-0.6),rolle:'rahmen'}]); }
+  R.headY=top+(K.cold?0.34:0.18);
+  box.weg(); return R;
+}
+function _bkRegalLager(o){
+  const K=o.K, g=o.g, F=MAT.farbe, box=_bkBoxen();
+  const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w, fr=[], posts=[], decks=[];
+  const R={faecher:[],schildTex:null,meshes:[]};
+  /* Rahmen: Stuetzen (Lochprofil, ein Mesh), Fussplatten, Riegel und Diagonalverband ueber die ganze Rahmenhoehe */
+  for(const x of [-XO,XO]){
+    for(const z of [-ZO,ZO]){
+      const pg=new THREE.BoxGeometry(0.085,HT,0.075); MAT.kachel(pg,1,HT/2.34); posts.push({geo:pg,m:tm(x,HT/2,z)});
+      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:F('anthrazit')});
+      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:F('silbergrau')});
+    }
+    const nR=Math.max(3,Math.round(HT/0.7));
+    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:F('signalblau')});
+    for(let k=0;k<nR-1;k++) fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:F('signalblau')});
+  }
+  const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
+  K.lv.forEach((y,li)=>{
+    for(const z of [-ZO+0.03,ZO-0.03]){
+      /* Traverse als Kastenprofil mit Auflagelippe - alles Signalorange (vorher zwei Extra-Toene fuer Licht/Schatten) */
+      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:F('signalorange')});
+      fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:F('signalorange')});
+      fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:F('signalorange')});
+      for(const x of [-BW/2,BW/2]){
+        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:F('anthrazit')});
+        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:F('lichtgrau')}); }
+    }
+    const dg=new THREE.BoxGeometry(BW-0.08,0.022,2*ZO-0.09); MAT.kachel(dg,3,1); decks.push({geo:dg,m:tm(0,y-0.005,0)});
+    K.sp.forEach((x,si)=>{ const hit=bbox(sw,0.74,2*ZO,hitM,x,y+0.37,0,g,false); R.faecher.push({li,si,x,y,hit}); });
+  });
+  const mk=(teile,mat,art)=>{ const m=new THREE.Mesh(merge(teile),mat); m.userData.bauteil='regal'; m.userData.bauteilArt=art;
+    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); R.meshes.push(m); return m; };
+  mk(fr,MAT.vc('lackMetall'),'rahmen'); mk(posts,MAT.get('regalStuetze'),'stuetzen'); mk(decks,MAT.get('regalBoden'),'boeden');
+  posts.concat(decks).forEach(x=>x.geo.dispose()); box.weg();
+  /* Inhaltsschild: zeigt, was gerade im Regal liegt (gemalt von drawRackSchild) */
+  R.schildTex=tex(512,256,()=>{});
+  plane(0.52,0.26,MAT.neu('etikett',{map:R.schildTex}),-XO+0.34,1.6,ZO+0.012,0,g).userData.bauteil='regal';
+  bbox(0.56,0.3,0.012,MAT.ober('silbergrau','lackMetall'),-XO+0.34,1.6,ZO+0.004,g,false).userData.bauteil='regal';
+  return R;
+}
+/* Fachbodenregal in einen fremden Sammler: o.box(w,h,d,farbe,x,y,z,rx,ry,rz) in Regalkoordinaten (Front +z) */
+function _bkRegalFachboden(o){
+  const B=o.box, w=o.breite, d=o.tiefe, H=o.hoehe, BLAU=MAT.farbe('signalblau'), ZINK=MAT.farbe('silbergrau');
+  for(const sx of [-1,1]) for(const sz of [-1,1]) B(0.035,H,0.035,BLAU,sx*(w/2-0.018),H/2,sz*(d/2-0.018));
+  for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(0.02,0.02,d-0.04,BLAU,sx*(w/2-0.018),y,0,0.6*(y>1?1:-1),0,0);
+  for(const y of o.boeden.concat([H])) B(w,0.022,d,ZINK,0,y-0.011,0);
+  /* Rueckwand aus Lochblech nur unten */
+  if(o.rueckwand) B(w-0.04,o.rueckwand,0.01,ZINK,0,0.1+o.rueckwand/2,-d/2+0.01);
+  return {};
+}
+
+/* =========================================================
+   Kasse (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md)
+
+   Vorher: Kassenplatz buildCheckout (06) aus 30 Einzelmeshes mit vier freien Materialien (Korpus, Blende, Sockel) und drei
+   eigenen Texturen je Kasse (Scanner, Tastatur, Laufband); SB-Terminal sbTerminal (06) als Geraete-Sammler mit eigenem Korpus-
+   Material. Jetzt EIN Bauteil in der Geraete-Bauweise (bk.sammler, Klassen lack/metall/matt/glas/leucht wie geraetBau):
+   gleiche Sache = gleiches Material - Korpus Weiss lackiert, Sockel Anthrazit, Leisten Alu blank, Gehaeuse Gummischwarz,
+   Anzeigen ueber die Palette (anzeigeGruen, laserRot, anzeigeBlau).
+     art 'kasse'    Kassenplatz 3,2 x 0,8 m mit Laufband, Scanner, Monitor auf Schwenkarm, Tastatur, Warentrenner
+                    o = {parent, name (Textur Namensblende), pos (Textur Kassenbildschirm)} -> {korpus (Verdecker), band (Textur, laeuft), meshes}
+     art 'sb'       SB-Terminal: Saeule mit Bildschirm, Bioptik-Scanner, Korbablage, Waage mit Tuetenhalter, Kartenterminal, Signalleuchte
+                    o = {parent, x, z, bildschirm (Textur)} -> {g, korpus, lamp, lampM (MAT.neu, veraenderlich: frei/besetzt/Hilfe)}
+     art 'sbTafel'  Rueckwand mit Schild "SB-KASSEN" auf zwei Pfosten: o = {parent, x, z, breite}
+   Die Spiel-Logik (Kassieren, Schlange, Trefferflaechen, Lampe schalten) bleibt in den Huellen buildCheckout/sbTerminal/buildSBKasse.
+   ========================================================= */
+bk.kasse=function(o){
+  const F=MAT.farbe, S=bk.sammler({form:{fase:0.02,faseMin:0.03},reihenfolge:['lack','metall','matt','glas','leucht'],bauteil:'kasse'});
+  const WEISS=F('weiss'), ANTH=F('anthrazit'), DUNK=F('gummischwarz'), ALU=F('aluminium'), NAVY=F('nachtblau');
+  if(o.art==='sbTafel'){ const g=o.parent, x=o.x, z=o.z, b=o.breite||3.6;
+    S.box(b,0.34,0.12,x,2.35,z,NAVY,'lack');
+    for(const sx of [x-1.6,x+1.6]) S.box(0.07,2.2,0.07,sx,1.15,z,F('silbergrau'),'metall');
+    S.fertig(g,{schatten:false});
+    bk.schild(g,{text:'SB-KASSEN',b:b-0.2,h:0.3,x,y:2.35,z:z+0.07,leucht:true});
+    return {}; }
+  if(o.art==='sb'){
+    const g=new THREE.Group(); g.position.set(o.x,0,o.z); g.userData.bauteil='kasse'; g.userData.bauteilArt='sb'; o.parent.add(g);
+    /* Korpus, Sockel, Front, Arbeitsplatte */
+    S.rund(0.78,0.84,0.66,0.03,0,0.5,0,WEISS,'lack');
+    S.box(0.72,0.08,0.6,0,0.04,0,ANTH,'matt')
+     .box(0.6,0.5,0.012,0,0.48,0.333,F('lichtgrau'),'lack')
+     .box(0.78,0.07,0.016,0,0.86,0.335,NAVY,'lack')
+     .box(0.7,0.05,0.012,0,0.13,0.334,ALU,'metall')
+     .rund(0.84,0.045,0.7,0.012,0,0.94,0,ANTH,'lack')
+     .box(0.84,0.022,0.012,0,0.93,0.352,ALU,'metall');
+    /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
+    S.box(0.36,0.006,0.27,0,0.963,0.09,F('tiefschwarz'),'matt')
+     .box(0.32,0.004,0.23,0,0.966,0.09,ANTH,'glas')
+     .box(0.28,0.002,0.004,0,0.969,0.09,F('laserRot'),'leucht',0,0.45,0)
+     .box(0.28,0.002,0.004,0,0.969,0.09,F('laserRot'),'leucht',0,-0.45,0)
+     .rund(0.38,0.17,0.08,0.02,0,1.045,-0.1,DUNK,'matt')
+     .box(0.31,0.11,0.004,0,1.045,-0.059,ANTH,'glas')
+     .box(0.26,0.003,0.002,0,1.045,-0.056,F('laserRot'),'leucht');
+    /* Saeule mit Kappe, Bondrucker */
+    S.rund(0.3,0.86,0.16,0.04,0,1.39,-0.25,WEISS,'lack').rund(0.31,0.05,0.17,0.02,0,1.8,-0.25,NAVY,'lack');
+    S.rund(0.17,0.06,0.04,0.01,0,1.205,-0.155,DUNK,'matt').box(0.1,0.004,0.006,0,1.2,-0.134,F('tiefschwarz'),'matt').box(0.07,0.05,0.002,0,1.17,-0.132,F('cremeweiss'),'lack',0.15,0,0);
+    /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
+    const KX=-0.1, KY=1.53, KZ=-0.13;
+    S.pivot(0,KY,KZ,KX,0,0).rund(0.53,0.39,0.05,0.02,0,0,0,DUNK,'matt').box(0.012,0.012,0.004,0,0.178,0.026,F('tiefschwarz'),'leucht').pivot();
+    /* Kartenterminal rechts am kurzen Arm */
+    S.zyl(0.014,0.018,0.13,10,0.31,1.03,-0.12,ALU,'metall')
+     .pivot(0.31,1.14,-0.11,-0.55,-0.25,0).rund(0.1,0.17,0.035,0.012,0,0,0,DUNK,'matt').box(0.07,0.05,0.002,0,0.04,0.019,F('anzeigeBlau'),'leucht').box(0.07,0.055,0.004,0,-0.035,0.018,F('hellgrau'),'lack').pivot();
+    /* links Korbablage, rechts Waage mit Tuetenhalter */
+    S.rund(0.36,0.72,0.52,0.025,-0.6,0.36,0,WEISS,'lack').rund(0.4,0.035,0.56,0.01,-0.6,0.74,0,ANTH,'lack').box(0.4,0.02,0.012,-0.6,0.73,0.282,ALU,'metall');
+    S.rund(0.36,0.84,0.52,0.025,0.6,0.42,0,WEISS,'lack').box(0.38,0.018,0.48,0.6,0.85,0,ALU,'metall').box(0.3,0.006,0.4,0.6,0.862,0.0,F('hellgrau'),'matt');
+    for(const sx of [0.45,0.75]) S.zyl(0.011,0.011,0.5,8,sx,1.11,-0.22,ALU,'metall').zyl(0.009,0.009,0.34,8,sx,1.36,-0.06,ALU,'metall',Math.PI/2,0,0);
+    S.zyl(0.011,0.011,0.31,8,0.6,1.36,-0.22,ALU,'metall',0,0,Math.PI/2).box(0.26,0.26,0.2,0.6,1.0,-0.05,F('cremeweiss'),'matt');
+    /* Lichtsignal-Stange */
+    S.zyl(0.014,0.014,0.32,10,0,1.98,-0.25,ALU,'metall').zyl(0.056,0.056,0.016,14,0,2.228,-0.25,ALU,'metall');
+    const meshes=S.fertig(g), korpus=meshes.find(m=>m.userData.klasse==='lack');
+    /* Bildschirm (eigene Textur) */
+    const scr=plane(0.48,0.34,MAT.bild(o.bildschirm),0,KY+0.026*Math.sin(-KX),KZ+0.026*Math.cos(KX),0,g); scr.rotation.x=KX; scr.userData.bauteil='kasse';
+    const lampM=MAT.neu('ampelGruen',{emissiveIntensity:1.6});
+    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.11,14),lampM); lamp.position.set(0,2.165,-0.25); lamp.userData.bauteil='kasse'; g.add(lamp);
+    return {g,korpus,lamp,lampM,meshes};
+  }
+  /* art 'kasse': Kassenplatz. Lokal: x laengs (Band +x), z = Kundenseite +z */
+  const g=o.parent, BELT_A=o.bandA||1.45, BELT_B=o.bandB||0.12;
+  /* Korpus mit Sockelruecksprung, Edelstahlleiste, Frontblende zum Kunden mit Zierleiste */
+  S.rund(3.2,0.74,0.8,0.02,0,0.5,0,WEISS,'lack');
+  S.box(3.08,0.14,0.68,0,0.07,0,ANTH,'matt').box(3.22,0.04,0.82,0,0.15,0,ALU,'metall');
+  S.box(3.12,0.5,0.03,0,0.56,0.405,WEISS,'lack').box(3.14,0.045,0.035,0,0.82,0.408,ALU,'metall');
+  /* Arbeitsplatte mit gerundeter Vorderkante */
+  S.box(3.34,0.05,0.86,0,0.925,0,F('lichtgrau'),'lack').zyl(0.026,0.026,3.34,12,0,0.925,0.43,F('lichtgrau'),'lack',0,0,Math.PI/2);
+  /* Laufband: Seitenfuehrung Alu mit gelber Kante, Umlenkrollen, Endkappe */
+  const BL=BELT_A-BELT_B+0.12, BX=(BELT_A+BELT_B)/2;
+  for(const s2 of [-1,1]) S.box(BL+0.06,0.05,0.03,BX,0.965,s2*0.245,ALU,'metall').box(BL+0.06,0.012,0.012,BX,0.992,s2*0.245,F('signalgelb'),'matt');
+  for(const ex of [BELT_B-0.04,BELT_A+0.06]) S.zyl(0.03,0.03,0.47,14,ex,0.956,0,ALU,'metall',Math.PI/2,0,0);
+  S.box(0.07,0.1,0.5,BELT_A+0.12,0.94,0,ANTH,'lack');
+  /* Warentrenner */
+  S.pivot(BELT_A-0.25,0.985,0,0,0.08,0).box(0.035,0.055,0.42,0,0,0,NAVY,'matt').pivot();
+  /* Scanner: in die Platte eingelassene Glasscheibe mit Rahmen, gruene LED */
+  S.rund(0.5,0.05,0.44,0.012,-0.22,0.938,0,F('hellgrau'),'lack').box(0.42,0.035,0.36,-0.22,0.958,0,ANTH,'matt').box(0.026,0.026,0.01,-0.42,0.9775,0.16,F('anzeigeGruen'),'leucht');
+  /* Kassenmonitor auf Schwenkarm */
+  S.box(0.16,0.03,0.16,-0.8,0.96,-0.06,ANTH,'lack').zyl(0.022,0.028,0.34,12,-0.8,1.12,-0.06,ALU,'metall').box(0.04,0.04,0.16,-0.8,1.29,-0.01,ALU,'metall',0.5,0,0);
+  S.pivot(-0.8,1.4,-0.06,0.16,0,0).rund(0.44,0.32,0.035,0.01,0,0,0,DUNK,'matt').pivot().box(0.46,0.02,0.05,-0.8,1.23,-0.056,DUNK,'matt');
+  /* Tastatur (Wanne) auf der Bedienerseite vor dem Monitor, Kabel zur Kasse */
+  S.pivot(-0.8,0.954,-0.32,-0.06,0,0).rund(0.44,0.026,0.175,0.006,0,0,0,DUNK,'matt').pivot();
+  S.zyl(0.006,0.006,0.13,6,-0.8,0.952,-0.4,DUNK,'matt',1.35,0,0);
+  const meshes=S.fertig(g), korpus=meshes.find(m=>m.userData.klasse==='lack');
+  const R={korpus,meshes,band:null};
+  const flach=(w,h,mat,x,y,z,rx,ry,rz,par)=>{ const m=plane(w,h,mat,x,y,z,0,par||g); m.rotation.set(rx||0,ry||0,rz||0); m.userData.bauteil='kasse'; return m; };
+  /* Namensblende (Textur des Aufrufers: Ladenname) */
+  if(o.name) flach(1.5,0.2,MAT.neu('etikett',{map:o.name}),0.74,0.6,0.423);
+  /* Laufband: eigene Kopie der Bandtextur (sie laeuft - offset), Massstab 6 Kacheln ueber die UVs */
+  { const t=MAT.tex('kassenband').clone(); t.needsUpdate=true; R.band=t;
+    const bg=new THREE.BoxGeometry(BL,0.03,0.46); MAT.kachel(bg,6,1);
+    const bm=new THREE.Mesh(bg,MAT.neu('kassenband',{map:t})); bm.position.set(BX,0.956,0); bm.userData.bauteil='kasse'; bm.userData.bauteilArt='band'; g.add(bm); }
+  /* Warentrenner-Schild */
+  bk.schild(g,{text:'NÄCHSTER KUNDE',b:0.4,h:0.05,px:0.5,x:BELT_A-0.25+0.019*Math.cos(0.08),y:0.985,z:-0.019*Math.sin(0.08),ry:Math.PI/2+0.08});
+  /* Scannerscheibe, Tastaturfeld */
+  flach(0.38,0.32,MAT.get('scannerGlas'),-0.22,0.9765,0,-Math.PI/2,0,0);
+  flach(0.4,0.15,MAT.get('kassenTastatur'),-0.8,0.9685,-0.32,-Math.PI/2-0.06,0,Math.PI);
+  /* Kassenbildschirm (Textur des Aufrufers, drawPOS) */
+  if(o.pos){ const sg=new THREE.Group(); sg.position.set(-0.8,1.4,-0.06); sg.rotation.x=0.16; g.add(sg); flach(0.4,0.275,MAT.bild(o.pos),0,0,-0.02,0,Math.PI,0,sg); }
+  return R;
+};
+
+/* =========================================================
+   Tuer (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md) - JEDE Tuer im Spiel:
+     art 'stahl'|'brand'|'glas'  Drehfluegeltuer (vorher bk.drehtuer, Werk West, Kartonlager): siehe _bkDrehtuer
+     art 'schiebe'  automatische Ladenschiebetuer (Haupteingang, Eingang 2; vorher buildSchiebetuer 05f aus 30 Einzelmeshes):
+                    Antriebskasten Alu ueber der Oeffnung, Laufschiene, Bewegungsmelder innen/aussen, Bodenfuehrung, zwei Fluegel
+                    (Alu-Rahmen, Glas, Sicherheitsmarkierung, Laufwagen). o = {x (Mitte), z (Laufebene), breite (je Fluegel 1,24),
+                    hoehe 2,44, antrieb (Breite Antriebskasten 5,4), parent} -> {g, leaves:[Group links, rechts]} (bewegt 05f tuerSetD)
+     art 'streifen' PVC-Streifenvorhang in einem Durchgang (vorher streifenvorhang 05h): Traverse verzinkt, Streifen 30 cm mit
+                    6 cm Ueberlappung in EINEM Mesh. o = {laengs (Oeffnung laeuft in x), fest (Wandkoordinate), a0, a1, hoehe}
+                    -> {traverse, streifen}
+   Glas = MAT.get('glasScheibe') wie alle Scheiben (Fenster, Kuehlregal, Leitstand). Gleiche Sache = gleiches Material.
+   ========================================================= */
+bk.tuer=function(o){
+  if(o.art==='schiebe') return _bkSchiebetuer(o);
+  if(o.art==='streifen') return _bkStreifenvorhang(o);
+  return _bkDrehtuer(o);
+};
+function _bkSchiebetuer(o){
+  const F=MAT.farbe, HB=o.antrieb||5.4, W=o.breite||1.24, HH=o.hoehe||2.44, Z=o.z, ALU=F('aluminium'), ALUD=F('silbergrau'), DUNK=F('anthrazit');
+  const g=new THREE.Group(); g.position.x=o.x||0; g.userData.bauteil='tuer'; g.userData.bauteilArt='schiebe'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.01,faseMin:0.03,lod0Kasten:true},bauteil:'tuer'});
+  /* Antriebskasten ueber der Oeffnung (reicht ueber beide Parktaschen), Abdeckung, Unterseite, Laufschiene */
+  S.box(HB,0.24,0.26,0,HH+0.14,Z-0.05,ALU,'kunststoff').box(HB+0.04,0.05,0.3,0,HH+0.27,Z-0.05,ALUD,'kunststoff')
+   .box(HB-0.1,0.05,0.2,0,HH+0.005,Z-0.05,DUNK,'kunststoff').box(HB-0.2,0.045,0.06,0,HH+0.05,Z-0.06,ALUD,'kunststoff');
+  /* Bewegungsmelder innen und aussen (aussen an der Fassade ueber der Oeffnung) */
+  for(const s of [-1,1]){ S.box(0.26,0.075,0.05,s*0.78,HH+0.05,Z-0.15,DUNK,'kunststoff',0.42,0,0); S.box(0.26,0.075,0.05,s*0.78,HH+0.2,Z+0.31,DUNK,'kunststoff',-0.42,0,0); }
+  /* Bodenfuehrung */
+  S.box(2.6,0.012,0.045,0,0.008,Z-0.02,ALUD,'kunststoff');
+  S.fertig(g,{schatten:false});
+  const leaves=[], glasM=MAT.get('glasScheibe'), mark=MAT.ober('weiss','kunststoff',{transparent:true,opacity:0.65});
+  for(const s of [-1,1]){
+    const lf=new THREE.Group(); g.add(lf); leaves.push(lf);
+    const L=bk.sammler({form:{fase:0.01,faseMin:0.03,lod0Kasten:true},bauteil:'tuer'});
+    L.box(W,0.09,0.055,0,HH-0.05,0,ALU,'kunststoff').box(W,0.11,0.055,0,0.055,0,ALU,'kunststoff')
+     .box(0.055,HH-0.12,0.055,-W/2+0.028,HH/2,0,ALU,'kunststoff').box(0.055,HH-0.12,0.055,W/2-0.028,HH/2,0,ALU,'kunststoff');
+    /* Laufwagen oben */
+    for(const dx of [-0.34,0.34]) L.box(0.09,0.05,0.05,dx,HH+0.02,-0.06,ALUD,'kunststoff').zyl(0.022,0.022,0.03,10,dx,HH+0.045,-0.06,DUNK,'kunststoff',0,0,Math.PI/2);
+    L.fertig(lf,{schatten:false});
+    const gl=new THREE.Mesh(new THREE.BoxGeometry(W-0.09,HH-0.2,0.022),glasM); gl.position.set(0,HH/2,0); gl.userData.bauteil='tuer'; lf.add(gl);
+    /* Sicherheitsmarkierung auf Griffhoehe */
+    const mk=new THREE.Mesh(new THREE.BoxGeometry(W-0.1,0.055,0.026),mark); mk.position.set(0,1.32,0); mk.userData.bauteil='tuer'; lf.add(mk);
+  }
+  return {g,leaves};
+}
+function _bkStreifenvorhang(o){
+  const len=o.a1-o.a0, mitte=(o.a0+o.a1)/2, H=o.hoehe-0.12, fest=o.fest;
+  /* Traverse mit Halteklemmen (verzinkt) */
+  const tr=new THREE.Mesh(o.laengs?new THREE.BoxGeometry(len+0.16,0.1,0.14):new THREE.BoxGeometry(0.14,0.1,len+0.16),MAT.get('stahlVerzinkt'));
+  tr.position.set(o.laengs?mitte:fest,o.hoehe-0.05,o.laengs?fest:mitte); tr.userData.bauteil='tuer'; tr.userData.bauteilArt='streifen'; scene.add(tr);
+  /* Streifen 30 cm, 6 cm Ueberlappung, leicht schraeg wie benutzt - alles in EIN Mesh */
+  const B=0.30, T=0.24, n=Math.max(2,Math.floor(len/T)), rest=(len-(n-1)*T-B)/2, geo=new THREE.BoxGeometry(B,H,0.006), teile=[];
+  for(let i=0;i<n;i++){ const a=o.a0+rest+B/2+i*T, kipp=(i%2?1:-1)*0.035;
+    teile.push({geo,color:MAT.farbe('weiss'),m:o.laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)}); }
+  const m=new THREE.Mesh(merge(teile),MAT.get('pvcStreifen')); m.renderOrder=1; m.userData.bauteil='tuer'; m.userData.bauteilArt='streifen'; scene.add(m); geo.dispose();
+  return {traverse:tr,streifen:m};
+}
+
+/* =========================================================
+   Fenster (Schritt "Einheit", 15.10.2026, docs/fundament/einheit.md) - JEDES Fenster in Laden und Lager:
+     art 'schaufenster'  Glas buendig in der Laibung, schmale Leisten oben/unten, Mittelsprosse, Sohlbank aussen (Anthrazit wie
+                         die Profile - Tom: "das Hellgraue muss weg"; vorher an der Erweiterung noch hellgrau). Basisladen (05c),
+                         Erweiterungen (05e nachbarFassade), Eingang 2 Festfelder (05l).
+                         o = {felder:[{x0,x1,y0,y1,sprosse(true),bank(y0>0,2)}], z (Glasebene), zarge:[{x0,x1,y1}] (Tueroeffnung:
+                         Pfosten + Sturzprofil), pfosten:[x] (einzelne Pfosten ueber die volle Hoehe), parent, schmutz (Schmutzschicht je
+                         Feld, Spielzustand S.grime)}
+     art 'fluegel'       Lagerfenster mit zwei Fluegeln, Mittelpfosten, Griffen, Fensterbank aussen (Anthrazit) und innen (weiss); baut
+                         die Wand um die Oeffnungen (bk.wand: Pfeiler, Bruestung, Sturz). o = {felder:[{cx,b,y0,y1}], wand:{x0,x1,z0,z1,
+                         hoehe,innen,flaechen}}
+   Profile Stahl Anthrazit, Glas MAT.get('glasScheibe') (eine Scheibe fuer alles). Je Aufruf: Rahmen EIN Mesh (Sammler), Glas EIN Mesh.
+   -> {glas, rahmen:[Mesh], schmutz:[{mesh,mat}], waende:[Mesh]}
+   ========================================================= */
+bk.fenster=function(o){
+  const F=MAT.farbe, AN=F('anthrazit'), S=bk.sammler({bauteil:'fenster'}), gl=[], R={glas:null,rahmen:[],schmutz:[],waende:[]}, par=o.parent||scene;
+  const scheibe=(w,h,d,x,y,z)=>gl.push({geo:new THREE.BoxGeometry(w,h,d),m:tm(x,y,z)});
+  if(o.art==='fluegel'){
+    const W=o.wand, z0=W.z0, z1=W.z1, zm=(z0+z1)/2, H=W.hoehe;
+    const wand=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) R.waende.push(bk.wand({x0:a,x1:b,z0,z1,y0,y1,innen:W.innen,flaechen:W.flaechen,ue:0})); };
+    let x=W.x0;
+    for(const f of o.felder){ const FB=f.b, a=f.cx-FB/2, b=f.cx+FB/2, Y0=f.y0, Y1=f.y1, fh=Y1-Y0, cx=f.cx;
+      wand(x,a,0,H); wand(a,b,0,Y0); wand(a,b,Y1,H);
+      /* Rahmen in der Wandmitte, Mittelpfosten, Fluegelrahmen, Glas, Griffe innen */
+      S.box(FB,0.07,0.08,cx,Y1-0.035,zm,AN,'stahl').box(FB,0.07,0.08,cx,Y0+0.035,zm,AN,'stahl');
+      for(const sx of [-1,1]) S.box(0.07,fh,0.08,cx+sx*(FB/2-0.035),Y0+fh/2,zm,AN,'stahl');
+      S.box(0.06,fh-0.1,0.07,cx,Y0+fh/2,zm,AN,'stahl');
+      for(const sx of [-1,1]){ const fx=cx+sx*FB/4;
+        for(const dy of [0.075,fh-0.075]) S.box(FB/2-0.12,0.04,0.05,fx,Y0+dy,zm+0.01,AN,'stahl');
+        scheibe(FB/2-0.14,fh-0.2,0.012,fx,Y0+fh/2,zm);
+        S.box(0.025,0.12,0.03,cx+sx*0.1,Y0+fh/2,z0-0.01,F('aluminium'),'blank'); }
+      /* Fensterbank aussen (Anthrazit wie die Schaufenster) und innen (weiss) */
+      S.box(FB+0.08,0.03,0.2,cx,Y0-0.012,z1+0.06,AN,'stahl').box(FB+0.05,0.03,0.16,cx,Y0-0.012,z0-0.05,F('weiss'),'kunststoff');
+      x=b; }
+    wand(x,W.x1,0,H);
+  } else {
+    const z=o.z;
+    for(const f of o.felder){ const bw=f.x1-f.x0, bh=f.y1-f.y0, cx=(f.x0+f.x1)/2, cy=(f.y0+f.y1)/2;
+      scheibe(bw,bh,0.03,cx,cy,z);
+      S.box(bw,0.06,0.12,cx,f.y0+0.03,z,AN,'stahl').box(bw,0.06,0.12,cx,f.y1-0.03,z,AN,'stahl');
+      if(f.sprosse!==false) S.box(0.06,bh,0.1,cx,cy,z,AN,'stahl');
+      if(f.bank!==false&&f.y0>0.2) S.box(bw+0.2,0.05,0.3,cx,f.y0,z+0.2,AN,'stahl');
+      if(o.schmutz){ const m=MAT.neu('fensterSchmutz'), me=new THREE.Mesh(MAT.kachel(new THREE.BoxGeometry(bw-0.05,bh-0.04,0.015),2,1),m);
+        me.position.set(cx,cy,z-0.07); me.renderOrder=3; me.userData.bauteil='fenster'; me.userData.bauteilArt='schmutz'; par.add(me); R.schmutz.push({mesh:me,mat:m}); } }
+    for(const q of (o.zarge||[])){ const h=q.y1||2.5; for(const x of [q.x0,q.x1]) S.box(0.08,h,0.14,x,h/2,z,AN,'stahl'); S.box(q.x1-q.x0,0.08,0.14,(q.x0+q.x1)/2,h,z,AN,'stahl'); }
+    for(const p of (o.pfosten||[])) S.box(0.06,p.h,0.12,p.x,p.h/2,z,AN,'stahl');
+  }
+  R.rahmen=S.fertig(par);
+  if(gl.length){ R.glas=new THREE.Mesh(merge(gl),MAT.get('glasScheibe')); gl.forEach(q=>q.geo.dispose()); R.glas.userData.bauteil='fenster'; R.glas.userData.bauteilArt='glas'; par.add(R.glas); }
+  return R;
 };
 
 /* =========================================================
@@ -15985,8 +16571,9 @@ function buildWorld(){
     flat(T.x1-T.x0,T.z1-T.z0,new THREE.MeshStandardMaterial({map:tg,roughness:0.92}),
       (T.x0+T.x1)/2,0.013,(T.z0+T.z1)/2); }
   // Warenannahme
-  const zone=new THREE.Mesh(new THREE.PlaneGeometry(4.3,2.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(430,230,(g,W,H)=>{ g.clearRect(0,0,W,H); g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=10; g.setLineDash([26,14]); g.strokeRect(8,8,W-16,H-16); g.setLineDash([]); g.fillStyle=MAT.css('signalgelb',.95); g.font=BAR(30); g.fillText('Wareneingang',24,H-26); })}));
-  zone.rotation.set(-Math.PI/2,0,-Math.PI/2); zone.position.set(-15.3,0.022,-2); zone.renderOrder=2; scene.add(zone);
+  /* gestrichelt umrandete Abstellflaeche mit Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
+  bk.bodenmarkierung({rahmen:[{x0:-16.45,x1:-14.15,z0:-4.15,z1:0.15,farbe:'gelb',breite:0.08,strich:0.26,luecke:0.14}],
+    schriften:[{text:'WARENEINGANG',x:-15.3,z:-2,b:2.6,h:0.5,ry:-Math.PI/2}],y:0.016});
   // Laden: Frontwand mit Schaufenstern
   const H=WH;
   wall(-8,-7.2,5.9,6.1,0,H,'-z',shopWall); wall(-2,-1.2,5.9,6.1,0,H,'-z',shopWall);
@@ -15994,13 +16581,9 @@ function buildWorld(){
   wall(1.2,2,5.9,6.1,0,H,'-z',shopWall); wall(7.2,8,5.9,6.1,0,H,'-z',shopWall);
   wall(2,7.2,5.9,6.1,0,0.9,'-z',shopWall); wall(2,7.2,5.9,6.1,2.4,H,'-z',shopWall);
   wall(-1.2,1.2,5.9,6.1,2.5,H,'-z',shopWall);
-  const glass=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const frame=MAT.get('stahlAnthrazit');
-  for(const [a,b] of [[-7.2,-2],[2,7.2]]){ const gp=bbox(b-a,1.5,0.03,glass,(a+b)/2,1.65,6.0,null,false); occluders.push(gp);
-    bbox(b-a,0.06,0.12,frame,(a+b)/2,0.93,6.0); bbox(b-a,0.06,0.12,frame,(a+b)/2,2.38,6.0); bbox(0.06,1.5,0.1,frame,(a+b)/2,1.65,6.0);
-  }
-  buildWindowGrime();
-  bbox(0.08,2.5,0.14,frame,-1.2,1.25,6.0); bbox(0.08,2.5,0.14,frame,1.2,1.25,6.0); bbox(2.4,0.08,0.14,frame,0,2.5,6.0);
+  /* Schaufenster, Tuerzarge, Sohlbank und Schmutzschicht: bk.fenster (04z) - wie an den Erweiterungen */
+  { const F=bk.fenster({art:'schaufenster',z:6.0,felder:[{x0:-7.2,x1:-2,y0:0.9,y1:2.4},{x0:2,x1:7.2,y0:0.9,y1:2.4}],zarge:[{x0:-1.2,x1:1.2,y1:2.5}],schmutz:true});
+    occluders.push(F.glas); buildWindowGrime(F.schmutz); }
   // Rückwand, rechte Wand
   /* Rueckwand des Basisladens. Ihre Aussenseite traegt die
      Fassade wie jede andere Aussenwand - vom Testfeld aus sah man
@@ -16094,7 +16677,8 @@ function buildWorld(){
   roomAO(-19.9,-8.1,-5.9,5.9,null,{n:true,w:true,e:true});
   buildAusbau();
   buildFacade();
-  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{ g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh); g.fillStyle='#16181f'; g.font=BUN(40); g.textAlign='center'; g.textBaseline='middle'; g.fillText('LAGER',W/2,Hh/2+2); })}),-7.88,2.85,-2.5,Math.PI/2);
+  /* Raumschild ueber dem Durchgang zum Lager: Hausstil wie alle Durchgangsschilder (Einheit 15.10., vorher gelb/schwarz) */
+  bk.schild(scene,{text:'LAGER',b:1.4,h:0.35,x:-7.88,y:2.85,z:-2.5,ry:Math.PI/2,leucht:true});
   // Wanduhr: echtes Gehaeuse mit Glas, Zeiger laufen nach der Spielzeit
   {
     /* Die Uhr hing an der Ostwand. Die faellt jetzt beim ersten
@@ -16136,8 +16720,9 @@ function buildWorld(){
   }
   buildCheckout(); buildDesk();
   // Türschild
-  doorSignTex=tex(360,150,()=>{});
-  doorSign=plane(0.62,0.26,new THREE.MeshBasicMaterial({map:doorSignTex,side:THREE.DoubleSide,toneMapped:false}),1.6,1.55,5.875,Math.PI);
+  /* Tuerschild (Oeffnungszeiten, malt 16-day): Leuchtschild aus dem Baukasten, eigenes Bild */
+  doorSign=bk.schild(scene,{malen:()=>{},pw:360,ph:150,b:0.62,h:0.26,x:1.6,y:1.55,z:5.875,ry:Math.PI,leucht:true,doppel:true});
+  doorSignTex=doorSign.material.map;
   doorSign.userData={kind:'sign'};
   // Hof & Testfeld
   buildZaun();
@@ -16206,23 +16791,9 @@ const PULT_LAMP_X=i=>-0.35+i*0.075+Math.floor(i/3)*0.05;
    ueber 0,76 m quer gestellt - die Schuesse liefen aber ueber die
    Breite und kamen neben dem Karton heraus (28.09., Tom: echt). */
 const TISCH_B=3.3, TISCH_X=[-1.1,0,1.1], RAMPE_X=[-0.4,0,0.4];
-/* Hinweisschild auf zwei Rohrpfosten, damit es nicht in der Luft haengt */
-function schild(x,y,z,w,h,mat,steelM){
-  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-  const px=w/2-0.06;
-  for(const sx of [-px,px]){
-    const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,y+h/2,10),steelM);
-    p2.position.set(sx,(y+h/2)/2,0); if(HIQ) p2.castShadow=true; g.add(p2);
-    bbox(0.11,0.02,0.11,steelM,sx,0.012,0,g,false);
-    const cap=new THREE.Mesh(new THREE.SphereGeometry(0.03,8,6),steelM);
-    cap.position.set(sx,y+h/2,0); g.add(cap);
-  }
-  /* Rueckblech, damit das Schild Tiefe hat */
-  bbox(w+0.05,h+0.05,0.025,MAT.get('zaunPfosten'),0,y,-0.016,g,false);
-  plane(w,h,mat,0,y,0.002,0,g);
-  plane(w,h,mat,0,y,-0.032,Math.PI,g);
-  return g;
-}
+/* Hinweisschild auf zwei Rohrpfosten: bk.schild({pfosten:true}) (04z) - Stationsschilder im Hausstil (Einheit 15.10.:
+   vorher drei Stile, gelb/schwarz, rot/weiss, nachtblau/gold, fuer dieselbe Sache) */
+const stationsSchild=(text,x,y,z,b)=>bk.schild(scene,{text,b,h:0.2,x,y,z,pfosten:true});
 
 /* Die ganze Testfeldausstattung ist um 2,8 m nach Sueden gerueckt.
    Davor stand der Zuendtisch bei z -9,6 und das Pult bei z -8,2 -
@@ -16322,11 +16893,7 @@ function buildYard(){
     stations.tisch={id:'tisch',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.tisch};
     col(s.x-TB-0.05,s.x+TB+0.05,s.z-0.58,s.z+0.58);
-    schild(s.x,1.34,s.z-0.72,0.9,0.2,new THREE.MeshStandardMaterial({map:tex(540,120,(g2,W,H)=>{
-      g2.fillStyle=MAT.css('signalgelb'); g2.fillRect(0,0,W,H);
-      g2.fillStyle='#0e1226'; g2.lineWidth=6; g2.strokeStyle='#0e1226'; g2.strokeRect(4,4,W-8,H-8);
-      g2.font=BUN(62); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ZÜNDTISCH',W/2,H/2+3); })}),steelDark);
+    stationsSchild('ZÜNDTISCH',s.x,1.34,s.z-0.72,0.9);
   }
   /* --- Abschussröhren ---
      (01.10. abends, Tom: "Raketen starten einzeln aus einer Abschuss-
@@ -16344,11 +16911,7 @@ function buildYard(){
     stations.rampe={id:'rampe',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.rampe};
     col(s.x-0.68,s.x+0.68,s.z-0.46,s.z+0.46);
-    schild(s.x,1.62,s.z-0.62,1.15,0.2,new THREE.MeshStandardMaterial({map:tex(690,120,(g2,W,H)=>{
-      g2.fillStyle='#e63b2e'; g2.fillRect(0,0,W,H);
-      g2.lineWidth=6; g2.strokeStyle='#ffffff'; g2.strokeRect(4,4,W-8,H-8);
-      g2.fillStyle='#fff'; g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('ABSCHUSSRÖHREN',W/2,H/2+3); })}),steelDark);
+    stationsSchild('ABSCHUSSRÖHREN',s.x,1.62,s.z-0.62,1.15);
   }
   /* --- Moerserbatterie fuer Kugelbomben ---
      Drei schwere Stahlrohre in einem Holzrahmen, mit Sandsaecken
@@ -16394,11 +16957,7 @@ function buildYard(){
     stations.moerser={id:'moerser',g,items:[],cap:s.cap,hit};
     hit.userData={kind:'station',ref:stations.moerser};
     col(s.x-1.25,s.x+1.25,s.z-0.55,s.z+0.55);
-    schild(s.x,1.9,s.z-0.78,1.05,0.2,new THREE.MeshStandardMaterial({map:tex(630,120,(g2,W,H)=>{
-      g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-      g2.lineWidth=6; g2.strokeStyle=MAT.css('schildgold'); g2.strokeRect(4,4,W-8,H-8);
-      g2.fillStyle=MAT.css('schildgold'); g2.font=BUN(52); g2.textAlign='center'; g2.textBaseline='middle';
-      g2.fillText('MÖRSERBATTERIE',W/2,H/2+3); })}),steelDark);
+    stationsSchild('MÖRSERBATTERIE',s.x,1.9,s.z-0.78,1.05);
   }
   /* --- Zündpult: Stahlgehaeuse auf Rahmengestell --- */
   {
@@ -16861,20 +17420,9 @@ function fizzle(t,o){
    Im Norden steht die Ladenrueckwand, im Westen die Lagerwand, im
    Osten die Westwand des Rueckgebaeudes - eingezaeunt wird nur, was
    sonst offen waere. */
-let _warnTex=null;
-function warnTex(){
-  if(!_warnTex) _warnTex=tex(320,180,(g,W,Hh)=>{
-    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
-    g.strokeStyle='#1f1f24'; g.lineWidth=8; g.strokeRect(6,6,W-12,Hh-12);
-    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#1f1f24';
-    g.font=BUN(34); g.fillText('TESTFELD',W/2,48);
-    g.font=BAR(26); g.fillText('Zutritt nur für Personal',W/2,92);
-    g.fillText('Schutzbrille tragen',W/2,126);
-  });
-  return _warnTex;
-}
+/* Warnschild am Testfeldzaun: bk.schild im Warnstil (Signalgelb, Schrift Gummischwarz), Textur geteilt */
 function warnSchild(x,z,ry){
-  plane(1.6,0.9,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:warnTex()}),x,1.2,z,ry,null);
+  bk.schild(scene,{text:'TESTFELD',unter:'Zutritt nur für Personal · Schutzbrille tragen',stil:'warn',b:1.6,h:0.9,x,y:1.2,z,ry,doppel:true});
 }
 /* Das Testfeld reicht jetzt von der Lagerwand bis an die Suedhalle.
    Im Norden steht der Lagergang, im Westen die Lagerwand, im Osten
@@ -18345,25 +18893,10 @@ function nachbarFassade(x0,x1,zid,unterzeile,eingang){
 
   /* ---------- Zustand „gehoert dir“: Schaufenster ---------- */
   const go=new THREE.Group(); g.add(go); zAdd(zid,go);
-  const glas=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.16,roughness:0.05,metalness:0.2,depthWrite:false});
-  const prof=MAT.get('stahlAnthrazit');
-  const bank=MAT.get('kunststoffHellgrau');
-  OEFF.forEach(([a,b],i)=>{
-    if(i===eingang){ eingangsAchse(go,a,b,zf,ST,glas,prof); return; }
-    const y0=BR, y1=ST;
-    const bw=b-a, bh=y1-y0, bxc=(a+b)/2, byc=(y0+y1)/2;
-    /* Wie das Schaufenster im Basisladen (Tom, 26.09.): Glas buendig in
-       der Laibung, nur eine schmale Leiste oben und unten und eine
-       Mittelsprosse - kein umlaufender schwarzer Rahmen innen und aussen */
-    bbox(bw,bh,0.03,glas,bxc,byc,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,y0+0.03,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,y1-0.03,zf-0.1,go,false);
-    bbox(0.06,bh,0.1,prof,bxc,byc,zf-0.1,go,false);
-    /* Fensterbank nur aussen. Sie ragte 13 cm in den Laden hinein und
-       warf dort einen dunklen Schatten unter die ganze Fensterfront -
-       im Basisladen sitzt unter dem Fenster direkt die Sockelfarbe. */
-    if(y0>0.2) bbox(bw+0.16,0.06,0.26,bank,bxc,y0-0.02,zf+0.06,go,false);
-  });
+  /* Wie das Schaufenster im Basisladen (Tom, 26.09.): Glas buendig in der Laibung, schmale Leisten oben und unten, Mittelsprosse,
+     Sohlbank nur aussen - alles bk.fenster (04z), dieselbe Bauweise und Sohlbank Anthrazit wie am Basisladen (vorher hellgrau) */
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:go,felder:OEFF.filter((q,i)=>i!==eingang).map(([a,b])=>({x0:a,x1:b,y0:BR,y1:ST}))});
+  if(eingang!==undefined) eingangsAchse(go,OEFF[eingang][0],OEFF[eingang][1],zf,ST);
   if(eingang!==undefined&&EING2.x!==null){
     col(x0,EING2.x-1.28,zf-0.25,zf+0.05);
     col(EING2.x+1.28,x1,zf-0.25,zf+0.05);
@@ -20161,7 +20694,6 @@ function drawSignFace(g,W,H){
     const sl=shopSlogan();
   if(sl){ g.fillStyle='#bcd0ea'; fitFont(g,sl,W-220,34,BAR); g.fillText(sl,W/2,H-52); }
 }
-function signFaceTex(){ return tex(1024,256,(g,W,H)=>drawSignFace(g,W,H)); }
 function buildFacade(){
   const H=WH, zf=6.1;
   const steel=MAT.get('chromHell');
@@ -20185,9 +20717,8 @@ function buildFacade(){
   /* Rahmen 1 cm vor dem Traufkasten: mit 0,42 m Tiefe lag die untere
      Leiste genau in dessen Vorderflaeche und flimmerte als Balken. */
   for(const [w,h,y,x] of [[8.6,0.14,1.05,0],[8.6,0.14,-1.05,0],[0.14,2.2,0,-4.25],[0.14,2.2,0,4.25]]) bbox(w,h,0.44,steel,x,y,0.02,sg,false);
-  signTex=signFaceTex();
-  const face=new THREE.MeshBasicMaterial({map:signTex,toneMapped:false});
-  plane(7.9,1.78,face,0,0,0.17,0,sg);
+  /* Ladenlogo: Sonderschild mit eigenem Malcode (Name des Ladens, wird beim Umbenennen neu gemalt) */
+  signTex=bk.schild(sg,{malen:(g,W,H)=>drawSignFace(g,W,H),pw:1024,ph:256,b:7.9,h:1.78,z:0.17,leucht:true}).material.map;
   // Neonröhren rundum (nachts)
   for(const [w,h,y,x] of [[8.0,0.07,0.96,0],[8.0,0.07,-0.96,0],[0.07,1.95,0,-3.96],[0.07,1.95,0,3.96]]){
     const nm=new THREE.MeshStandardMaterial({color:LIN(0x40242c),emissive:LIN(0xff5a4a),emissiveIntensity:0}); lampMats.push(nm);
@@ -20204,13 +20735,7 @@ function buildFacade(){
     const sm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff0cc),emissiveIntensity:0}); lampMats.push(sm);
     const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.09,0.2,10),sm); sh.position.set(x,SY+1.36,6.53); sh.rotation.x=2.5; scene.add(sh);
   }
-  // --- Schaufenster: Sohlbank, Warenauslage, Sicherheitsgitterhalter
-  for(const [a,b] of [[-7.2,-2.0],[2.0,7.2]]){
-    const cx=(a+b)/2, w=b-a;
-    /* Sohlbank in dunklem Alu wie die Fensterrahmen. Vorher hell-
-       graue Steinbank mit weisser Schneekante - Tom: das Hellgraue muss weg. */
-    bbox(w+0.2,0.05,0.3,MAT.get('stahlAnthrazit'),cx,0.9,zf+0.1,null,false);
-  }
+  /* Sohlbank der Schaufenster: baut bk.fenster (05c) - Anthrazit wie die Fensterrahmen (Tom: das Hellgraue muss weg) */
   // --- Eingang
   {
     tuer=buildSchiebetuer(0);
@@ -20295,7 +20820,7 @@ function buildFacade(){
     col(x-0.2,x+0.2,7.3,7.7);
   }
   // Hausnummer
-  plane(0.34,0.34,new THREE.MeshStandardMaterial({map:tex(96,96,(g,W,Hh)=>{ g.fillStyle='#f2f5ff'; g.fillRect(0,0,W,Hh); g.strokeStyle='#0e1226'; g.lineWidth=5; g.strokeRect(5,5,W-10,Hh-10); g.fillStyle='#0e1226'; g.font=BUN(48); g.textAlign='center'; g.textBaseline='middle'; g.fillText('13',W/2,Hh/2+3); })}),1.55,2.28,6.13,0);
+  bk.schild(scene,{text:'13',stil:'tafel',b:0.34,h:0.34,px:0.6,x:1.55,y:2.28,z:6.13});
   /* Frueher lagen hier vier weisse Kloetze als "Schneewall" vor der
      Fassade - Tom: sieht nicht gut aus, weg damit. */
 }
@@ -20303,34 +20828,9 @@ function buildFacade(){
 /* =========================================================
    Schaufenster verschmutzen mit der Zeit
    ========================================================= */
-function grimeTex(){
-  return tex(256,128,(g,W,H)=>{
-    g.clearRect(0,0,W,H);
-    g.fillStyle='rgba(176,168,150,.5)'; g.fillRect(0,0,W,H);
-    for(let i=0;i<900;i++){ g.fillStyle=`rgba(120,110,92,${Math.random()*0.35})`; g.fillRect(Math.random()*W,Math.random()*H,rand(1,4),rand(1,4)); }
-    // Regenschlieren
-    for(let i=0;i<26;i++){ const x=Math.random()*W, w=rand(2,9);
-      const gr=g.createLinearGradient(x,0,x,H); gr.addColorStop(0,'rgba(90,84,70,.34)'); gr.addColorStop(1,'rgba(90,84,70,0)');
-      g.fillStyle=gr; g.fillRect(x,0,w,H); }
-    // Wischspuren und Fingerabdrücke
-    g.strokeStyle='rgba(210,205,190,.3)'; g.lineWidth=7;
-    for(let i=0;i<7;i++){ g.beginPath(); const y=rand(10,H-10);
-      g.moveTo(0,y); g.bezierCurveTo(W*0.3,y+rand(-14,14),W*0.7,y+rand(-14,14),W,y+rand(-10,10)); g.stroke(); }
-    for(let i=0;i<14;i++){ g.fillStyle='rgba(150,142,120,.26)';
-      g.beginPath(); g.ellipse(Math.random()*W,Math.random()*H,rand(3,6),rand(4,8),Math.random(),0,Math.PI*2); g.fill(); }
-    // Staubränder
-    const eg=g.createLinearGradient(0,H,0,H-26); eg.addColorStop(0,'rgba(90,82,66,.45)'); eg.addColorStop(1,'rgba(90,82,66,0)');
-    g.fillStyle=eg; g.fillRect(0,H-26,W,26);
-  });
-}
-function buildWindowGrime(){
-  const t=grimeTex(); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,1);
-  for(const [a,b] of [[-7.2,-2.0],[2.0,7.2]]){
-    const m=new THREE.MeshStandardMaterial({map:t,transparent:true,opacity:0,roughness:0.95,depthWrite:false});
-    grimeMats.push(m);
-    const pane=bbox(b-a-0.05,1.46,0.015,m,(a+b)/2,1.65,5.93,null,false);
-    pane.userData={kind:'window'}; pane.renderOrder=3; windowHits.push(pane);
-  }
+/* Die Schmutzschicht baut bk.fenster({schmutz:true}) (05c, Schaufenster des Basisladens); hier nur Anmeldung und Zustand */
+function buildWindowGrime(schmutz){
+  for(const q of schmutz){ grimeMats.push(q.mat); q.mesh.userData={kind:'window'}; windowHits.push(q.mesh); }
   applyGrime();
 }
 function windowGrime(){ return S?clamp(S.grime||0,0,1):0; }
@@ -20362,48 +20862,9 @@ const TUEREN=[];
    Alles haengt in einer Gruppe, damit eine zweite Tuer nur eine
    zweite Gruppe ist und nicht eine Kopie des ganzen Codes. */
 function buildSchiebetuer(cx,hb){
-  const HB=hb||5.4;
-  const g=new THREE.Group(); g.position.x=cx||0; scene.add(g);
-  const alu=MAT.ober('aluminium','kunststoff');
-  const aluD=MAT.ober('silbergrau','kunststoff');
-  const dark=MAT.get('kunststoffAnthrazit');
-  const glass=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('glasKlar')),transparent:true,opacity:0.17,roughness:0.05,metalness:0.1,depthWrite:false});
-  const W=TUER.w, HH=TUER.y, Z=TUER.z;
-  /* Antriebskasten über der Öffnung, reicht über beide Parktaschen */
-  bbox(HB,0.24,0.26,alu,0,HH+0.14,Z-0.05,g,false);
-  bbox(HB+0.04,0.05,0.3,aluD,0,HH+0.27,Z-0.05,g,false);
-  bbox(HB-0.1,0.05,0.2,dark,0,HH+0.005,Z-0.05,g,false);
-  /* Laufschiene */
-  bbox(HB-0.2,0.045,0.06,aluD,0,HH+0.05,Z-0.06,g,false);
-  /* Bewegungsmelder innen und außen */
-  for(const s of [-1,1]){
-    const sIn=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.05,Z-0.15,g,false); sIn.rotation.x=0.42;
-    /* aussen an der Fassade ueber der Oeffnung */
-    const sOut=bbox(0.26,0.075,0.05,dark,s*0.78,HH+0.2,Z+0.31,g,false); sOut.rotation.x=-0.42;
-  }
-  /* Bodenführung */
-  bbox(2.6,0.012,0.045,aluD,0,0.008,Z-0.02,g,false);
-  /* Die Festfelder standen in der Laufbahn der Fluegel - die Oeffnung
-     rahmt jetzt die Laibung (Haupteingang) bzw. das Seitenfeld (Eingang 2) */
-  /* Zwei Flügel */
-  const leaves=[];
-  for(const s of [-1,1]){
-    const lf=new THREE.Group(); g.add(lf); leaves.push(lf);
-    bbox(W,0.09,0.055,alu,0,HH-0.05,0,lf,false);
-    bbox(W,0.11,0.055,alu,0,0.055,0,lf,false);
-    bbox(0.055,HH-0.12,0.055,alu,-W/2+0.028,HH/2,0,lf,false);
-    bbox(0.055,HH-0.12,0.055,alu,W/2-0.028,HH/2,0,lf,false);
-    bbox(W-0.09,HH-0.2,0.022,glass,0,HH/2,0,lf,false);
-    /* Sicherheitsmarkierung auf Griffhöhe */
-    bbox(W-0.1,0.055,0.026,MAT.ober('weiss','kunststoff',{transparent:true,opacity:0.65}),0,1.32,0,lf,false);
-    /* Laufwagen oben */
-    for(const dx of [-0.34,0.34]){
-      bbox(0.09,0.05,0.05,aluD,dx,HH+0.02,-0.06,lf,false);
-      const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.03,10),dark);
-      rl.rotation.z=Math.PI/2; rl.position.set(dx,HH+0.045,-0.06); lf.add(rl);
-    }
-  }
-  const d={g,cx:cx||0,leaves,t:0,target:0,moving:false,col:null,snd:0};
+  /* Bau: bk.tuer art 'schiebe' (04z) - Antriebskasten, Laufschiene, Melder, Bodenfuehrung, zwei Fluegel; hier Zustand und Kollision */
+  const T=bk.tuer({art:'schiebe',x:cx||0,z:TUER.z,breite:TUER.w,hoehe:TUER.y,antrieb:hb||5.4});
+  const d={g:T.g,cx:cx||0,leaves:T.leaves,t:0,target:0,moving:false,col:null,snd:0};
   TUEREN.push(d);
   tuerSetD(d,0);
   return d;
@@ -20532,25 +20993,11 @@ function buildDock(){
     bbox(0.34,0.03,0.44,MAT.get('stahlVerzinkt'),-20.62,3.12,z,null,false);
   }
   if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
-  // Bodenmarkierung für den LKW
-  const mark=(w,d,x,z,c)=>flat(w,d,c?MAT.std(c):MAT.get('markierungGelb'),x,0.017,z);
-  for(let x2=-33;x2<-20.6;x2+=1.0){ mark(0.6,0.12,x2,-3.55); mark(0.6,0.12,x2,-0.45); }
-  mark(0.14,3.4,-33.3,-2);
-  const zm=new THREE.Mesh(new THREE.PlaneGeometry(5.2,1.6),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(1040,320,(g,W,H)=>{
-    g.clearRect(0,0,W,H);
-    /* dunkles Feld unter der Schrift, damit sie sich vom Beton abhebt */
-    g.fillStyle='rgba(18,20,26,.62)'; g.fillRect(0,0,W,H);
-    g.strokeStyle=MAT.css('signalgelb'); g.lineWidth=12; g.strokeRect(6,6,W-12,H-12);
-    g.textAlign='center'; g.textBaseline='middle';
-    g.font=BUN(120);
-    g.fillStyle='rgba(0,0,0,.75)'; g.fillText('ANLIEFERUNG',W/2+6,H/2+9);
-    g.fillStyle=MAT.css('signalgelb'); g.fillText('ANLIEFERUNG',W/2,H/2+3); })}));
-  zm.rotation.x=-Math.PI/2; zm.position.set(-26,0.018,2.6); zm.renderOrder=2; scene.add(zm);
+  /* Bodenmarkierung fuer den LKW: gestrichelte Fahrspur, Endlinie, Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
+  bk.bodenmarkierung({linien:[[-33.3,-3.55,-20.7,-3.55,'gelb',0.12,0.6,0.4],[-33.3,-0.45,-20.7,-0.45,'gelb',0.12,0.6,0.4],[-33.3,-3.7,-33.3,-0.3,'gelb',0.12]],
+    schriften:[{text:'ANLIEFERUNG',x:-26,z:2.6,b:5.2,h:1.6}],y:0.012,schatten:true});
   // Schild an der Wand
-  plane(1.5,0.5,new THREE.MeshStandardMaterial({map:tex(300,100,(g,W,H)=>{
-    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H); g.strokeStyle=MAT.css('schildgold'); g.lineWidth=5; g.strokeRect(6,6,W-12,H-12);
-    g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.textAlign='center'; g.fillText('WARENEINGANG',W/2,42);
-    g.fillStyle='#bcd0ea'; g.font=BAR(24); g.fillText('Anlieferung 7 – 16 Uhr',W/2,76); })}),-19.93,2.2,-4.9,-Math.PI/2);
+  bk.schild(scene,{text:'WARENEINGANG',unter:'Anlieferung 7 – 16 Uhr',b:1.5,h:0.5,x:-19.93,y:2.2,z:-4.9,ry:-Math.PI/2});
 }
 
 /* Das Tor R1 selbst: eine duenne Huelle ueber bk.tor (04z-baukasten.js). Vorher stand hier
@@ -20826,15 +21273,9 @@ function lagerSperre(){
      12 cm am Bord) - die flach auf 2 cm liegende Markierung verschwand zur
      Strasse hin samt Schrift unter den Platten. Jetzt liegt sie Punkt fuer
      Punkt auf der Gehwegflaeche. */
-  const wg=new THREE.PlaneGeometry(2.7,1.75,27,18); wg.rotateX(-Math.PI/2); wg.translate(WA.x,0,WA.z);
-  { const pa=wg.attributes.position; for(let i=0;i<pa.count;i++) pa.setY(i,(typeof gehwegY==='function'?gehwegY(pa.getX(i),pa.getZ(i)):0.012)+0.008); pa.needsUpdate=true; }
-  const m=new THREE.Mesh(wg,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,
-    map:tex(540,350,(c,W,H)=>{ c.clearRect(0,0,W,H);
-      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.setLineDash([30,16]); c.strokeRect(10,10,W-20,H-20); c.setLineDash([]);
-      c.fillStyle=MAT.css('signalgelb',.95); c.font=BUN(46); c.textAlign='center'; c.textBaseline='middle';
-      c.fillText('WARENANNAHME',W/2,H-52); })}));
-  m.renderOrder=2; scene.add(m);
-  zWand(Z,m);
+  { const M=bk.bodenmarkierung({rahmen:[{x0:WA.x-1.35,x1:WA.x+1.35,z0:WA.z-0.875,z1:WA.z+0.875,farbe:'gelb',breite:0.06,strich:0.15,luecke:0.08}],
+      schriften:[{text:'WARENANNAHME',x:WA.x,z:WA.z+0.55,b:2.3,h:0.42}],y:0,boden:(x,z)=>(typeof gehwegY==='function'?gehwegY(x,z):0.012)+0.003}).meshes;
+    M.forEach(m=>zWand(Z,m)); }
 }
 /* Warenannahme vor der Tuer: sechs Stellplaetze, gestapelt */
 const WA={x:3.5,z:7.75};
@@ -20846,10 +21287,7 @@ function testfeldSperre(){
   /* Schild ueber dem Durchgang, wie das Schild an der Lagertuer.
      Es bleibt stehen, auch nachdem der Zugang gekauft ist - es
      sagt, wohin die Tuer fuehrt, nicht dass sie zu ist. */
-  plane(1.4,0.35,new THREE.MeshStandardMaterial({map:tex(280,70,(g,W,Hh)=>{
-    g.fillStyle=MAT.css('signalgelb'); g.fillRect(0,0,W,Hh);
-    g.fillStyle='#16181f'; g.font=BUN(38); g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('TESTFELD',W/2,Hh/2+2); })}),(a+b)/2,2.85,z+0.12,0,null);
+  bk.schild(scene,{text:'TESTFELD',b:1.4,h:0.35,x:(a+b)/2,y:2.85,z:z+0.12,leucht:true});
   zWandCol(Z,col(a,b,z-0.14,z+0.14));
   tfHit=bbox(b-a-0.1,2.0,0.34,hitM,(a+b)/2,1.0,z,null,false);
   tfHit.userData={kind:'tfsperre'}; zWand(Z,tfHit);
@@ -20924,13 +21362,7 @@ function buildLagergang(){
   leuchtenRaster(Z,{x0:G.x0,x1:G.x1,z0:G.z0,z1:G.z1},G.h,3.4,2.6);
   roomAO(G.x0+0.02,G.x1-0.02,G.z0+0.02,G.z1-0.02);
   /* Hinweisschild ueber dem Durchgang zum Lager */
-  zAdd(Z,plane(1.5,0.3,new THREE.MeshBasicMaterial({toneMapped:false,side:THREE.DoubleSide,
-    map:tex(512,104,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.fillStyle=MAT.css('schildgold'); g.fillRect(0,H-7,W,7);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle='#e8ecf5'; g.font=BUN(36); g.fillText('◄  LAGER · GROSSHANDEL',W/2,H/2-3);
-    })}),mitteX,2.45,G.z1-0.06,Math.PI,null));
+  zAdd(Z,bk.schild(scene,{text:'◄  LAGER · GROSSHANDEL',b:1.5,h:0.3,x:mitteX,y:2.45,z:G.z1-0.06,ry:Math.PI,leucht:true,doppel:true}));
 }
 /* =========================================================
    Schleuse zwischen Lager und Grosshandel. Das Lager ist 6,4 m
@@ -20944,36 +21376,11 @@ function buildLagergang(){
    PVC-Streifen. Er haelt die Waerme und sieht aus wie das, was
    er ist. Kollision bekommt er keine, man geht hindurch.
    ========================================================= */
-let _pvcM=null;
-function pvcMat(){
-  if(!_pvcM) _pvcM=new THREE.MeshStandardMaterial({vertexColors:true,transparent:true,
-    opacity:0.38,roughness:0.3,metalness:0,side:THREE.DoubleSide,depthWrite:false});
-  return _pvcM;
-}
 function streifenvorhang(zid,laengs,fest,a0,a1,hoehe){
-  const len=a1-a0, mitte=(a0+a1)/2, H=hoehe-0.12;
-  /* Traverse mit Halteklemmen */
-  const stahl=MAT.get('stahlVerzinkt');
-  zAdd(zid,laengs
-    ? bbox(len+0.16,0.1,0.14,stahl,mitte,hoehe-0.05,fest,null,false)
-    : bbox(0.14,0.1,len+0.16,stahl,fest,hoehe-0.05,mitte,null,false));
-  /* Die Streifen ueberlappen sich um sechs Zentimeter, so wie an
-     jeder Laderampe. Alles in ein Mesh, sonst haengen an drei
-     Durchgaengen fuenfzig Einzelobjekte in der Szene. */
-  const B=0.30, T=0.24, n=Math.max(2,Math.floor(len/T));
-  const rest=(len-(n-1)*T-B)/2;
-  const geo=new THREE.BoxGeometry(B,H,0.006);
-  const teile=[];
-  for(let i=0;i<n;i++){
-    const a=a0+rest+B/2+i*T;
-    const kipp=(i%2?1:-1)*0.035;           /* leicht schraeg, wie benutzt */
-    teile.push({geo,color:i%2?MAT.farbe('weiss'):MAT.farbe('weiss'),
-      m:laengs?tm(a,H/2+0.02,fest,0,kipp,0):tm(fest,H/2+0.02,a,0,Math.PI/2+kipp,0)});
-  }
-  const m=new THREE.Mesh(merge(teile),pvcMat());
-  m.renderOrder=1; scene.add(m); zAdd(zid,m);
-  geo.dispose();
-  return m;
+  /* PVC-Streifen mit Traverse: bk.tuer art 'streifen' (04z) - hier nur die Zone (faellt/erscheint mit dem Ausbau) */
+  const T=bk.tuer({art:'streifen',laengs,fest,a0,a1,hoehe});
+  zAdd(zid,T.traverse); zAdd(zid,T.streifen);
+  return T.streifen;
 }
 function buildSchleuse(){
   const S2=LAY.schleuse, H=SCHLEUSE_H;
@@ -21037,8 +21444,7 @@ function buildLagerTerminal(){
   const m=new THREE.Mesh(merge(VC),vcMat); if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m);
   const sch=neuerSchoner(480,304,'Lager-PC');
   const sc=plane(0.52,0.32,new THREE.MeshBasicMaterial({toneMapped:false,map:sch.t}),0,1.48,-0.06,0,g); sch.mesh=sc;
-  const st=tex(256,64,(c,W,H)=>{ c.fillStyle='#2a5a9e'; c.fillRect(0,0,W,H); c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; fitFont(c,'LAGER-PC',W-20,40,BUN); c.fillText('LAGER-PC',W/2,H/2+2); });
-  plane(0.6,0.15,new THREE.MeshBasicMaterial({map:st,toneMapped:false}),0,1.95,-0.258,0,g);
+  bk.schild(g,{text:'LAGER-PC',stil:'info',b:0.6,h:0.15,px:0.5,y:1.95,z:-0.258,leucht:true});
   lapHit2=bbox(0.9,1.4,0.8,hitM,0,0.95,0.1,g,false);
   lapHit2.userData={kind:'laptop2'};
   zCol('lager_sued2',col(LAGERPC.x-0.36,LAGERPC.x+0.36,LAGERPC.z-0.32,LAGERPC.z+0.33));
@@ -21309,19 +21715,10 @@ function packRegalImWeg(st){
 function vsZaunS(B,k){ return {box:(w,h,d,x,y,z,c,kl,rx,ry,rz)=>B(k,w,h,d,c,x,y,z,rx,ry,rz)}; }
 /* Versandbereich am Boden (Tom 09.10.: "gelbe Linie/Schraffur, keine Schrift"): hier waechst
    die Station noch hin - Regale und Moebel kommen dort nicht hin (PACK_FL) */
-function reserveTex(BW,BT){
-  const k=Math.min(200,1024/Math.max(BW,BT)), W=Math.max(16,Math.round(BW*k)), H=Math.max(16,Math.round(BT*k));
-  return tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
-    c.strokeStyle=MAT.css('signalgelb',.95); c.lineWidth=Math.max(4,k*0.06); c.setLineDash([k*0.3,k*0.15]); c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth); c.setLineDash([]);
-    c.save(); c.beginPath(); c.rect(k*0.08,k*0.08,W-k*0.16,H-k*0.16); c.clip();
-    c.strokeStyle=MAT.css('signalgelb',.55); c.lineWidth=Math.max(3,k*0.035);
-    for(let d=-H;d<W;d+=k*0.35){ c.beginPath(); c.moveTo(d,H); c.lineTo(d+H,0); c.stroke(); }
-    c.restore(); });
-}
-function versandReserve(x0,x1,z0,z1){
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(x1-x0),Math.abs(z1-z0)),new THREE.MeshStandardMaterial({map:reserveTex(Math.abs(x1-x0),Math.abs(z1-z0)),transparent:true,depthWrite:false,roughness:0.6,
-    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-  m.rotation.x=-Math.PI/2; m.position.set((x0+x1)/2,0.022,(z0+z1)/2); return m;
+function versandReserve(x0,x1,z0,z1,g){
+  /* gestrichelter Rand und Freihalte-Schraffur (bk.bodenmarkierung, vorher reserveTex je Flaeche) */
+  const X0=Math.min(x0,x1), X1=Math.max(x0,x1), Z0=Math.min(z0,z1), Z1=Math.max(z0,z1);
+  return bk.bodenmarkierung({rahmen:[{x0:X0,x1:X1,z0:Z0,z1:Z1,farbe:'gelb',breite:0.06,strich:0.3,luecke:0.15}],flaechen:[{x0:X0+0.08,x1:X1-0.08,z0:Z0+0.08,z1:Z1-0.08,art:'frei'}],parent:g,y:0.017}).meshes;
 }
 /* Ladezone vor Rolltor V1 (Tom 09.10.): Spieler, Personal und Kunden kommen nicht vor das
    Tor - links und rechts gelbe Gitterabsperrung, dazwischen die offene Seite der Box. Nur
@@ -21333,17 +21730,9 @@ const LZ_ZAUN=[
 function ladezoneRechtecke(){ return LZ_ZAUN.map(f=>({x0:Math.min(f.ax,f.bx)-0.06,x1:Math.max(f.ax,f.bx)+0.06,z0:Math.min(f.az,f.bz)-0.06,z1:Math.max(f.az,f.bz)+0.06})); }
 function ladezoneBauen(g,B){
   for(const f of LZ_ZAUN) bk.zaun({art:'gitter',von:[f.ax,f.az],bis:[f.bx,f.bz],hoehe:1.25,S:vsZaunS(B,'lz'),parent:g});
-  /* Sperrflaeche am Boden: gelbe Schraegstreifen, Rand mit Warnstreifen */
-  const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05, BW=x1-x0, BT=z1-z0, k=150;
-  const t=tex(Math.round(BW*k),Math.round(BT*k),(c,W,H)=>{ c.clearRect(0,0,W,H);
-    c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(16,16,W-32,H-32); c.clip('evenodd');
-    c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
-    for(let d=-H;d<W+H;d+=30){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+15,0); c.lineTo(d+15-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
-    c.restore();
-    c.strokeStyle=MAT.css('signalgelb',.5); c.lineWidth=10;
-    for(let d=-H;d<W;d+=70){ c.beginPath(); c.moveTo(d,H-16); c.lineTo(d+H,16); c.stroke(); } });
-  const fm=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:0.6,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-  fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm);
+  /* Sperrflaeche am Boden: Warnrand gelb-schwarz, innen gelbe Schraffur (bk.bodenmarkierung) */
+  const x0=LADEZONE.x0+0.05, x1=LADEZONE.x1-0.08, z0=ZELLE_Z1+0.1, z1=LADEZONE.z1-0.05;
+  bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'sperr',breite:0.08}],flaechen:[{x0:x0+0.08,x1:x1-0.08,z0:z0+0.08,z1:z1-0.08,art:'frei'}],parent:g,y:0.016});
 }
 /* Teile je Stufe: ab[s] gilt ab Stufe s, nur[s] genau in Stufe s */
 const packTeile={ab:[null,[],[],[]],nur:[null,[],[],[]],hits:[],portal:null};
@@ -21461,23 +21850,12 @@ function buildPackstation(){
     for(const [von,bis,art] of [[[x0,z1],[x0,z0],'gitter'],[[x0,z0],[x1,z0],'gitter'],[[x1,z1-0.15],[x1,z0+0.15],'gelaender']])
       bk.zaun({art,von,bis,S:vsZaunS(B,k),parent:g}).gitter.forEach(o=>reg(o,k));
     B(k,0.5,0.03,0.04,GELB,x0+0.3,0.02,z1-0.05); B(k,0.5,0.03,0.04,GELB,x1-0.3,0.02,z1-0.05);
-    /* Boden: Warnstreifen am Rand, Eckmarken der Palettenplaetze */
-    const PXM=200, W=Math.round((x1-x0)*PXM), H=Math.round((z1-z0)*PXM);
-    const ft=tex(W,H,(c)=>{ c.clearRect(0,0,W,H);
-      c.save(); c.beginPath(); c.rect(0,0,W,H); c.rect(18,18,W-36,H-36); c.clip('evenodd');
-      c.fillStyle=MAT.css('signalgelb'); c.fillRect(0,0,W,H); c.fillStyle='#1b1d22';
-      for(let d=-H;d<W+H;d+=34){ c.beginPath(); c.moveTo(d,0); c.lineTo(d+17,0); c.lineTo(d+17-H,H); c.lineTo(d-H,H); c.closePath(); c.fill(); }
-      c.restore();
-      c.strokeStyle=MAT.css('signalgelb',.9); c.lineWidth=6;
-      /* Bildzeile 0 liegt im Sueden (z0) */
-      for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=(p.x-0.65-x0)*PXM, b=(p.x+0.65-x0)*PXM, o=(p.z-0.45-z0)*PXM, u=(p.z+0.45-z0)*PXM, L=24;
-        c.beginPath(); c.moveTo(a,o+L); c.lineTo(a,o); c.lineTo(a+L,o); c.moveTo(b-L,o); c.lineTo(b,o); c.lineTo(b,o+L);
-        c.moveTo(b,u-L); c.lineTo(b,u); c.lineTo(b-L,u); c.moveTo(a+L,u); c.lineTo(a,u); c.lineTo(a,u-L); c.stroke(); } });
-    const fm=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshStandardMaterial({map:ft,transparent:true,depthWrite:false,roughness:0.6,
-      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    fm.rotation.x=-Math.PI/2; fm.position.set((x0+x1)/2,0.021,(z0+z1)/2); g.add(fm); reg(fm,k);
+    /* Boden: Warnrand gelb-schwarz, Eckmarken der Palettenplaetze (bk.bodenmarkierung, vorher eigene Textur je Stufe) */
+    { const E=0.12, ek=[]; for(let j=0;j<PAL_N[s];j++){ const p=PALETTEN[j], a=p.x-0.65, b=p.x+0.65, o=p.z-0.45, u=p.z+0.45;
+        for(const [x,z,dx,dz] of [[a,o,1,1],[b,o,-1,1],[b,u,-1,-1],[a,u,1,-1]]){ ek.push([x,z,x+dx*E,z,'gelb',0.03],[x,z,x,z+dz*E,'gelb',0.03]); } }
+      bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'sperr',breite:0.09}],linien:ek,parent:g,y:0.016}).meshes.forEach(m=>reg(m,k)); }
     /* Versandbereich: wohin die Box noch waechst - gelb schraffiert, bis Stufe 3 */
-    if(s<3){ const r=versandReserve(x0,x1,ZELLE[3].z0,z0); g.add(r); reg(r,k); }
+    if(s<3) versandReserve(x0,x1,ZELLE[3].z0,z0,g).forEach(m=>reg(m,k));
   }
   ladezoneBauen(g,B);
   /* Paletten sind eigene Objekte (11e-palette.js): die Box zeigt sie dort. */
@@ -21506,9 +21884,9 @@ function buildPackstation(){
   { const P=ppW(0,0,-0.36), st=MAT.eigen('silbergrau','stahl');
     for(const sx of [-0.56,0.56]) bbox(0.05,1.5,0.05,st,P.x+sx,1.72,P.z,g,false);
     bbox(1.3,0.36,0.05,MAT.get('schildBlau'),P.x,2.3,P.z,g,false);
-    packSchildTex=tex(1024,256,()=>{});
-    const sm=new THREE.MeshBasicMaterial({map:packSchildTex,toneMapped:false});
-    plane(1.24,0.31,sm,P.x,2.3,P.z+0.03,0,g); plane(1.24,0.31,sm,P.x,2.3,P.z-0.03,Math.PI,g);
+    /* Statusanzeige (Leuchtschild, beidseitig; Inhalt malt drawPackSchild) */
+    const vorn=bk.schild(g,{malen:()=>{},pw:1024,ph:256,b:1.24,h:0.31,x:P.x,y:2.3,z:P.z+0.03,leucht:true});
+    packSchildTex=vorn.material.map; const hinten=new THREE.Mesh(vorn.geometry,vorn.material); hinten.position.set(P.x,2.3,P.z-0.03); hinten.rotation.y=Math.PI; hinten.userData.bauteil='schild'; g.add(hinten);
     drawPackSchild(); }
   versandFlaeche(g);
   packSperre(id,g);
@@ -21597,30 +21975,18 @@ function packSperre(id,g){
    Boden mit gelbem Rand und Schraffur an den Schmalseiten. Der zweite
    Packplatz suedlich des Bandes bekommt ein eigenes Stueck. */
 function versandFlaeche(g){
-  const flaeche=(x0,x1,z0,z1,k)=>{ const BW=x1-x0, BT=z1-z0;
-    const t=tex(Math.round(BW*200),Math.round(BT*200),(c,W,H)=>{
-      c.fillStyle='#57606c'; c.fillRect(0,0,W,H);
-      for(let i=0;i<W*H/100;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      c.strokeStyle=MAT.css('signalgelb'); c.lineWidth=12; c.strokeRect(6,6,W-12,H-12);
-      c.save(); c.beginPath(); c.rect(0,0,W,H); c.clip();
-      c.strokeStyle=MAT.css('signalgelb',.75); c.lineWidth=9;
-      for(let y=-H;y<H*2;y+=30){ c.beginPath(); c.moveTo(W-50,y); c.lineTo(W,y-50); c.stroke(); }
-      c.restore(); });
-    const bo=new THREE.Mesh(new THREE.PlaneGeometry(BW,BT),new THREE.MeshStandardMaterial({map:t,roughness:0.62}));
-    bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
-    if(k) packTeile.ab[k].push(bo); };
+  /* grauer Arbeitsboden, gelber Rand, Schraffur an der Schmalseite (bk.bodenmarkierung) */
+  const boden=MAT.ober('basaltgrau','matt');
+  const flaeche=(x0,x1,z0,z1,k)=>{
+    const bo=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),boden); bo.rotation.x=-Math.PI/2; bo.position.set((x0+x1)/2,0.02,(z0+z1)/2); g.add(bo);
+    const M=bk.bodenmarkierung({rahmen:[{x0,x1,z0,z1,farbe:'gelb',breite:0.06}],flaechen:[{x0:x1-0.3,x1:x1-0.06,z0:z0+0.06,z1:z1-0.06,art:'frei'}],parent:g,y:0.021}).meshes;   /* ueber dem Arbeitsboden (0,02) */
+    if(k){ packTeile.ab[k].push(bo); M.forEach(m=>packTeile.ab[k].push(m)); } };
   flaeche(-0.05,4.15,BAND.z-BAND.b/2-0.1,1.22,0);
   flaeche(1.6,4.15,-3.25,BAND.z-BAND.b/2-0.1,2);
   /* Schrift vor jedem Packplatz - nur fuer die Plaetze, die es in der
-     Stufe schon gibt, lesbar fuer den, der davor steht */
-  for(let i=0;i<3;i++){
-    const lt=tex(512,96,(c,W,H)=>{ c.clearRect(0,0,W,H); c.fillStyle=MAT.css('signalgelb',.88); c.textAlign='center'; c.textBaseline='middle';
-      fitFont(c,'PACKPLATZ '+(i+1),W-24,64,BUN); c.fillText('PACKPLATZ '+(i+1),W/2,H/2+3); });
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.22),new THREE.MeshStandardMaterial({map:lt,transparent:true,depthWrite:false,roughness:0.6,
-      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
-    const p=ppW(i,0,1.32);
-    m.rotation.x=-Math.PI/2; if(VS_PP[i].s<0) m.rotation.z=Math.PI; m.position.set(p.x,0.021,p.z); g.add(m);
-    packTeile.ab[i+1].push(m);
+     Stufe schon gibt, lesbar fuer den, der davor steht (Bodenschrift aus dem Baukasten) */
+  for(let i=0;i<3;i++){ const p=ppW(i,0,1.32);
+    bk.bodenmarkierung({schriften:[{text:'PACKPLATZ '+(i+1),x:p.x,z:p.z,b:1.2,h:0.26,ry:VS_PP[i].s<0?Math.PI:0}],parent:g,y:0.021}).meshes.forEach(m=>packTeile.ab[i+1].push(m));
   }
 }
 let packSchildTex=null;
@@ -21686,37 +22052,11 @@ function westTor(cx,nr){
    ========================================================= */
 const LAGERFENSTER=[-17.6,-14.0,-10.4];
 function lagerFensterWand(){
-  const r=LAY.lnord, z0=r.z1, z1=r.z1+LW, H=LAGER_H;
-  const FB=1.7, Y0=1.35, Y1=2.6;                       /* Breite, Bruestung, Sturz */
-  const leib=MAT.ober('lichtgrau','matt');          /* Laibung: heller Putz */
-  const alu=MAT.get('stahlAnthrazit');
-  const glas=new THREE.MeshStandardMaterial({color:LIN(0x5d7288),transparent:true,opacity:0.38,roughness:0.05,metalness:0.2,side:THREE.DoubleSide,depthWrite:false});
-  const bankA=MAT.ober('aluminium','stahl'), bankI=MAT.get('kunststoffWeiss');
-  const W=(a,b,y0,y1)=>{ if(b-a>0.005&&y1-y0>0.005) wall(a,b,z0,z1,y0,y1,'-z',lagerWall,undefined,0,leib); };
-  let x=r.x0-LW;
-  for(const cx of LAGERFENSTER){
-    const a=cx-FB/2, b=cx+FB/2;
-    W(x,a,0,H);                    /* Pfeiler */
-    W(a,b,0,Y0);                   /* Bruestung */
-    W(a,b,Y1,H);                   /* Sturz */
-    /* Rahmen in der Wandmitte, zwei Fluegel mit Mittelpfosten */
-    const zm=(z0+z1)/2, fh=Y1-Y0;
-    bbox(FB,0.07,0.08,alu,cx,Y1-0.035,zm,null,false);
-    bbox(FB,0.07,0.08,alu,cx,Y0+0.035,zm,null,false);
-    for(const sx of [-1,1]) bbox(0.07,fh,0.08,alu,cx+sx*(FB/2-0.035),Y0+fh/2,zm,null,false);
-    bbox(0.06,fh-0.1,0.07,alu,cx,Y0+fh/2,zm,null,false);
-    /* Fluegelrahmen, etwas schmaler, dahinter das Glas */
-    for(const sx of [-1,1]){ const fx=cx+sx*FB/4;
-      for(const dy of [0.075,fh-0.075]) bbox(FB/2-0.12,0.04,0.05,alu,fx,Y0+dy,zm+0.01,null,false);
-      bbox(FB/2-0.14,fh-0.2,0.012,glas,fx,Y0+fh/2,zm,null,false);
-      /* Griff am Fluegel innen */
-      bbox(0.025,0.12,0.03,MAT.get('aluBlank'),cx+sx*0.1,Y0+fh/2,z0-0.01,null,false); }
-    /* Fensterbank aussen (Alu, leicht vorstehend) und innen */
-    bbox(FB+0.08,0.03,0.2,bankA,cx,Y0-0.012,z1+0.06,null,false);
-    bbox(FB+0.05,0.03,0.16,bankI,cx,Y0-0.012,z0-0.05,null,false);
-    x=b;
-  }
-  W(x,r.x1+LW,0,H);
+  /* Wand mit drei Oeffnungen (Pfeiler, Bruestung 1,35, Sturz 2,6) und Fluegelfenster: bk.fenster art 'fluegel' (04z) -
+     Profile Anthrazit, Glas wie alle Scheiben, Fensterbank aussen Anthrazit wie die Schaufenster, innen weiss */
+  const r=LAY.lnord, z0=r.z1, z1=r.z1+LW;
+  bk.fenster({art:'fluegel',felder:LAGERFENSTER.map(cx=>({cx,b:1.7,y0:1.35,y1:2.6})),
+    wand:{x0:r.x0-LW,x1:r.x1+LW,z0,z1,hoehe:LAGER_H,innen:'-z',flaechen:{innen:lagerWall,laibung:MAT.ober('lichtgrau','matt')}}});
   col(r.x0-LW,r.x1+LW,z0,z1);
 }
 /* Flutlichtmast fuer den Hof */
@@ -21884,8 +22224,8 @@ function buildLogistik(){
   /* --- Vorplatz, Zaun, Bauschild --- */
   MAT.kachel(flat(6.0,30.0,MAT.get('betonHof'),43.5,0.013,-1.0).geometry,3,14);
   MAT.kachel(flat(hw-2,5.5,MAT.get('betonHof'),hcx,0.012,ha.z1+2.8).geometry,10,3);
-  for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6;
-    for(const s of [-1,1]) flat(4.4,0.14,MAT.get('markierungGelb'),ha.x0-2.6,0.017,tz+s*2.4); }
+  { const L=[]; for(let i=0;i<4;i++){ const tz=ha.z0+3.4+i*5.6; for(const s of [-1,1]) L.push([ha.x0-4.8,tz+s*2.4,ha.x0-0.4,tz+s*2.4,'gelb',bk.MARKIERUNG.fahrweg]); }
+    bk.bodenmarkierung({linien:L,y:0.012,schatten:true}); }
   /* Zaun mit Bauschild: faellt, sobald das Zentrum freigeschaltet wird */
   const Z=LOGI.zaun, ZH=2.4;
   /* Luecke fuer das Doppeltor (bis 14.10. lief die Matte mitten durch das Tor) */
@@ -23316,31 +23656,20 @@ function updateSchoner(dt){
 const EING2={x:null, tuer:null};
 /* Die Eingangsachse im Schaufenstergrundriss. Wird aus 05e heraus
    gerufen, wenn der Laden die Achse besitzt. */
-function eingangsAchse(go,a,b,zf,ST,glas,prof){
+function eingangsAchse(go,a,b,zf,ST){
   const cx=(a+b)/2;
   EING2.x=Math.round(cx*100)/100;
-  /* Festverglaste Seitenfelder links und rechts der Tuer */
-  for(const [fa,fb] of [[a,cx-1.34],[cx+1.34,b]]){
-    const bw=fb-fa; if(bw<0.12) continue;
-    const bxc=(fa+fb)/2;
-    /* wie die Schaufenster: nur schmale Leisten oben und unten */
-    bbox(bw,ST,0.03,glas,bxc,ST/2,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,ST-0.03,zf-0.1,go,false);
-    bbox(bw,0.06,0.12,prof,bxc,0.03,zf-0.1,go,false);
-  }
-  /* Pfosten zwischen Seitenfeld und Tuer: die Tuer laeuft innen, die
-     Seitenfelder brauchen hier ihren Rahmen (02.10.) */
-  for(const s of [-1,1]) bbox(0.06,ST,0.12,prof,cx+s*1.31,ST/2,zf-0.1,go,false);
+  /* Festverglaste Seitenfelder links und rechts der Tuer (wie die Schaufenster: nur schmale Leisten oben und unten) und die
+     Pfosten zwischen Seitenfeld und Tuer - die Tuer laeuft innen, die Seitenfelder brauchen hier ihren Rahmen (02.10.) */
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:go,felder:[[a,cx-1.34],[cx+1.34,b]].filter(([fa,fb])=>fb-fa>=0.12).map(([fa,fb])=>({x0:fa,x1:fb,y0:0,y1:ST,sprosse:false})),
+    pfosten:[{x:cx-1.31,h:ST},{x:cx+1.31,h:ST}]});
 
   /* --- Zustand „noch nicht gekauft“: ganz normales Schaufenster ---
      Kein Hinweisschild, kein Bauzaun: der Laden soll schick
      aussehen und nicht wie eine Baustelle. Dass hier eine Tuer
      hinkommen kann, steht im Laptop. --- */
   const zu=new THREE.Group(); go.add(zu); zWand('eingang2',zu);
-  bbox(2.68,ST,0.03,glas,cx,ST/2,zf-0.1,zu,false);
-  bbox(2.72,0.06,0.12,prof,cx,ST-0.03,zf-0.1,zu,false);
-  bbox(2.72,0.06,0.12,prof,cx,0.03,zf-0.1,zu,false);
-  bbox(0.06,ST,0.1,prof,cx,ST/2,zf-0.1,zu,false);
+  bk.fenster({art:'schaufenster',z:zf-0.1,parent:zu,felder:[{x0:cx-1.36,x1:cx+1.36,y0:0,y1:ST}]});
 
   /* --- Zustand „gekauft“: Tuer, Vordach, Matte --- */
   const auf=new THREE.Group(); go.add(auf); zAdd('eingang2',auf);
@@ -23348,7 +23677,7 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   const d=buildSchiebetuer(cx,5.3);
   scene.remove(d.g); auf.add(d.g);
   EING2.tuer=d;
-  const stahl=MAT.std(0x4a4f5a,{metalness:0.5,roughness:0.45});
+  const stahl=MAT.get('zaunPfosten');   /* Zugstangen Stahl dunkel (Einheit 15.10., vorher freies Material) */
   /* Vordach ueber dem Eingang, wie am Haupthaus */
   const vd=bbox(3.4,0.08,1.5,MAT.get('lackAnthrazit'),cx,TUER.y+0.62,zf+0.85,auf,false);
   vd.rotation.x=0.05;
@@ -23360,13 +23689,8 @@ function eingangsAchse(go,a,b,zf,ST,glas,prof){
   bbox(2.4,0.014,1.1,matte,cx,0.02,zf-0.72,auf,false);
   bbox(2.4,0.014,1.0,matte,cx,0.02,zf+0.68,auf,false);
   /* „Eingang 2“ ueber der Tuer */
-  const sch=tex(512,110,(g2,W,H)=>{
-    g2.fillStyle='#1b2340'; g2.fillRect(0,0,W,H);
-    g2.fillStyle=MAT.css('schildgold'); g2.font=BUN(56); g2.textAlign='center'; g2.textBaseline='middle';
-    g2.fillText('EINGANG 2',W/2,H/2+3);
-  });
   bbox(2.3,0.46,0.06,MAT.get('schildBlau'),cx,TUER.y+0.42,zf+0.05,auf,false);
-  plane(2.2,0.4,new THREE.MeshBasicMaterial({map:sch,toneMapped:false}),cx,TUER.y+0.42,zf+0.09,0,auf);
+  bk.schild(auf,{text:'EINGANG 2',b:2.2,h:0.4,x:cx,y:TUER.y+0.42,z:zf+0.09,leucht:true});
 }
 
 /* Die SB-Kassenzeile, die hier hinter der Tuer stand (sb2G, Ausbau
@@ -23477,10 +23801,7 @@ function logiStufeBauen(i){
     logiSuedwand(i,r,H,bl);
 
     /* Hallenschild ueber dem Durchgang, innen */
-    plane(2.2,0.44,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(512,104,(c,W,Hh)=>{
-      c.fillStyle='#1b2340'; c.fillRect(0,0,W,Hh); c.fillStyle=MAT.css('schildgold'); c.fillRect(0,Hh-7,W,7);
-      c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#e8ecf5'; c.font=BUN(38);
-      c.fillText('LOGISTIKHALLE · STUFE '+(i+1),W/2,Hh/2-3); })}),r.x1-0.13,3.45,(S2.z0+S2.z1)/2,-Math.PI/2,null);
+    bk.schild(scene,{text:'LOGISTIKHALLE · STUFE '+(i+1),b:2.2,h:0.44,x:r.x1-0.13,y:3.45,z:(S2.z0+S2.z1)/2,ry:-Math.PI/2,leucht:true});
   });
   neu.forEach(o=>{ scene.remove(o); g.add(o); });
   cols.forEach(c=>dropCol(c));
@@ -23506,13 +23827,8 @@ function logiHofBauen(){
   const r=LAY.hof2, Z=LHALLE.z;
   MAT.kachel(flat(r.x1-r.x0,r.z1-r.z0,MAT.get('betonHof'),
        (r.x0+r.x1)/2,0.013,(r.z0+r.z1)/2).geometry,(r.x1-r.x0)/2.4,(r.z1-r.z0)/2.4);
-  /* Stellplatzmarkierung vor jedem Tor: zwei Linien, Stopplinie, Mittelstriche */
-  const gelb=MAT.get('markierungGelb');
-  for(const cx of WRAMPEN){
-    for(const s of [-1,1]) flat(0.14,14,gelb,cx+s*1.9,0.017,Z-7.4);
-    flat(3.8,0.14,gelb,cx,0.017,Z-14.4);
-    for(let j=0;j<5;j++) flat(0.1,0.5,gelb,cx,0.017,Z-1.2-j*1.1);
-  }
+  /* Stellplatzmarkierung vor jedem Tor: LKW-Stellplatz aus dem Baukasten (zwei Linien, Stopplinie, Mittelstriche) */
+  bk.bodenmarkierung({lkw:WRAMPEN.map(cx=>({x:cx,z:Z})),y:0.012,schatten:true});
   /* Zaun: Sueden, Osten und Westen mit der Einfahrt */
   const ZH=2.2, torA=-53.5, torB=-46.5;
   bk.zaun({art:'doppelstab',von:[r.x0,r.z0],bis:[r.x1,r.z0],hoehe:ZH});
@@ -23526,16 +23842,7 @@ function logiHofBauen(){
   /* Hinweisschild an der Einfahrt */
   { const px=r.x0+0.2, pz=torB+1.2;
     bbox(0.1,2.4,0.1,MAT.get('zaunPfosten'),px,1.2,pz,null,false);
-    plane(1.5,0.95,new THREE.MeshStandardMaterial({side:THREE.DoubleSide,map:tex(300,190,(g,W,H)=>{
-      g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-      g.strokeStyle=MAT.css('schildgold'); g.lineWidth=6; g.strokeRect(7,7,W-14,H-14);
-      g.textAlign='center'; g.textBaseline='middle';
-      g.fillStyle=MAT.css('schildgold'); g.font=BUN(30); g.fillText('LOGISTIKHOF',W/2,44);
-      g.fillStyle='#bcd0ea'; g.font=BAR(24);
-      g.fillText('Tor 2 – 5 · Auflieger',W/2,86);
-      g.fillText('Schrittgeschwindigkeit',W/2,118);
-      g.fillStyle='#ff9d92'; g.font=BAR(22); g.fillText('Rauchen und Feuer verboten',W/2,152); })}),
-      px,1.75,pz,Math.PI/2,null); }
+    bk.schild(scene,{text:'LOGISTIKHOF',unter:'Tor 2 – 5 · Schrittgeschwindigkeit · Rauchen verboten',b:1.5,h:0.95,x:px,y:1.75,z:pz,ry:Math.PI/2,doppel:true}); }
   });
   if(typeof wkAltHof==='function') wkAltHof(westAlt.neu,westAlt.cols);
   col(r.x0,r.x1,r.z0-0.1,r.z0+0.1);
@@ -23543,7 +23850,7 @@ function logiHofBauen(){
   /* Wartespur: abgestellte Auflieger laengs am West- und Ostrand -
      die Fahrspuren vor den Toren bleiben bis zum Suedzaun frei */
   for(const [n,f,x,ry] of [['Kowalski',TRUCKCOL.kowalski,r.x0+2.8,Math.PI/2],['Ratzke',TRUCKCOL.ratzke,r.x1-2.8,-Math.PI/2]]){
-    for(const s of [-1,1]) flat(0.14,14,gelb,x+s*1.5,0.017,-52.0);
+    bk.bodenmarkierung({linien:[-1,1].map(s=>[x+s*1.5,-45,x+s*1.5,-59,'gelb',bk.MARKIERUNG.fahrweg]),y:0.012,schatten:true});
     abstellAuflieger(x,-52.0,ry,n,f);
   }
   /* Licht, Paletten, Container, Schnee - alles ausserhalb der Fahrspuren */
@@ -23754,7 +24061,7 @@ function llRohbau(){
   { const T=LL.tuer, z0=L3.z1, z1=L3.z1+LW;
     llW(-66-LW,T.x-T.b/2,z0,z1,0,H,'-z','lager','blech'); llW(T.x+T.b/2,-26+LW,z0,z1,0,H,'-z','lager','blech');
     llW(T.x-T.b/2,T.x+T.b/2,z0,z1,T.h,H,'-z','lager','blech',true);
-    LL_T.tuer=bk.drehtuer({x:T.x,z:z0+LW/2,ry:0,breite:T.b,hoehe:T.h,dicke:LW,art:'stahl',anschlag:1,auf:1});
+    LL_T.tuer=bk.tuer({x:T.x,z:z0+LW/2,ry:0,breite:T.b,hoehe:T.h,dicke:LW,art:'stahl',anschlag:1,auf:1});
     /* Wegenetz: zu (Personal und Kunden laufen nicht hinaus), der Spieler geht durch (15-player collide) */
     const c=col(T.x-T.b/2,T.x+T.b/2,z0,z1); c.nurNav=true; }
   /* Schleuse: Suedwand, Sturz zu ③, Sturz und Pfeiler zu ② (breit offen) */
@@ -23778,7 +24085,7 @@ function llRohbau(){
     Sx.fertig(scene,{fest:true});
     col(xg-0.06,xg+0.06,d0-b-0.1,d0-0.05);
     bk.bodenmarkierung({flaechen:[{x0:-27.2,x1:-26.1,z0:d0,z1:d1,art:'sperr'}],y:0.015});
-    bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); }
+    bk.schild(scene,{text:'FEUERSCHUTZTOR',unter:'Schliessbereich freihalten',b:1.5,h:0.42,x:xg-0.05,y:3.65,z:(d0+d1)/2,ry:-Math.PI/2,stil:'brand'}); }
   streifenvorhang(null,false,-26,d0,d1,3.0);
   /* Schnelllauftor N1 in der gelben Wand */
   LL_T.n1=bk.tor({art:'schnelllauf',breite:N.z1-N.z0,hoehe:N.h,wand:[-W,W],blatt:0,nr:null,bedien:1,ampel:false,vordach:false,dichtung:false,poller:false,x:-36,z:(N.z0+N.z1)/2,ry:0});
@@ -23900,7 +24207,7 @@ function llLicht(){
     S.zyl(0.08,0.08,10.4,seg,-26.4,5.2,-33.6,F('feuerrot'),'lackMetall');
     S.fertig(scene,{fest:true,schatten:false}); }
   /* Fluchtweg-Schilder (gruen) */
-  const fw={bg:MAT.css('signalgruen'),fg:MAT.css('weiss')};
+  const fw={stil:'flucht'};
   bk.schild(scene,Object.assign({text:'NOTAUSGANG',unter:'↑ Personaltür',b:1.2,h:0.38,x:-40,y:2.55,z:-7.03,ry:Math.PI},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'← Kartonlager ③ · Laden',b:1.2,h:0.38,x:-36.12,y:3.55,z:-14.4,ry:-Math.PI/2},fw));
   bk.schild(scene,Object.assign({text:'FLUCHTWEG',unter:'→ Schleuse · Lager',b:1.2,h:0.38,x:-26.12,y:3.6,z:-21.6,ry:-Math.PI/2},fw));
@@ -23939,7 +24246,7 @@ function llAussen(){
   S.zyl(0.12,0.12,3.0,10,T.x+1.6,0.25,T.z-T.r-0.4,F('feuerrot'),'lackMetall',Math.PI/2,0,0);
   S.box(2.4,2.4,2.0,T.x+1.6,1.2,T.z-T.r-1.8,F('lichtgrau'),'lackMetall'); S.box(2.5,0.12,2.1,T.x+1.6,2.46,T.z-T.r-1.8,F('anthrazit'),'lackMetall');
   S.fertig(scene,{fest:true});
-  bk.schild(scene,{text:'SPRINKLERZENTRALE',unter:'Löschwasser 360 m³',b:1.5,h:0.42,x:T.x+1.6,y:2.0,z:T.z-T.r-2.82,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+  bk.schild(scene,{text:'SPRINKLERZENTRALE',unter:'Löschwasser 360 m³',b:1.5,h:0.42,x:T.x+1.6,y:2.0,z:T.z-T.r-2.82,ry:Math.PI,stil:'brand'});
   col(T.x-T.r,T.x+T.r,T.z-T.r,T.z+T.r); col(T.x+0.4,T.x+2.8,T.z-T.r-2.8,T.z-T.r-0.8);
   /* Parkplatz: 8 Stellplaetze an der Hallenwand */
   const L=[]; for(let i=0;i<=8;i++){ const x=P.x0+i*2.5; L.push([x,P.z0,x,P.z0+5,'weiss',0.1]); }
@@ -24150,8 +24457,8 @@ function wkRohbau(){
     for(const s of WK_STR) absch(-70.1,s.zc,1.3,1.9,1);
     for(let k=0;k<3;k++) absch(-66.0,wkGasseZ(k),1.2,1.9,-1);
     S.fertig(scene,{fest:true});
-    for(const z of [-30,-17]){ bk.schild(scene,{text:'BRANDWAND',unter:'Öffnungen nur mit Brandschutzabschluss',b:1.6,h:0.45,x:-70.12,y:4.6,z,ry:Math.PI/2*-1,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
-      bk.schild(scene,{text:'BRANDWAND',unter:'Werk · Verbindungsbau',b:1.6,h:0.45,x:-69.88,y:4.6,z,ry:Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')}); } }
+    for(const z of [-30,-17]){ bk.schild(scene,{text:'BRANDWAND',unter:'Öffnungen nur mit Brandschutzabschluss',b:1.6,h:0.45,x:-70.12,y:4.6,z,ry:Math.PI/2*-1,stil:'brand'});
+      bk.schild(scene,{text:'BRANDWAND',unter:'Werk · Verbindungsbau',b:1.6,h:0.45,x:-69.88,y:4.6,z,ry:Math.PI/2,stil:'brand'}); } }
   /* geschlossene Brandschutz-Blenden in den Oeffnungen (fallen, sobald die Straße laeuft) */
   { const bl=(x,z,b,h,i)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.06,h,b),MAT.get('kunststoffHellgrau')); m.position.set(x,h/2,z); m.userData.bauteil='brandschutzabschluss'; scene.add(m); WK_T.blende[i].push(m); };
     WK_STR.forEach((s,i)=>{ bl(-70.0,s.zc,1.3,1.9,i); bl(-66.1,wkGasseZ(s.gasse),1.2,1.9,i); });
@@ -24159,14 +24466,14 @@ function wkRohbau(){
     for(const s of WK_STR) col(-70.1,-69.9,s.zc-0.65,s.zc+0.65);
     for(let k=0;k<3;k++) col(-66.2,-66.0,wkGasseZ(k)-0.6,wkGasseZ(k)+0.6); }
   /* Tuere Verbindungsbau: Feuerschutztueren zweifluegelig, offen auf Feststellanlage; Werkseingang (oeffnet beim Naehern) */
-  for(const x of [-70.0,-66.1]){ for(const a of [1,-1]){ const T=bk.drehtuer({x,z:-9+a*0.5,ry:Math.PI/2,breite:1.0,hoehe:2.15,dicke:0.2,art:'brand',anschlag:a,auf:x>-68?-1:1,offen:1}); }
+  for(const x of [-70.0,-66.1]){ for(const a of [1,-1]){ const T=bk.tuer({x,z:-9+a*0.5,ry:Math.PI/2,breite:1.0,hoehe:2.15,dicke:0.2,art:'brand',anschlag:a,auf:x>-68?-1:1,offen:1}); }
     const S=bk.werkSammler('feststellanlage'); S.box(0.12,0.16,0.3,x+(x>-68?-0.12:0.12),2.42,-9,F('feuerrot'),'kunststoff'); S.zyl(0.07,0.07,0.04,10,x+(x>-68?-0.12:0.12),2.52,-9.3,F('weiss'),'kunststoff'); S.fertig(scene,{fest:true}); }
-  WK_T.tueren.push({T:bk.drehtuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0}); WK_T.tueren[WK_T.tueren.length-1].T.g.userData.wkAussen=true;
+  WK_T.tueren.push({T:bk.tuer({x:-73,z:-6.9,ry:0,breite:1.2,hoehe:2.2,dicke:0.2,art:'glas',anschlag:1,auf:-1}),x:-73,z:-6.9,r:2.0}); WK_T.tueren[WK_T.tueren.length-1].T.g.userData.wkAussen=true;
   /* Tor R6 (Rohstoffe) - Sektionaltor wie R2-R5, zu (Anlieferung der Rohstoffe kommt mit dem Produktions-Gameplay) */
   { const T=bk.tor({art:'sektional',fuehrung:'vertikal',breite:WTOR.w,hoehe:WTOR.h,wand:[-LW,0],blatt:-0.15,fahrzeug:2.55,nr:'6',bedien:1,x:WK.r6.x,z:Wr.z0,ry:-Math.PI/2});
     for(const r of T.kollision) col(r.x0,r.x1,r.z0,r.z1); col(WK.r6.x-WTOR.w/2,WK.r6.x+WTOR.w/2,Wr.z0-LW,Wr.z0); WK_T.r6=T; T.g.userData.wkAussen=true; }
   /* Gefahrstofftuer West (zu, Chemie-Box 1) */
-  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true,nachher:me=>{ me.userData.wkAussen=true; }}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
+  { const S=bk.werkSammler('tuer'); bk.tuer({S,x:Wr.x0-LW/2,z:WK.westTuer,ry:Math.PI/2,breite:1.0,hoehe:2.1,dicke:LW,art:'brand'}); S.fertig(scene,{fest:true,nachher:me=>{ me.userData.wkAussen=true; }}); col(Wr.x0-LW,Wr.x0,WK.westTuer-0.6,WK.westTuer+0.6); }
   /* Leichtdach: helles Trapezblech, Lichtbaender (aussen sichtbar), Attika; Decke innen hell */
   { const x0=Wr.x0-LW*1.5, x1=WK.verb.x1-LW, z0=Wr.z0-LW*1.5, z1=Wr.z1+LW*1.5, w=x1-x0, d=z1-z0, cx=(x0+x1)/2, cz=(z0+z1)/2;
     const dach=new THREE.Mesh(bk.kastenM(w,0.25,d,1,cx,H+0.24,cz),MAT.get('wandBlech')); dach.position.set(cx,H+0.24,cz); dach.userData.bauteil='werkdach'; dach.userData.wkAussen=true;
@@ -24213,18 +24520,18 @@ function wkRohbau(){
     for(const y of [4.1,5.7]) S.box(8.0,0.08,0.14,-82,y,zr,F('aluminium'),'lackMetall');
     WK_T.glasBasis.push(...wkGlasNehmen(S)); S.fertig(scene,{fest:true}); }
   /* Technik-Tuer (zu) */
-  { const S=bk.werkSammler('drehtuer'); bk.drehtuer({S,x:-80,z:zr,ry:0,breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl'}); S.fertig(scene,{fest:true}); col(-80.5,-79.5,zr-0.1,zr+0.1); }
+  { const S=bk.werkSammler('tuer'); bk.tuer({S,x:-80,z:zr,ry:0,breite:1.0,hoehe:2.1,dicke:0.2,art:'stahl'}); S.fertig(scene,{fest:true}); col(-80.5,-79.5,zr-0.1,zr+0.1); }
   /* Tueren mit Schliesser (oeffnen beim Naehern): Umkleide -> Werk, Inertlager (zweifluegelig), Labor */
-  for(const [x,b,a] of [[-74.5,1.0,1],[-89,1.0,-1]]) WK_T.tueren.push({T:bk.drehtuer({x,z:zr,ry:0,breite:b,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x,z:zr,r:1.7});
-  for(const a of [1,-1]) WK_T.tueren.push({T:bk.drehtuer({x:-96+a*0.45,z:zr,ry:0,breite:0.9,hoehe:2.35,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x:-96,z:zr,r:2.0});
+  for(const [x,b,a] of [[-74.5,1.0,1],[-89,1.0,-1]]) WK_T.tueren.push({T:bk.tuer({x,z:zr,ry:0,breite:b,hoehe:2.1,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x,z:zr,r:1.7});
+  for(const a of [1,-1]) WK_T.tueren.push({T:bk.tuer({x:-96+a*0.45,z:zr,ry:0,breite:0.9,hoehe:2.35,dicke:0.2,art:'stahl',anschlag:a,auf:-1}),x:-96,z:zr,r:2.0});
   /* Raeume West (x −100…−92): Sternhaus, drei Trockenkammern (3,6 m, Decke) */
   const RW=3.6;
   wkWandMit('z',-27.5,zr-0.1,-92.1,-91.9,RW,[[-17.1,-15.9,2.2],[-26.53,-25.63,2.05],[-23.7,-22.8,2.05],[-20.87,-19.97,2.05]],'-x','putz','lager');
   for(const z of [-19,-21.83,-24.67]) wkW(Wr.x0,-92.1,z-0.1,z+0.1,0,RW,'+z',P,P);
   { const S=bk.werkSammler('decke'); S.box(8,0.2,16.5,-96,RW+0.1,(-27.5+zr)/2,F('weiss'),'matt'); S.fertig(scene,{fest:true});
-    const St=bk.werkSammler('drehtuer'); for(const z of [-26.08,-23.25,-20.42]) bk.drehtuer({S:St,x:-92,z,ry:Math.PI/2,breite:0.9,hoehe:2.05,dicke:0.2,art:'stahl'}); St.fertig(scene,{fest:true});
+    const St=bk.werkSammler('tuer'); for(const z of [-26.08,-23.25,-20.42]) bk.tuer({S:St,x:-92,z,ry:Math.PI/2,breite:0.9,hoehe:2.05,dicke:0.2,art:'stahl'}); St.fertig(scene,{fest:true});
     for(const z of [-26.08,-23.25,-20.42]) col(-92.1,-91.9,z-0.45,z+0.45); }
-  WK_T.tueren.push({T:bk.drehtuer({x:-92,z:-16.5,ry:Math.PI/2,breite:1.2,hoehe:2.2,dicke:0.2,art:'stahl',anschlag:1,auf:1}),x:-92,z:-16.5,r:1.8});
+  WK_T.tueren.push({T:bk.tuer({x:-92,z:-16.5,ry:Math.PI/2,breite:1.2,hoehe:2.2,dicke:0.2,art:'stahl',anschlag:1,auf:1}),x:-92,z:-16.5,r:1.8});
   /* Raeume Sued (z −34…−27,5): drei Chemie-Boxen, Satz-Ausgabe (Betonzellen ohne Band), Annahme, Leergut */
   { const S=bk.werkSammler('chemie'), C=[];
     const box=(x0,x1,tueren)=>{ const r=bk.zelle({S,x0,x1,z0:-33.8,z1:-27.5,h:RW,band:false,tueren}); C.push(r.kollision); };
@@ -24398,12 +24705,10 @@ function wkAussen(){
   beton(-118,-110,-27,-19,0.011);
   beton(-115,-100.2,WK.westTuer-1.0,WK.westTuer+1.0,0.0105); beton(-115,-113,-27,WK.westTuer-1.0,0.0105);
   /* Stellplatz vor R6 */
-  { const gelb=MAT.get('markierungGelb'), Z=Wr.z0;
-    for(const s of [-1,1]) flat(0.14,14,gelb,WK.r6.x+s*1.9,0.017,Z-7.4); flat(3.8,0.14,gelb,WK.r6.x,0.017,Z-14.4);
-    for(let j=0;j<5;j++) flat(0.1,0.5,gelb,WK.r6.x,0.017,Z-1.2-j*1.1); }
+  bk.bodenmarkierung({lkw:[{x:WK.r6.x,z:Wr.z0}],y:0.012,schatten:true});
   /* Gefahrstoffweg (gelb schraffiert) von der Gefahrstofftuer West durch die Erdwall-Luecke zum Mischhaus */
   bk.bodenmarkierung({flaechen:[{x0:-114.6,x1:-100.25,z0:WK.westTuer-0.6,z1:WK.westTuer+0.6,art:'sperr'},{x0:-114.6,x1:-113.4,z0:WK.westTuer+0.6,z1:-25.6,art:'sperr'}],y:0.012,schatten:true});
-  bk.schild(scene,{text:'GEFAHRSTOFFWEG',unter:'Keine Stapler · Nur Satz und Chemie',b:1.6,h:0.45,x:-100.23,y:2.7,z:WK.westTuer,ry:-Math.PI/2,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+  bk.schild(scene,{text:'GEFAHRSTOFFWEG',unter:'Keine Stapler · Nur Satz und Chemie',b:1.6,h:0.45,x:-100.23,y:2.7,z:WK.westTuer,ry:-Math.PI/2,stil:'brand'});
   /* Werkszaun Doppelstab 2 m: West mit Einfahrt (Schiebetor offen geparkt), Nord an der Strasse, Sued */
   const ZX=WK.zaunX, E=WK.einfahrt;
   bk.zaun({art:'doppelstab',von:[ZX,5.9],bis:[ZX,Hf.z0],hoehe:2.0,luecke:[[5.9-E[1],5.9-E[0]]]});
@@ -24422,7 +24727,7 @@ function wkAussen(){
     S.fertig(scene,{fest:true}); col(r.kollision.x0,r.kollision.x1,r.kollision.z0,r.kollision.z1);
     const mr=MAT.neu('ampelRot'), mg=MAT.neu('ampelGruen'); mr.emissiveIntensity=0; mg.emissiveIntensity=1.4;
     for(const [l,m] of [[Lm.rot,mr],[Lm.gruen,mg]]) if(l.length){ const me=new THREE.Mesh(merge(l),m); me.userData.bauteil='zelle'; me.userData.klasse='leuchte'; scene.add(me); }
-    bk.schild(scene,{text:'MISCHHAUS',unter:'Fernbedienter Mischer · Zutritt nur bei Stillstand',b:1.6,h:0.45,x:-114,y:2.75,z:Mi.z0-0.01,ry:Math.PI,bg:MAT.css('feuerrot'),fg:MAT.css('weiss')});
+    bk.schild(scene,{text:'MISCHHAUS',unter:'Fernbedienter Mischer · Zutritt nur bei Stillstand',b:1.6,h:0.45,x:-114,y:2.75,z:Mi.z0-0.01,ry:Math.PI,stil:'brand'});
     const E2=WK.erdwall, w=bk.erdwall({x0:E2.x0,x1:E2.x1,z0:E2.z0,z1:E2.z1,hoehe:4,fuss:3,krone:0.8,luecke:{seite:'s',von:E2.luecke[0],bis:E2.luecke[1]}});
     for(const c of w.kollision) col(c.x0,c.x1,c.z0,c.z1); }
 }
@@ -26084,134 +26389,12 @@ function ck(x,z){ return localToWorld(ckG,x,z); }
 function ckYaw(){ return ckG.rotation.y; }
 function buildCheckout(){
   ckG=new THREE.Group(); ckG.position.set(CK_HOME.x,0,CK_HOME.z); ckG.rotation.y=CK_HOME.ry; scene.add(ckG);
-  /* Aussen neutral: Korpus und Blende weiss (06.10., vorher Anthrazit),
-     Sockel dunkel, Zierleiste Edelstahl. Davor Marineblau mit roter
-     Leiste und gelber Schrift. */
-  const corpus=std(CK_KORPUS,{roughness:0.42,metalness:0.05}),
-        panel=std(parseInt(CK_BLENDE.slice(1),16),{roughness:0.34,metalness:0.03}),
-        laminat=MAT.get('kunststoffHellgrau'),
-        steel=MAT.get('aluBlank'),
-        dark=MAT.get('kunststoffSchwarz'),
-        sockel=std(CK_SOCKEL,{roughness:0.6}),
-        rubber=MAT.get('gummi'),
-        accent=MAT.get('aluBlank');
-  /* Korpus mit Sockelrücksprung */
-  const c=rbox(3.2,0.74,0.8,0.02,corpus,0,0.5,0,ckG); occluders.push(c);
-  bbox(3.08,0.14,0.68,sockel,0,0.07,0,ckG);
-  bbox(3.22,0.04,0.82,steel,0,0.15,0,ckG,false);
-  /* Frontblende zum Kunden */
-  bbox(3.12,0.5,0.03,panel,0,0.56,0.405,ckG,false);
-  bbox(3.14,0.045,0.035,accent,0,0.82,0.408,ckG,false);
+  /* Kassenplatz aus dem Baukasten (bk.kasse art 'kasse', 04z): Korpus und Blende weiss, Sockel dunkel, Leisten Edelstahl;
+     hier bleiben Ladenname, Kassenbildschirm, Trefferflaechen und die Logik (Band, Tuete, Bezahlen) */
   ckNameTex=tex(1000,136,(g,W,H)=>drawCkName(g,W,H));
-  plane(1.5,0.2,new THREE.MeshStandardMaterial({roughness:0.34,metalness:0.03,map:ckNameTex}),0.74,0.6,0.423,0,ckG);
-  /* Arbeitsplatte mit gerundeter Vorderkante */
-  bbox(3.34,0.05,0.86,laminat,0,0.925,0,ckG);
-  const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,3.34,12),laminat);
-  edge.rotation.z=Math.PI/2; edge.position.set(0,0.925,0.43); ckG.add(edge);
-  /* Laufband mit Rollen und Seitenführung */
-  beltTex=tex(512,256,(g,W,H)=>{
-    g.fillStyle='#17181d'; g.fillRect(0,0,W,H);
-    for(let x=0;x<W;x+=26){
-      g.fillStyle='#252830'; g.fillRect(x,0,11,H);
-      g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(x+11,0,2,H);
-      g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(x+24,0,2,H);
-    }
-    for(let i=0;i<5200;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    for(let i=0;i<22;i++){ g.fillStyle=`rgba(0,0,0,${rand(0.05,0.14)})`; g.beginPath();
-      g.ellipse(Math.random()*W,Math.random()*H,rand(6,22),rand(4,12),Math.random()*3,0,Math.PI*2); g.fill(); } });
-  beltTex.wrapS=beltTex.wrapT=THREE.RepeatWrapping; beltTex.repeat.set(6,1);
-  const BL=BELT_A-BELT_B+0.12, BX=(BELT_A+BELT_B)/2;
-  bbox(BL,0.03,0.46,new THREE.MeshStandardMaterial({map:beltTex,roughness:0.85}),BX,0.956,0,ckG,false);
-  for(const s2 of [-1,1]){
-    bbox(BL+0.06,0.05,0.03,steel,BX,0.965,s2*0.245,ckG);
-    bbox(BL+0.06,0.012,0.012,MAT.get('markierungGelb'),BX,0.992,s2*0.245,ckG,false);
-  }
-  for(const ex of [BELT_B-0.04,BELT_A+0.06]){
-    const rl=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.47,14),steel);
-    rl.rotation.x=Math.PI/2; rl.position.set(ex,0.956,0); ckG.add(rl);
-  }
-  bbox(0.07,0.1,0.5,MAT.get('lackAnthrazit'),BELT_A+0.12,0.94,0,ckG);
-  /* Warentrenner */
-  { const t=new THREE.Group(); t.position.set(BELT_A-0.25,0.985,0); t.rotation.y=0.08; ckG.add(t);
-    bbox(0.035,0.055,0.42,MAT.ober('nachtblau','matt'),0,0,0,t,false);
-    plane(0.4,0.05,new THREE.MeshStandardMaterial({map:tex(600,78,(g,W,H)=>{ g.fillStyle='#2f3a5e'; g.fillRect(0,0,W,H); g.fillStyle=MAT.css('schildgold'); g.font=BAR(51); g.textAlign='center'; g.textBaseline='middle'; g.fillText('NÄCHSTER KUNDE',W/2,H/2+3); })}),0.019,0,0,Math.PI/2,t); }
-  /* Scanner: eine in die Platte eingelassene Glasscheibe, sonst nichts */
-  {
-    const bezel=MAT.ober('hellgrau','lackMetall');
-    const frameIn=MAT.get('kunststoffAnthrazit');
-    const scanGlass=new THREE.MeshStandardMaterial({
-      color:LIN(MAT.farbe('gummischwarz')),roughness:0.07,metalness:0.25,
-      map:tex(512,512,(g,W,H)=>{
-        g.fillStyle='#10141c'; g.fillRect(0,0,W,H);
-        const gl=g.createLinearGradient(0,0,W*0.7,H);
-        gl.addColorStop(0,'rgba(210,226,244,.24)'); gl.addColorStop(0.35,'rgba(210,226,244,.05)');
-        gl.addColorStop(0.62,'rgba(210,226,244,.14)'); gl.addColorStop(1,'rgba(210,226,244,.03)');
-        g.fillStyle=gl; g.fillRect(0,0,W,H);
-        for(let i=0;i<70;i++){ g.strokeStyle=`rgba(230,238,250,${rand(0.02,0.07)})`; g.lineWidth=rand(0.6,1.6);
-          const x=Math.random()*W, y=Math.random()*H;
-          g.beginPath(); g.moveTo(x,y); g.lineTo(x+rand(-70,70),y+rand(-18,18)); g.stroke(); }
-        for(let i=0;i<900;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-      })});
-    rbox(0.5,0.05,0.44,0.012,bezel,-0.22,0.938,0,ckG);
-    bbox(0.42,0.035,0.36,frameIn,-0.22,0.958,0,ckG,false);
-    const pane=plane(0.38,0.32,scanGlass,-0.22,0.9765,0,0,ckG);
-    pane.rotation.x=-Math.PI/2;
-    const led=new THREE.MeshBasicMaterial({color:0x4dff92,toneMapped:false});
-    bbox(0.026,0.026,0.01,led,-0.42,0.9775,0.16,ckG,false);
-  }
-  /* Kassenmonitor auf Schwenkarm */
-  bbox(0.16,0.03,0.16,MAT.get('lackAnthrazit'),-0.8,0.96,-0.06,ckG,false);
-  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.028,0.34,12),steel); post.position.set(-0.8,1.12,-0.06); ckG.add(post);
-  const arm=bbox(0.04,0.04,0.16,steel,-0.8,1.29,-0.01,ckG,false); arm.rotation.x=0.5;
-  const scrBody=rbox(0.44,0.32,0.035,0.01,dark,-0.8,1.4,-0.06,ckG); scrBody.rotation.x=0.16;
   posTex=tex(1024,720,()=>{});
-  const scr=plane(0.4,0.275,new THREE.MeshBasicMaterial({map:posTex,toneMapped:false}),0,0,-0.02,Math.PI,scrBody);
-  bbox(0.46,0.02,0.05,dark,-0.8,1.23,-0.056,ckG,false);
-  /* Tastatur und Kassenlade: die Tastatur liegt auf der Bedienerseite
-     vor dem Monitor, nicht dahinter beim Kunden. */
-  /* Kassentastatur: Wanne mit Rand, beschriftete Tasten, farbige
-     Funktionsblöcke und Summentaste. */
-  {
-    const kbT=tex(768,384,(g,W,H)=>{
-      g.fillStyle='#1b1f28'; g.fillRect(0,0,W,H);
-      const cols=8, rows=4, mx=26, my=22;
-      const cw=(W-mx*2)/cols, ch=(H-my*2)/rows;
-      const label=['7','8','9','STORNO','4','5','6','KARTE','1','2','3','BAR','0','00',',','SUMME'];
-      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-        const i=r*cols+c;
-        const x=mx+c*cw+3, y=my+r*ch+3, w=cw-6, h=ch-6;
-        const isFn=c>=6, isSum=(r===3&&c>=6);
-        /* Tastenschatten und Kappe */
-        g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(x+2,y+3,w,h);
-        const base=isSum?'#2f7a48':isFn?'#3d4658':'#e8e9ec';
-        const top =isSum?'#3f9a5c':isFn?'#4e596e':'#f7f8fa';
-        const gr=g.createLinearGradient(0,y,0,y+h);
-        gr.addColorStop(0,top); gr.addColorStop(1,base);
-        g.fillStyle=gr; g.fillRect(x,y,w,h);
-        g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y,w,2);
-        g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(x,y+h-2,w,2);
-        /* Beschriftung */
-        const t=label[(r*4+(c%4))%label.length];
-        g.fillStyle=isFn||isSum?'#eef2f8':'#1b1f28';
-        g.textAlign='center'; g.textBaseline='middle';
-        g.font=BAR(t.length>3?15:26);
-        g.fillText(t,x+w/2,y+h/2+1);
-      }
-      /* Rand der Wanne */
-      g.strokeStyle='#0f1218'; g.lineWidth=10; g.strokeRect(5,5,W-10,H-10);
-      for(let i=0;i<500;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    });
-    kbT.anisotropy=8;
-    const wanne=MAT.get('kunststoffSchwarz');
-    const kb=rbox(0.44,0.026,0.175,0.006,wanne,-0.8,0.954,-0.32,ckG); kb.rotation.x=-0.06;
-    const face=plane(0.4,0.15,new THREE.MeshStandardMaterial({map:kbT,roughness:0.42}),-0.8,0.9685,-0.32,0,ckG);
-    /* 03.10. (Tom, Foto): die Beschriftung stand fuer den Kassierer auf dem
-       Kopf - um 180 Grad in der Ebene gedreht, Funktionstasten rechts */
-    face.rotation.set(-Math.PI/2-0.06,0,Math.PI);
-    /* Kabel zur Kasse */
-    const kab=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.13,6),MAT.get('gummi'));
-    kab.position.set(-0.8,0.952,-0.4); kab.rotation.x=1.35; ckG.add(kab);
-  }
+  const K=bk.kasse({art:'kasse',parent:ckG,name:ckNameTex,pos:posTex,bandA:BELT_A,bandB:BELT_B});
+  occluders.push(K.korpus); beltTex=K.band;
   posHit=bbox(0.66,0.72,0.6,hitM,-0.8,1.2,-0.1,ckG,false); posHit.userData={kind:'pos'};
   cardHit=bbox(0.34,0.3,0.34,hitM,0.58,1.06,0.26,ckG,false); cardHit.userData={kind:'card'};
   ckMov=addMovable({kind:'ck',name:'Kasse',g:ckG,fw:3.4,fd:0.95,onPlace:()=>{ belt.forEach(b=>syncBeltItem(b)); syncBag(); }});
@@ -26265,95 +26448,21 @@ function geraetBau(){
   return B;
 }
 function sbTerminal(parent,x,z){
-  /* 10.10. neu (Tom: Bildschirm zu tief, grauer Staender und roter
-     Scanner billig): wie ein echtes Self-Checkout - Touchscreen auf
-     Augenhoehe an einer Saeule, Bioptik-Scanner (Glasflaeche mit
-     Laserkreuz und Scannerturm), Korbablage links, Waage mit
-     Tuetenhalter rechts, Kartenterminal, Bondrucker, Lichtsignal. */
-  const g=new THREE.Group(); g.position.set(x,0,z); parent.add(g);
-  const W=CK_KORPUS, NAVY=MAT.farbe('nachtblau'), DUNK=MAT.farbe('gummischwarz'), GRAN=MAT.farbe('anthrazit'), STAHL=MAT.farbe('aluminium');
-  /* Korpus bleibt ein eigenes Mesh (Verdecker) */
-  const c=rbox(0.78,0.84,0.66,0.03,std(W,{roughness:0.36,metalness:0.06}),0,0.5,0,g); occluders.push(c);
-  const b=geraetBau();
-  /* Sockel, Front, Arbeitsplatte */
-  b.box('matt',0.72,0.08,0.6,DUNK,0,0.04,0)
-   .box('lack',0.6,0.5,0.012,MAT.farbe('lichtgrau'),0,0.48,0.333)
-   .box('lack',0.78,0.07,0.016,NAVY,0,0.86,0.335)
-   .box('metall',0.7,0.05,0.012,STAHL,0,0.13,0.334)
-   .rund('lack',0.84,0.045,0.7,0.012,GRAN,0,0.94,0)
-   .box('metall',0.84,0.022,0.012,STAHL,0,0.93,0.352);
-  /* Scanner: Glasflaeche in der Platte, Laserkreuz, Scannerturm */
-  b.box('matt',0.36,0.006,0.27,MAT.farbe('tiefschwarz'),0,0.963,0.09)
-   .box('glas',0.32,0.004,0.23,MAT.farbe('anthrazit'),0,0.966,0.09)
-   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,0.45,0)
-   .box('leucht',0.28,0.002,0.004,0xd8262a,0,0.969,0.09,0,-0.45,0)
-   .rund('matt',0.38,0.17,0.08,0.02,DUNK,0,1.045,-0.1)
-   .box('glas',0.31,0.11,0.004,MAT.farbe('anthrazit'),0,1.045,-0.059)
-   .box('leucht',0.26,0.003,0.002,0xb02020,0,1.045,-0.056);
-  /* Saeule mit Kappe */
-  b.rund('lack',0.3,0.86,0.16,0.04,W,0,1.39,-0.25)
-   .rund('lack',0.31,0.05,0.17,0.02,NAVY,0,1.8,-0.25);
-  /* Bondrucker unter dem Bildschirm */
-  b.rund('matt',0.17,0.06,0.04,0.01,DUNK,0,1.205,-0.155)
-   .box('matt',0.1,0.004,0.006,MAT.farbe('tiefschwarz'),0,1.2,-0.134)
-   .box('lack',0.07,0.05,0.002,MAT.farbe('cremeweiss'),0,1.17,-0.132,0.15,0,0);
-  /* Bildschirmgehaeuse auf Augenhoehe, leicht nach oben gekippt */
-  const KX=-0.1, KY=1.53, KZ=-0.13;
-  b.pivot(0,KY,KZ,KX,0,0)
-   .rund('matt',0.53,0.39,0.05,0.02,DUNK,0,0,0)
-   .box('leucht',0.012,0.012,0.004,0x20242c,0,0.178,0.026)
-   .pivot();
-  /* Kartenterminal rechts am kurzen Arm */
-  b.zyl('metall',0.014,0.018,0.13,10,STAHL,0.31,1.03,-0.12)
-   .pivot(0.31,1.14,-0.11,-0.55,-0.25,0)
-   .rund('matt',0.1,0.17,0.035,0.012,DUNK,0,0,0)
-   .box('leucht',0.07,0.05,0.002,0x3b7fd0,0,0.04,0.019)
-   .box('lack',0.07,0.055,0.004,MAT.farbe('hellgrau'),0,-0.035,0.018)
-   .pivot();
-  /* links Korbablage */
-  b.rund('lack',0.36,0.72,0.52,0.025,W,-0.6,0.36,0)
-   .rund('lack',0.4,0.035,0.56,0.01,GRAN,-0.6,0.74,0)
-   .box('metall',0.4,0.02,0.012,STAHL,-0.6,0.73,0.282);
-  /* rechts Waage mit Tuetenhalter */
-  b.rund('lack',0.36,0.84,0.52,0.025,W,0.6,0.42,0)
-   .box('metall',0.38,0.018,0.48,STAHL,0.6,0.85,0)
-   .box('matt',0.3,0.006,0.4,MAT.farbe('hellgrau'),0.6,0.862,0.0);
-  for(const sx of [0.45,0.75]){
-    b.zyl('metall',0.011,0.011,0.5,8,STAHL,sx,1.11,-0.22)
-     .zyl('metall',0.009,0.009,0.34,8,STAHL,sx,1.36,-0.06,Math.PI/2,0,0);
-  }
-  b.zyl('metall',0.011,0.011,0.31,8,STAHL,0.6,1.36,-0.22,0,0,Math.PI/2)
-   .box('matt',0.26,0.26,0.2,MAT.farbe('cremeweiss'),0.6,1.0,-0.05);
-  /* Lichtsignal-Stange */
-  b.zyl('metall',0.014,0.014,0.32,10,STAHL,0,1.98,-0.25)
-   .zyl('metall',0.056,0.056,0.016,14,STAHL,0,2.228,-0.25);
-  b.fertig(g);
-  /* Bildschirm (eigene Textur) */
-  const scr=plane(0.48,0.34,new THREE.MeshBasicMaterial({map:sbScreenTex(),toneMapped:false}),0,KY+0.026*Math.sin(-KX),KZ+0.026*Math.cos(KX),0,g);
-  scr.rotation.x=KX;
-  const lampM=new THREE.MeshStandardMaterial({color:LIN(0x1d5f36),emissive:LIN(0x37d977),emissiveIntensity:1.6});
-  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.11,14),lampM);
-  lamp.position.set(0,2.165,-0.25); g.add(lamp);
+  /* 10.10. (Tom: Bildschirm zu tief, grauer Staender billig): wie ein echtes Self-Checkout. Gebaut von bk.kasse (art 'sb', 04z) -
+     hier Trefferflaeche und Spurzustand */
+  const T=bk.kasse({art:'sb',parent,x,z,bildschirm:sbScreenTex()});
+  occluders.push(T.korpus);
   /* unsichtbare Trefferflaeche: der Spieler kann selbst helfen */
-  const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,g,false);
-  const l={g,lamp,lampM,busy:null,t:0,hit,helfer:null,hilfe:false};
-  hit.userData={kind:'sbterm',ref:l};
+  const hit=bbox(0.9,1.9,0.8,hitM,0,0.95,0.05,T.g,false);
+  const l={g:T.g,lamp:T.lamp,lampM:T.lampM,busy:null,t:0,hit,helfer:null,hilfe:false};
+  hit.userData={kind:'sbterm',ref:l}; sbLampe(l,true);
   return l;
 }
 function buildSBKasse(){
   if(sbG) return sbG;
   sbG=new THREE.Group(); sbG.position.set(0,0,0); scene.add(sbG);
-  /* Rueckwand mit Beschilderung hinter den Terminals */
-  const w=MAT.get('schildBlau');
-  bbox(3.6,0.34,0.12,w,10.6,2.35,3.75,sbG,false);
-  const schild=tex(1024,140,(g,W,H)=>{
-    g.fillStyle='#1b2340'; g.fillRect(0,0,W,H);
-    g.fillStyle=MAT.css('schildgold'); g.font=BUN(64); g.textAlign='center'; g.textBaseline='middle';
-    g.fillText('SB-KASSEN',W/2,H/2+4);
-    g.strokeStyle='#2f3a5e'; g.lineWidth=6; g.strokeRect(3,3,W-6,H-6);
-  });
-  plane(3.4,0.3,new THREE.MeshBasicMaterial({map:schild,toneMapped:false}),10.6,2.35,3.82,0,sbG);
-  for(const sx of [9.0,12.2]) bbox(0.07,2.2,0.07,MAT.get('stahlVerzinkt'),sx,1.15,3.75,sbG,false);
+  /* Rueckwand mit Beschilderung hinter den Terminals (bk.kasse art 'sbTafel') */
+  bk.kasse({art:'sbTafel',parent:sbG,x:10.6,z:3.75,breite:3.6});
   for(const x of [9.7,11.5]) sbLanes.push(sbTerminal(sbG,x,4.4));
   sbCols.push(col(9.0,10.4,4.05,4.75),col(10.8,12.2,4.05,4.75));
   return sbG;
@@ -26513,26 +26622,11 @@ function buildDesk(){
    Verkaufsregale
    ========================================================= */
 const shelves=[];
-const shUp=std(0x4a5266,{metalness:0.5,roughness:0.45}), shBoard=MAT.eigen('lichtgrau','kunststoff'), shRail=MAT.eigen('signalrot','kunststoff');
-const shSide=MAT.eigen('weiss','kunststoff'); const shelfStrips=[];
-let _gestell=null;
-function gestellMat(){ if(!_gestell) _gestell=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0,roughness:0.72}); return _gestell; }
-const coldFrame=MAT.eigen('aluminium','stahl');
-const coldGlass=new THREE.MeshStandardMaterial({color:LIN(0xd8ecff),transparent:true,opacity:0.2,roughness:0.05,metalness:0.2,depthWrite:false});
-/* Rueckwand: pulverbeschichtetes Lochblech. Die Textur ist neutral hell,
-   die Farbe kommt ueber material.color aus der Regalpalette - so passt
-   sie zu jeder Wand. Loecher mit Schattenkante statt aufgemalter Punkte. */
-const pegMat=new THREE.MeshStandardMaterial({roughness:0.62,metalness:0.12,map:(()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#f4f5f6'; g.fillRect(0,0,W,H);
-  for(let i=0;i<1400;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,130'},${0.03+Math.random()*0.04})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); }
-  for(let x=16;x<W;x+=32) for(let y=16;y<H;y+=32){ g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(x-3,y-4,7,9); g.fillStyle='#3a3d43'; g.fillRect(x-3,y-5,6,9); g.fillStyle='#6a6e76'; g.fillRect(x-3,y-5,6,2); } });
-  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,5); return t; })()});
+const shelfStrips=[];
+/* Gestell-Material aller Verkaufsmoebel (Vertexfarben nach Rolle): Oberflaechenklasse Kunststoff/Lack aus der Bibliothek
+   (Einheit 15.10., vorher eigenes Material roughness 0,72); Rueckwand, Glas, Gitter usw. baut bk.regal (04z) */
+function gestellMat(){ return MAT.vc('kunststoff'); }
 function kindOf(sh){ return SHELFKIND[sh&&sh.kind]||SHELFKIND.standard; }
-/* Kassenregal: helles Lochblech (dieselbe Textur wie die Regale) und
-   Edelstahl wie die Zierleiste der Kasse. 06.10.: hell zur weissen
-   Kasse, vorher Anthrazit. */
-let _kasseRueck=null, _kasseStahl=null;
-function kasseRueckMat(){ return _kasseRueck||(_kasseRueck=new THREE.MeshStandardMaterial({roughness:0.6,metalness:0.1,map:pegMat.map,color:LIN(0xdcdfe3)})); }
-function kasseStahlMat(){ return _kasseStahl||(_kasseStahl=MAT.eigen('aluminium','blank')); }
 function shelfCount(k){ return shelves.filter(s=>s.kind===k).length; }
 /* Fassungsvermögen richtet sich nach Regalbreite und -tiefe */
 /* Freie Hoehe ueber einem Fach: bis zum naechsten Boden; das oberste
@@ -26762,170 +26856,35 @@ function regalFarben(K){
     boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:hell?MAT.farbe('holzPalette'):MAT.farbe('holzPaletteDunkel'), rueck:hell?mix(wa,MAT.farbe('cremeweiss'),0.82):mix(wa,MAT.farbe('hellgrau'),0.5)};
 }
 function regaleFaerben(){
-  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  bk.regal.rueckwand().color.copy(LIN(regalFarben(null).rueck));
   shelves.forEach(sh=>{ (sh.gestelle||[]).forEach(m=>{ const RF=regalFarben(m.userData.regalK), ca=m.geometry.attributes.color; let o=0;
       for(const [r,n] of m.userData.rollen){ const c=LIN(RF[r]); for(let i=0;i<n;i++) ca.setXYZ(o+i,c.r,c.g,c.b); o+=n; } ca.needsUpdate=true; });
-    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen));
-    if(sh.blind){ const RF=regalFarben(kindOf(sh)); sh.blind[0].material.color.copy(LIN(RF.seite)); sh.blind[1].material.color.copy(LIN(RF.rahmen)); } });
+    if(sh.gitterM) sh.gitterM.color.copy(LIN(regalFarben(kindOf(sh)).rahmen)); });
 }
 /* Drahtgitter fuer die Gitterbox: Stahldraht 4 mm im 5-cm-Raster, als
    Alpha-Textur - man sieht die Ware durch das Gitter */
 /* gitterTex() entfaellt (13.10., Materialangleichung): Drahtgitter = MAT.tex('drahtgitter') (geteilt) */
-/* Verkaufstisch und Gitterbox: eigene Bauform, aber dieselben Faecher
-   (Level), Preisschilder, Kopfschild und Treffer wie ein Regal - Kunden,
-   Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
-function bauMoebel(K,sh,g,RF){
-  const W=K.w, D=K.d, nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, iw=W-0.1, st=[], kopf=[];
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const fg=new THREE.Group(); g.add(fg);
-  let preisY, headY;
-  if(K.bau==='tisch'){
-    /* Ladenbau-Tisch: Bauteile aus dem Baukasten (bk.verkaufstischTeile, 04z) - dieselben Teile braucht
-       die Verpackungs-Ausstellung 2.0 (17f) fuer ihre Tischreihen */
-    st.push(...bk.verkaufstischTeile(K,box));
-    preisY=[y-0.1];
-    /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - eigenes
-       Teil, es verschwindet, solange der Tisch leer ist */
-    kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
-    headY=y+fh+0.42;
-    kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
-  } else {
-    /* Gitterbox: die Wanne steht auf einem Unterbau mit offenen Faechern
-       fuer Kleinartikel (Tom, 02.10.). Unterbau: Seitenwangen, Rueckwand,
-       Boeden mit Preisleiste. Wanne: Bodenblech, Eckpfosten, Drahtgitter
-       rundum, oben ein Rohrrahmen; vorn niedriger zum Hineingreifen. */
-    const hw=Math.min(0.62,fh+0.06), hv=Math.min(hw-0.1,fh-0.08);
-    /* 03.10. (Tom, iPhone-Foto: Saegezaehne unten am Unterbau): Sockel,
-       Seitenwangen und Wannenboden lagen in derselben Ebene und flimmerten
-       gegeneinander. Jetzt: dunkler Sockel 25 mm zurueckgesetzt, Wangen
-       und Rueckwand stehen auf dem Sockel, die Wannenplatte steht 6 mm
-       ueber - keine zwei Flaechen teilen sich mehr eine Ebene. */
-    const SK=0.08;
-    for(const sx of [-1,1]) st.push({geo:box(0.03,y-SK,D),m:tm(sx*(W/2-0.015),(y+SK)/2,0),rolle:'seite'});
-    st.push({geo:box(W-0.06,y-SK,0.02),m:tm(0,(y+SK)/2,-D/2+0.01),rolle:'rueck'});
-    st.push({geo:box(W-0.05,SK,D-0.05),m:tm(0,SK/2,0),rolle:'fuss'});
-    preisY=[];
-    for(let li=0;li<nL-1;li++){ const yl=K.lv[li];
-      st.push({geo:box(W-0.06,0.025,D-0.03),m:tm(0,yl-0.012,0),rolle:'boden'});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,yl-0.02,D/2-0.013),rolle:'preis'}); preisY.push(yl-0.02); }
-    st.push({geo:box(W+0.012,0.04,D+0.012),m:tm(0,y-0.02,0),rolle:'boden'});
-    for(const sx of [-1,1]) for(const sz of [-1,1]) st.push({geo:box(0.035,hw+0.02,0.035),m:tm(sx*(W/2-0.018),y+hw/2,sz*(D/2-0.018)),rolle:'rahmen'});
-    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hw,-D/2+0.012),rolle:'rahmen'});
-    st.push({geo:box(W,0.025,0.025),m:tm(0,y+hv,D/2-0.012),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.025,0.025,D),m:tm(sx*(W/2-0.012),y+hw,0),rolle:'rahmen'});
-    const gm=new THREE.MeshStandardMaterial({map:MAT.tex('drahtgitter'),color:LIN(RF.rahmen),alphaTest:0.4,transparent:false,side:THREE.DoubleSide,metalness:0.5,roughness:0.45});
-    sh.gitterM=gm;
-    const wand=(w,h,x,yy,z,ry)=>{ const m=plane(w,h,gm,x,yy,z,ry,fg); const uv=m.geometry.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*w/0.2,uv.getY(i)*h/0.2); uv.needsUpdate=true; return m; };
-    wand(W-0.04,hw,0,y+hw/2,-D/2+0.012,0); wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0);
-    for(const sx of [-1,1]) wand(D-0.04,hw,sx*(W/2-0.012),y+hw/2,0,Math.PI/2);
-    preisY.push(y+hv-0.04); headY=y+hv+0.13;
-    /* Klappschild vorn am Rohrrahmen */
-    kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
-  }
-  st.forEach(x=>{ x.color=RF[x.rolle]; }); kopf.forEach(x=>{ x.color=RF[x.rolle]; });
-  const gest=new THREE.Mesh(merge(st),gestellMat());
-  gest.userData.rollen=st.map(x=>[x.rolle,x._n]); gest.userData.regalK=K;
-  const kg=new THREE.Group(); fg.add(kg); sh.kopfG=kg;
-  const km=new THREE.Mesh(merge(kopf),gestellMat()); km.userData.rollen=kopf.map(x=>[x.rolle,x._n]); km.userData.regalK=K; kg.add(km);
-  sh.gestelle=[gest,km];
-  if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
-  for(const k in GB) GB[k].dispose();
-  /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
-  K.lv.forEach((yl,li)=>{
-    const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
-    plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003),0,fg);
-    const h=fachHoehe(K,li), hit=bbox(iw,h,D,hitM,0,yl+h/2,0.01,fg,false);
-    const lv={sh,li,face:0,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); });
-  sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
-  const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
-  plane(hwid,0.17,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false,side:THREE.DoubleSide}),0,headY,hz,0,kg);
-  sh.headY=headY;
-}
+/* Verkaufsmoebel (Regal, Gondel, Eck, Kuehlschrank, Kassenregal, Verkaufstisch, Gitterbox): gebaut von bk.regal (04z, art 'laden') -
+   hier nur Platz, Faecher (Level), Speicherstand. Tisch und Gitterbox haben dieselben Faecher, Preisschilder, Kopfschild und
+   Treffer wie ein Regal - Kunden, Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
   const K=SHELFKIND[kind];
-  pegMat.color.copy(LIN(regalFarben(null).rueck));
+  bk.regal.rueckwand().color.copy(LIN(regalFarben(null).rueck));
   const g=new THREE.Group(); const frei=slotsOffen().filter(sl=>slotPasst(K,sl));
   const s=data&&data.x!==undefined?data:(frei[0]||slotsOffen()[0]||SLOTS[0]);
   g.position.set(s.x,0,s.z); g.rotation.y=s.ry||0; scene.add(g);
   /* nie in der Wand: ein wenig nachruecken, wo das reicht (auch fuer
      alte Spielstaende mit Tischen an der Wandreihe) */
   { const sb=wandSchub(moebelRect(K,s.x,s.z,s.ry||0),s.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
-  const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
+  const W=K.w, D=K.d;
   const sh={i,g,kind,levels:[],W,D};
   if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
-  /* Das Gestell ist reine Kulisse und wird je Warenseite zu einem
-     Mesh verschmolzen - bei fuenfzig Regalen im Endausbau zaehlt das. */
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden
-     beim Umstreichen nachgefaerbt (regaleFaerben) */
-  const RF=regalFarben(K);
-  if(K.bau){ bauMoebel(K,sh,g,RF); } else
-  seitenVon(K).forEach((f,fi)=>{
-    const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
-    const st=[];   /* Gestell */
-    const li0=[];  /* Lichtleisten */
-    st.push({geo:box(0.05,top,D),m:tm(-hw+0.025,top/2,0),rolle:'rahmen'});
-    st.push({geo:box(0.05,top,D),m:tm( hw-0.025,top/2,0),rolle:'rahmen'});
-    st.push({geo:box(W,0.06,D),  m:tm(0,top+0.03,0),rolle:'rahmen'});
-    st.push({geo:box(iw,0.08,D-0.02),m:tm(0,0.04,0),rolle:'rahmen'});
-    for(const sx of [-1,1]) st.push({geo:box(0.022,top-0.08,D),m:tm(sx*(hw+0.005),top/2,0),rolle:'seite'});
-    /* Mittelsteher zwischen den Regalmodulen (02.10.: jedes Modul fasst
-       ganze Kartons, das Verkaufsregal sind zwei Module) */
-    for(let k=1;k<(K.mod||1);k++) st.push({geo:box(STEHER,top-0.1,D-0.06),m:tm(-iw/2+k*(modBreite(K)+STEHER)-STEHER/2,top/2,-0.02),rolle:'rahmen'});
-    st.push({geo:box(W-0.06,0.14,0.03),m:tm(0,0.11,D/2-0.005),rolle:'blende'});
-    for(const sx of [-1,1]) for(const sz of [-1,1])
-      st.push({geo:box(0.09,0.04,0.09),m:tm(sx*(hw-0.1),0.02,sz*(D/2-0.1)),rolle:'fuss'});
-    /* Rueckwand bleibt eigenes Mesh: Lochblech beziehungsweise Kuehlschrankwand */
-    bbox(iw,top-0.1,0.02,K.cold?MAT.eigen('weiss','kunststoff'):K.kasse?kasseRueckMat():pegMat,0,top/2,-D/2+0.03,fg);
-    /* Kassenregal: Edelstahlleisten wie an der Kasse - vorn an der
-       Deckplatte und ueber der Sockelblende */
-    if(K.kasse){ const ed=kasseStahlMat();
-      bbox(W+0.012,0.03,0.02,ed,0,top+0.045,D/2+0.004,fg,false);
-      bbox(W-0.04,0.022,0.02,ed,0,0.19,D/2+0.006,fg,false); }
-    K.lv.forEach((y,li)=>{
-      st.push({geo:box(iw,0.03,D-0.04),m:tm(0,y-0.015,0),rolle:'boden'});
-      st.push({geo:box(iw,0.05,0.014),m:tm(0,y-0.02,D/2-0.013),rolle:'preis'});
-      st.push({geo:box(iw,0.012,0.02),m:tm(0,y-0.045,D/2-0.011),rolle:'lippe'});
-      st.push({geo:box(iw-0.04,0.018,0.05),m:tm(0,y-0.055,-D/2+0.06),rolle:'rahmen'});
-      if(li>0||K.cold) li0.push({geo:box(iw-0.06,0.016,0.04),m:tm(0,y-0.048,D/2-0.07)});
-      const lt=tex(Math.round(700*REGAL_TEX),Math.round(80*REGAL_TEX),()=>{}); lt.anisotropy=8;
-      plane(Math.min(0.46,iw*0.46),0.052,new THREE.MeshBasicMaterial({map:lt,toneMapped:false}),0,y-0.02,D/2-0.004,0,fg);
-      const fh=fachHoehe(K,li), hit=bbox(iw,fh,D,hitM,0,y+fh/2,0.01,fg,false);
-      const lv={sh,li,face:fi,type:null,count:0,q:1,items:[],tex:lt,hit}; hit.userData={kind:'level',ref:lv}; sh.levels.push(lv);
-    });
-    /* Kopfschild ueber jeder Warenseite */
-    if(fi===0) sh.headTex=tex(Math.round(1024*REGAL_TEX),Math.round(160*REGAL_TEX),()=>{});
-    const hy=top+(K.cold?0.34:0.18);
-    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
-    plane(W-0.1,0.24,new THREE.MeshBasicMaterial({map:sh.headTex,toneMapped:false}),0,hy,0.051,0,fg);
-    st.forEach(x=>{ x.color=RF[x.rolle]; });
-    const gest=new THREE.Mesh(merge(st),gestellMat());
-    gest.userData.rollen=st.map(x=>[x.rolle,x.geo.index?x.geo.index.count:x.geo.attributes.position.count]); gest.userData.regalK=K; sh.gestelle=(sh.gestelle||[]).concat([gest]);
-    if(HIQ){ gest.castShadow=true; gest.receiveShadow=true; } fg.add(gest);
-    if(li0.length){
-      const strip=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('weiss')),emissive:LIN(K.cold?MAT.farbe('glasKlar'):0xfff2dc),emissiveIntensity:K.cold?1.1:0});
-      if(!K.cold) shelfStrips.push(strip);
-      fg.add(new THREE.Mesh(merge(li0),strip));
-    }
-    if(K.cold){
-      for(const sx of [-1,1]){
-        bbox(W/2-0.02,top-0.14,0.03,coldGlass,sx*W/4,top/2,D/2-0.002,fg,false);
-        bbox(0.03,top-0.14,0.04,coldFrame,sx*(W/2-0.03),top/2,D/2,fg,false);
-        bbox(0.035,0.5,0.05,MAT.ober('lichtgrau','stahl'),sx*0.06,top*0.55,D/2+0.03,fg,false);
-      }
-      bbox(W,0.16,D,coldFrame,0,top+0.12,0,fg);
-      plane(W*0.8,0.11,new THREE.MeshBasicMaterial({toneMapped:false,map:tex(256,36,(c,Wc,Hc)=>{ c.fillStyle='#0e2a44'; c.fillRect(0,0,Wc,Hc); c.fillStyle='#8fd6ff'; c.font=BUN(22); c.textAlign='center'; c.textBaseline='middle'; c.fillText('GEKÜHLT  4 °C',Wc/2,Hc/2+1); })}),0,top+0.12,D/2+0.005,0,fg);
-    }
-  });
-  /* Beim Eckregal bleibt zwischen den beiden Schenkeln eine tote Ecke.
-     Im Supermarkt steht dort ein Blindfeld - sonst schaut man durch
-     den Spalt auf die Wand. */
-  if(K.art==='ecke'){
-    const RF=regalFarben(K); sh.blind=[bbox(0.52,top,0.52,std(RF.seite,{roughness:0.8}),-0.6,top/2,-0.6,g),bbox(0.56,0.06,0.56,std(RF.rahmen,{roughness:0.7}),-0.6,top+0.03,-0.6,g,false)];
-  }
-  for(const k in GB) GB[k].dispose();
-  if(!K.bau) sh.headY=top+(K.cold?0.34:0.18);
+  /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden beim Umstreichen nachgefaerbt (regaleFaerben) */
+  const R=bk.regal({art:'laden',K,g,farben:regalFarben(K),px:REGAL_TEX});
+  sh.gestelle=R.gestelle; sh.headTex=R.headTex; sh.headY=R.headY; if(R.kopfG) sh.kopfG=R.kopfG; if(R.gitterM) sh.gitterM=R.gitterM;
+  if(R.leiste){ if(shelfStrips.indexOf(R.leiste)<0) shelfStrips.push(R.leiste); R.leiste.emissiveIntensity=(S&&S.up&&S.up.regallicht)?1.5:0; }
+  for(const f of R.faecher){ const lv={sh,li:f.li,face:f.face,type:null,count:0,q:1,items:[],tex:f.tex,zelle:f.zelle,hit:f.hit}; f.hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); }
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
@@ -26974,11 +26933,15 @@ function updateHead(sh){
 }
 /* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */
 function repaintSchilder(){ shelves.forEach(updateHead); }
+/* Preisschild eines Fachs: eine Zeile im Preisbild des Moebels (lv.zelle, bk.regal) */
 function updateLabel(lv){
-  redraw(lv.tex,(g,W,H)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/300,H/34); W=300; H=34;
-    g.fillStyle=lv.type?'#ffd23f':'#39405a'; g.fillRect(0,0,W,H); g.textBaseline='middle';
+  const Z=lv.zelle; if(!Z) return;
+  const bg=lv.type?MAT.css('schildgold'):'#39405a';
+  redraw(lv.tex,(g,W0)=>{ g.setTransform(1,0,0,1,0,0); g.fillStyle=bg; g.fillRect(0,Z.y-2,W0,Z.h+4); g.save(); g.beginPath(); g.rect(0,Z.y,W0,Z.h); g.clip(); g.translate(0,Z.y); g.scale(W0/300,Z.h/34); const W=300, H=34;
+    g.fillStyle=bg; g.fillRect(0,0,W,H); g.textBaseline='middle';
     if(lv.type){ g.fillStyle='#0e1226'; g.font=BAR(26); g.textAlign='left'; g.fillText(P[lv.type].short,8,H/2+1); g.font=BUN(22); g.textAlign='right'; g.fillText((S.prices[lv.type]||marketOf(lv.type)).toFixed(2).replace('.',',')+' €',W-8,H/2+2); }
-    else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); } });
+    else { g.fillStyle='rgba(242,245,255,.75)'; g.font=BAR(24); g.textAlign='center'; g.fillText('leer',W/2,H/2+1); }
+    g.restore(); });
 }
 function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
 /* Schildaufloesung (1 = Laden). Die Verpackungs-Vorfuehrung stellt 50
@@ -27048,7 +27011,7 @@ function regaleImBlick(){
   /* Preisschild je Fach (eigenes Bild, eigener Zeichenaufruf) ab 9 m: die
      Schrift ist am Handy dort ohnehin nicht lesbar */
   for(const sh of shelves) for(const lv of sh.levels){
-    if(lv.schildM===undefined){ lv.schildM=null; sh.g.traverse(o=>{ if(o.material&&o.material.map===lv.tex) lv.schildM=o; }); }
+    if(lv.schildM===undefined){ lv.schildM=null; sh.g.traverse(o=>{ if(o.material&&o.material.map===lv.tex&&o.parent===lv.hit.parent) lv.schildM=o; }); }
     if(!lv.schildM) continue; lv.schildM.getWorldPosition(_blickV);
     const zeig=_blickV.distanceTo(camera.position)<9;
     if(zeig!==(lv.schildM.layers.mask===1)) lv.schildM.layers.set(zeig?0:1); }
@@ -27239,37 +27202,6 @@ function drawRackSchild(rk){
   });
 }
 function refreshRackSchilder(){ racks.forEach(r=>{ if(r) drawRackSchild(r); }); }
-const rackBlue=MAT.eigen('signalblau','lackMetall'), rackOrange=MAT.eigen('signalorange','lackMetall'), deck=MAT.eigen('silbergrau','stahl');
-/* Stuetzenprofil und Blechauflage einmal erzeugen und teilen -
-   bei ueber dreissig Regalen sonst dreissig Texturen im Speicher. */
-let _postM=null,_deckM=null,_rahmenM=null;
-function rackMats(){
-  if(_postM) return;
-  const holeT=tex(64,512,(c,W,H)=>{
-    c.fillStyle='#2f5d9e'; c.fillRect(0,0,W,H);
-    c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(0,0,6,H);
-    c.fillStyle='rgba(0,0,0,.24)'; c.fillRect(W-7,0,7,H);
-    for(let y=10;y<H-8;y+=22){
-      c.fillStyle='#16335c'; c.fillRect(W/2-7,y,14,11);
-      c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(W/2-7,y+9,14,2);
-    }
-    for(let i2=0;i2<700;i2++){ c.fillStyle=`rgba(0,0,0,${Math.random()*0.07})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-  });
-  _postM=new THREE.MeshStandardMaterial({map:holeT,metalness:0.35,roughness:0.5});
-  /* Glatte, lackierte Stahlblechauflage statt Spanplattenoptik */
-  const boardT=tex(256,256,(c,W,H)=>{
-    const g0=c.createLinearGradient(0,0,0,H);
-    g0.addColorStop(0,'#9aa1ac'); g0.addColorStop(0.45,'#aeb5c0'); g0.addColorStop(1,'#8f959f');
-    c.fillStyle=g0; c.fillRect(0,0,W,H);
-    for(let x=0;x<W;x+=64){ c.fillStyle='rgba(255,255,255,.08)'; c.fillRect(x,0,2,H);
-      c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(x+2,0,2,H); }
-    for(let i2=0;i2<600;i2++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.035})`; c.fillRect(Math.random()*W,Math.random()*H,2,2); }
-    c.fillStyle='rgba(40,46,56,.22)'; c.fillRect(0,0,W,4); c.fillRect(0,H-4,W,4);
-  });
-  boardT.wrapS=boardT.wrapT=THREE.RepeatWrapping; boardT.repeat.set(3,1); boardT.anisotropy=8;
-  _deckM=new THREE.MeshStandardMaterial({map:boardT,roughness:0.38,metalness:0.45});
-  _rahmenM=new THREE.MeshStandardMaterial({vertexColors:true,metalness:0.38,roughness:0.46});
-}
 function createRack(i,data){
   const kind=(data&&data.kind&&RACKKIND[data.kind])?data.kind:'standard';
   const K=RACKKIND[kind];
@@ -27280,51 +27212,12 @@ function createRack(i,data){
   const r=data&&data.x!==undefined?data:slot, g=new THREE.Group();
   g.position.set(r.x,0,r.z); g.rotation.y=r.ry||0; scene.add(g);
   { const sb=wandSchub(rackRect(K,r.x,r.z,r.ry||0),r.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
-  const HT=K.hoch, XO=K.w/2, ZO=K.zo, BW=K.w;
-  rackMats();
-  const GB={}; const box=(w,h,d)=>GB[w+'|'+h+'|'+d]||(GB[w+'|'+h+'|'+d]=new THREE.BoxGeometry(w,h,d));
-  const fr=[];                                 /* alles Starre in einem Mesh */
-  /* Rahmen: Stuetzen, Fussplatten, Diagonalverband */
-  for(const x of [-XO,XO]){
-    for(const z of [-ZO,ZO]){
-      const po=bbox(0.085,HT,0.075,_postM,x,HT/2,z,g);
-      fr.push({geo:box(0.2,0.022,0.17),m:tm(x,0.011,z),color:MAT.farbe('anthrazit')});
-      for(const bx of [-0.06,0.06]) fr.push({geo:box(0.022,0.03,0.022),m:tm(x+bx,0.03,z),color:MAT.farbe('silbergrau')});
-    }
-    /* Waagerechte Riegel und Diagonalen ueber die ganze Rahmenhoehe */
-    const nR=Math.max(3,Math.round(HT/0.7));
-    for(let k=0;k<nR;k++) fr.push({geo:box(0.04,0.04,2*ZO),m:tm(x,0.42+k*0.7,0),color:MAT.farbe('signalblau')});
-    for(let k=0;k<nR-1;k++)
-      fr.push({geo:box(0.035,0.035,2*ZO*1.3+0.06),m:tm(x,0.77+k*0.7,0,(k%2?1:-1)*Math.atan2(0.7,2*ZO),0,0),color:MAT.farbe('signalblau')});
-  }
+  /* Gestell, Boeden, Stuetzen und Inhaltsschild: bk.regal (04z, art 'lager') */
   const rk={i,g,kind,slot:slot||null,slots:[]};
-  const sw=(K.sp.length>1?K.sp[1]-K.sp[0]:0.8)-0.02;
-  K.lv.forEach((y,li)=>{
-    for(const z of [-ZO+0.03,ZO-0.03]){
-      /* Traverse als Kastenprofil mit Auflagelippe */
-      fr.push({geo:box(BW,0.095,0.05),m:tm(0,y-0.05,z),color:MAT.farbe('signalorange')});
-      fr.push({geo:box(BW,0.022,0.062),m:tm(0,y-0.005,z),color:0xf08a3a});
-      fr.push({geo:box(BW,0.018,0.05),m:tm(0,y-0.098,z),color:0xb4520f});
-      for(const x of [-BW/2,BW/2]){
-        fr.push({geo:box(0.05,0.14,0.07),m:tm(x,y-0.045,z),color:MAT.farbe('anthrazit')});
-        fr.push({geo:box(0.022,0.035,0.022),m:tm(x*0.94,y+0.02,z),color:MAT.farbe('lichtgrau')});
-      }
-    }
-    bbox(BW-0.08,0.022,2*ZO-0.09,_deckM,0,y-0.005,0,g);
-    K.sp.forEach((x,si)=>{
-      const hit=bbox(sw,0.74,2*ZO,hitM,x,y+0.37,0,g,false);
-      const sl={rk,li,si,x,y,box:null,hit}; hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl);
-    });
-  });
-  const fm=new THREE.Mesh(merge(fr),_rahmenM);
-  if(HIQ){ fm.castShadow=true; fm.receiveShadow=true; } g.add(fm);
-  for(const k in GB) GB[k].dispose();
-  /* Inhaltsschild: zeigt, was gerade im Regal liegt */
-  rk.schildTex=tex(512,256,()=>{});
-  plane(0.52,0.26,new THREE.MeshStandardMaterial({roughness:0.6,map:rk.schildTex}),
-    -XO+0.34,1.6,ZO+0.012,0,g);
-  bbox(0.56,0.3,0.012,MAT.ober('silbergrau','lackMetall'),-XO+0.34,1.6,ZO+0.004,g,false);
-  rk.mov=addMovable({kind:'rack',name:K.name,g,fw:BW+0.16,fd:2*ZO+0.14,ref:rk});
+  const R=bk.regal({art:'lager',K,g});
+  for(const f of R.faecher){ const sl={rk,li:f.li,si:f.si,x:f.x,y:f.y,box:null,hit:f.hit}; f.hit.userData={kind:'rslot',ref:sl}; rk.slots.push(sl); }
+  rk.schildTex=R.schildTex;
+  rk.mov=addMovable({kind:'rack',name:K.name,g,fw:K.w+0.16,fd:2*K.zo+0.14,ref:rk});
   rk.nr=racks.length; racks.push(rk); drawRackSchild(rk);
   if(data&&data.slots) data.slots.forEach((sd,k)=>{ if(sd&&P[sd.type]&&rk.slots[k]) putInSlot(rk.slots[k],sd.type,sd.count,sd.q,sd.kiste); });
   drawRackSchild(rk);
@@ -28299,27 +28192,8 @@ function removeTruck(){
 }
 function truckLeft(){ return truck&&truck.state==='docked'?truck.cargo.length:0; }
 /* Jeder vom LKW genommene Karton zaehlt als Lieferungsteil */
-/* Flaches Paket fuer ein Regal: Bretter und Profile, in Folie */
-let _rpGeo=null,_rpMat=null;
-function regalPaketGeo(){ if(!_rpGeo) _rpGeo=new THREE.BoxGeometry(0.34,0.24,1.18); return _rpGeo; }
-function regalPaketMat(){
-  if(_rpMat) return _rpMat;
-  const t=tex(256,128,(c,W,H)=>{
-    c.fillStyle='#b9bec6'; c.fillRect(0,0,W,H);
-    for(let i=0;i<900;i++){ c.fillStyle=`rgba(255,255,255,${Math.random()*0.16})`;
-      c.fillRect(Math.random()*W,Math.random()*H,rand(4,22),1); }
-    /* Umreifungsbaender */
-    c.fillStyle='#2b3040'; c.fillRect(W*0.22,0,8,H); c.fillRect(W*0.72,0,8,H);
-    /* Etikett */
-    c.fillStyle='#f4f2ea'; c.fillRect(W*0.34,H*0.28,W*0.32,H*0.44);
-    c.strokeStyle='#8f959e'; c.lineWidth=2; c.strokeRect(W*0.34,H*0.28,W*0.32,H*0.44);
-    c.fillStyle='#1b2340'; c.font=BUN(15); c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('REGALBAU',W*0.5,H*0.42);
-    c.fillStyle='#5a6070'; c.font=BAR(13); c.fillText('Stegemann',W*0.5,H*0.58);
-  });
-  _rpMat=new THREE.MeshStandardMaterial({map:t,roughness:0.62});
-  return _rpMat;
-}
+/* Flaches Paket fuer ein Regal: Bretter und Profile, in Folie - Material aus der Bibliothek (MAT 'regalPaket', Einheit 15.10.) */
+function regalPaketMat(){ return MAT.get('regalPaket'); }
 function takeBox(item){ statAdd('kartons',1);
 
   if(!truck||truck.state!=='docked') return;
@@ -31758,7 +31632,6 @@ function vmTexturen(){
     c.strokeStyle='rgba(40,30,20,.7)'; c.lineWidth=4; for(const x of [W*0.1,W*0.16]){ c.beginPath(); c.moveTo(x,H*0.24); c.lineTo(x,H*0.08); c.moveTo(x-6,H*0.14); c.lineTo(x,H*0.08); c.lineTo(x+6,H*0.14); c.stroke(); }
     c.fillStyle='rgba(30,52,110,.92)'; c.fillRect(W*0.36,0,12,H); c.fillRect(W*0.62,0,12,H);
     c.fillStyle='rgba(255,255,255,.18)'; c.fillRect(W*0.36,0,3,H); c.fillRect(W*0.62,0,3,H); });
-  const schild=(txt,fg,bg)=>tex(256,64,(c,W,H)=>{ c.fillStyle=bg; c.fillRect(0,0,W,H); c.fillStyle=fg; c.textAlign='center'; c.textBaseline='middle'; fitFont(c,txt,W-16,38,BUN); c.fillText(txt,W/2,H/2+2); });
   /* Luftpolsterfolie: Noppen mit Glanzpunkt, halbdurchsichtig */
   const folie=tex(128,64,(c,W,H)=>{ c.fillStyle='#d6e8f2'; c.fillRect(0,0,W,H);
     for(let y=4;y<H;y+=8) for(let x=(y/8%2)*4;x<W;x+=8){ c.fillStyle='rgba(150,180,198,.55)'; c.beginPath(); c.arc(x+0.8,y+0.8,3,0,Math.PI*2); c.fill();
@@ -31779,7 +31652,7 @@ function vmTexturen(){
     c.fillStyle='#24366e'; c.fillRect(W*0.2,0,10,H); c.fillRect(W*0.75,0,10,H);
     c.fillStyle='#f4f2ea'; c.fillRect(W*0.3,H*0.35,W*0.4,H*0.3); c.fillStyle='#1b2340'; c.textAlign='center'; c.textBaseline='middle';
     fitFont(c,txt,W*0.36,30,BUN); c.fillText(txt,W/2,H/2); });
-  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},schild:{kl:schild('KARTON L',MAT.css('nachtblau'),MAT.css('schildgold')),km:schild('KARTON M',MAT.css('nachtblau'),MAT.css('schildgold')),ks:schild('KARTON S',MAT.css('nachtblau'),MAT.css('schildgold')),folie:schild('FOLIE · BAND',MAT.css('nachtblau'),MAT.css('schildgold')),kopf:schild('PACKMITTEL','#ffffff','#2a5a9e')},
+  _vmTex={kante,deckel:{ks:deckel('S'),km:deckel('M'),kl:deckel('L')},
     folie,rollEnde,band,bundel:{ks:bundel('KARTON S'),km:bundel('KARTON M'),kl:bundel('KARTON L'),folie,band:bundel('KLEBEBAND')}};
   return _vmTex;
 }
@@ -31810,12 +31683,10 @@ function vmRegalBauen(g,i,reg,B0,k){
   const P=(lx,lz)=>({x:L.x+lx*cs+lz*sn,z:L.z-lx*sn+lz*cs}), x=0, z=0;
   const B=(k2,bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>{ const p=P(lx,lz); B0(k2,bw,bh,bd,c,p.x,y,p.z,cs<0?-(rx||0):(rx||0),(ry||0)+L.ry,rz); };
   const setz=(m,lx,y,lz)=>{ const p=P(lx,lz); m.position.set(p.x,y,p.z); m.rotation.y+=L.ry; return m; };
-  const BLAU=MAT.farbe('signalblau'), ZINK=MAT.farbe('aluminium');
-  for(const sx of [-1,1]) for(const sz of [-1,1]) B(k,0.035,VM_RH,0.035,BLAU,x+sx*(w/2-0.018),VM_RH/2,z+sz*(d/2-0.018));
-  for(const sx of [-1,1]) for(const y of [0.3,1.1]) B(k,0.02,0.02,d-0.04,BLAU,x+sx*(w/2-0.018),y,z,0.6*(y>1?1:-1),0,0);
-  for(const y of VM_BOEDEN.concat([VM_RH])) B(k,w,0.022,d,ZINK,x,y-0.011,z);
-  /* Rueckwand aus Lochblech nur unten: vom Band her sieht man hinein */
-  B(k,w-0.04,0.3,0.01,ZINK,x,0.25,z-d/2+0.01);
+  const BLAU=MAT.farbe('signalblau');
+  /* Gestell: Fachbodenregal aus dem Baukasten (bk.regal art 'fachboden': Stuetzen Signalblau, Boeden verzinkt wie das Lagerregal),
+     Rueckwand aus Lochblech nur unten - vom Band her sieht man hinein */
+  bk.regal({art:'fachboden',breite:w,tiefe:d,hoehe:VM_RH,boeden:VM_BOEDEN,rueckwand:0.3,box:(bw,bh,bd,c,lx,y,lz,rx,ry,rz)=>B(k,bw,bh,bd,c,x+lx,y,z+lz,rx,ry,rz)});
   const R={i,stapel:{},folie:[],band:[],hit:null};
   /* flache Kartons: Hoehe je Stueck */
   const dicke={kl:0.008,km:0.006,ks:0.004}, boden={kl:0,km:1,ks:2};
@@ -31826,13 +31697,13 @@ function vmRegalBauen(g,i,reg,B0,k){
     setz(m,x,VM_BOEDEN[boden[id]]+0.5,z+0.01); g.add(m); reg(m);
     if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
     R.stapel[id]={m,dicke:dicke[id],y0:VM_BOEDEN[boden[id]]};
-    const sm=setz(plane(0.2,0.05,new THREE.MeshBasicMaterial({map:T.schild[id],toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
+    const sm=setz(bk.schild(g,{text:{kl:'KARTON L',km:'KARTON M',ks:'KARTON S'}[id],b:0.2,h:0.05,px:0.4,leucht:true}),x,VM_BOEDEN[boden[id]]-0.035,z+d/2+0.006); reg(sm);
   }
   /* Folienrollen liegen laengs, bis zu drei */
   const fm=vmFolieMat(), fg=vmFolieGeo(w-0.1);
   /* Rollen laengs in Regal-x: im gedrehten Regal zeigt die Achse in Welt-x genauso */
   for(let j=0;j<3;j++){ const m=new THREE.Mesh(fg,fm); m.rotation.z=Math.PI/2; const p=P(x,z-0.18+j*0.18); m.position.set(p.x,VM_BOEDEN[3]+0.085,p.z); g.add(m); reg(m); R.folie.push(m); }
-  const sm=setz(plane(0.24,0.05,new THREE.MeshBasicMaterial({map:T.schild.folie,toneMapped:false}),0,0,0,0,g),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
+  const sm=setz(bk.schild(g,{text:'FOLIE · BAND',b:0.24,h:0.05,px:0.4,leucht:true}),x,VM_BOEDEN[3]-0.035,z+d/2+0.006); reg(sm);
   /* Klebeband: offener Karton auf dem Regal, bis zu zwoelf Rollen */
   B(k,0.5,0.004,0.24,MAT.farbe('holzPalette'),x,VM_RH+0.002,z); for(const s of [-1,1]){ B(k,0.5,0.06,0.006,MAT.farbe('holzPalette'),x,VM_RH+0.03,z+s*0.12); B(k,0.006,0.06,0.24,MAT.farbe('holzPalette'),x+s*0.25,VM_RH+0.03,z); }
   /* zwoelf echte Klebebandrollen in einem Zeichenaufruf; sichtbar sind so viele, wie da sind */
@@ -31840,7 +31711,7 @@ function vmRegalBauen(g,i,reg,B0,k){
     for(let j=0;j<12;j++){ const p=P(x-0.2+(j%6)*0.08,z+(j<6?-0.055:0.055)); q.makeTranslation(p.x,VM_RH+0.03,p.z); im.setMatrixAt(j,q); }
     im.instanceMatrix.needsUpdate=true; if(HIQ) im.castShadow=true; g.add(im); reg(im); R.bandIM=im; }
   /* Kopfschild */
-  const km=setz(plane(0.5,0.12,new THREE.MeshBasicMaterial({map:T.schild.kopf,toneMapped:false}),0,0,0,0,g),x,VM_RH+0.16,z+0.02); reg(km);
+  const km=setz(bk.schild(g,{text:'PACKMITTEL',stil:'info',b:0.5,h:0.12,px:0.5,leucht:true}),x,VM_RH+0.16,z+0.02); reg(km);
   B(k,0.52,0.14,0.02,MAT.farbe('nachtblau'),x,VM_RH+0.16,z+0.005);
   for(const s of [-1,1]) B(k,0.02,0.16,0.02,BLAU,x+s*0.2,VM_RH+0.08,z);
   const hit=setz(bbox(w+0.06,VM_RH+0.2,d+0.06,hitM,0,0,0,g,false),x,(VM_RH+0.2)/2,z);
@@ -32339,8 +32210,7 @@ function vdUpdate(dt){
    auch V1, die Optik des alten R1 - die graphitfarbene Lamellenoptik ist verworfen. */
 /* vsWarnTex() entfaellt (13.10., Materialangleichung): Warnschraffur = MAT.get('warnschraffur') */
 /* Schild "DDL Abholung" (Tom 09.10., wie im Zielbild: dunkelblau, Paket-Symbol) */
-function ddlSchildTex(){
-  return tex(1024,416,(g,W,H)=>{ g.fillStyle='#1f3152'; g.fillRect(0,0,W,H);
+function ddlSchildMalen(g,W,H){ { g.fillStyle='#1f3152'; g.fillRect(0,0,W,H);
     const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'rgba(255,255,255,0.07)'); gr.addColorStop(1,'rgba(0,0,0,0.14)'); g.fillStyle=gr; g.fillRect(0,0,W,H);
     g.strokeStyle='rgba(255,255,255,.18)'; g.lineWidth=6; g.strokeRect(10,10,W-20,H-20);
     g.strokeStyle='#f2f4f7'; g.lineWidth=12; g.lineJoin='round';
@@ -32350,7 +32220,7 @@ function ddlSchildTex(){
     g.moveTo(x+s2*0.25,y+s2*0.15); g.lineTo(x+s2*0.75,y+s2*0.41); g.lineTo(x+s2*0.75,y+s2*0.6); g.stroke();
     g.fillStyle='#f2f4f7'; g.textBaseline='alphabetic'; g.textAlign='left';
     g.font='700 118px "Barlow Condensed", Inter, sans-serif'; g.fillText('DDL',420,182);
-    g.font='600 112px "Barlow Condensed", Inter, sans-serif'; g.fillText('Abholung',420,330); });
+    g.font='600 112px "Barlow Condensed", Inter, sans-serif'; g.fillText('Abholung',420,330); }
 }
 function buildVersandhof(){
   if(VD.g) return;
@@ -32378,10 +32248,10 @@ function buildVersandhof(){
     if(typeof lampMats!=='undefined') lampMats.push(VD.schwan);
     const glas=new THREE.Mesh(new THREE.CircleGeometry(0.19,20),VD.schwan); glas.rotation.x=Math.PI/2; glas.position.set(LX,LY-0.185,V1.wz+0.63); g.add(glas); }
   /* Schild "DDL Abholung" ueber dem Tor, innen und aussen (vorher "V1 · VERSAND") */
-  { const sm=new THREE.MeshStandardMaterial({map:ddlSchildTex(),roughness:0.55}), SY=V1.h+1.25;
-    /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1) */
+  { const SY=V1.h+1.25, o={malen:ddlSchildMalen,pw:1024,ph:416,schluessel:'ddl',b:1.9,h:0.78,x:V1.x,y:SY};
+    /* die Wand ist 0,2 m dick (Innenseite z = wz + 0,1); Carrier-Schild = Sonderschild (eigener Malcode, Textur geteilt) */
     B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz+0.12); B(1.96,0.84,0.04,MAT.farbe('aluminium'),V1.x,SY,V1.wz-0.12);
-    VD.sign=plane(1.9,0.78,sm,V1.x,SY,V1.wz+0.145,0,g); plane(1.9,0.78,sm,V1.x,SY,V1.wz-0.145,Math.PI,g); }
+    VD.sign=bk.schild(g,Object.assign({z:V1.wz+0.145},o)); bk.schild(g,Object.assign({z:V1.wz-0.145,ry:Math.PI},o)); }
   /* Wandtelefon (Tom 09.10.: "DDL nur auf Anruf - Telefon an der Wand"): links neben der
      Ladezone, vom Gang hinter den Packtischen aus erreichbar */
   { const PX=V1.x-V1.w/2-1.25, PY=1.38, PZ=V1.wz+0.1;
@@ -32402,14 +32272,11 @@ function buildVersandhof(){
   const hof=V1_HOF, W=hof.x1-hof.x0, D=hof.z1-hof.z0;
   const fl=new THREE.Mesh(MAT.kachel(new THREE.PlaneGeometry(W,D),W/2.2,D/2.2),MAT.get('betonHof'));
   fl.rotation.x=-Math.PI/2; fl.position.set((hof.x0+hof.x1)/2,0.036,(hof.z0+hof.z1)/2); if(HIQ) fl.receiveShadow=true; g.add(fl);
-  const mark=(w,d,x,z)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),MAT.basic(MAT.farbe('signalgelb'))); m.rotation.x=-Math.PI/2; m.position.set(x,0.04,z); g.add(m); };
-  for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1){ mark(0.12,0.6,V1.x-1.75,z2); mark(0.12,0.6,V1.x+1.75,z2); }
-  const zm=new THREE.Mesh(new THREE.PlaneGeometry(4.6,1.3),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,map:tex(920,260,(c2,Wc,Hc)=>{ c2.clearRect(0,0,Wc,Hc);
-    c2.fillStyle='rgba(18,20,26,.62)'; c2.fillRect(0,0,Wc,Hc); c2.strokeStyle=MAT.css('signalgelb'); c2.lineWidth=10; c2.strokeRect(5,5,Wc-10,Hc-10);
-    c2.textAlign='center'; c2.textBaseline='middle'; c2.font=BUN(104); c2.fillStyle=MAT.css('signalgelb'); c2.fillText('VERSANDHOF',Wc/2,Hc/2+3); })}));
-  /* Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das
-     Fuehrerhaus bis -42,1); frueher bei z -32,5 mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
-  zm.rotation.x=-Math.PI/2; zm.rotation.z=0; zm.position.set(V1.x,0.045,hof.z0+2.3); zm.renderOrder=2; g.add(zm);
+  /* Fahrspur gestrichelt und Hofschrift (bk.bodenmarkierung, Einheit 15.10.) - Hofschrift am Ende des Hofs, vor dem Fuehrerhaus des
+     wartenden LKW - nie im Bereich des LKW (der Laderaum steht 3 m breit bis z -39,5, das Fuehrerhaus bis -42,1); frueher bei z -32,5
+     mitten unter dem LKW und durch den Ladeboden zu sehen (Tom 15.10.) */
+  { const L=[]; for(let z2=hof.z1-0.8;z2>hof.z0+1;z2-=1.1) for(const sx of [-1.75,1.75]) L.push([V1.x+sx,z2+0.3,V1.x+sx,z2-0.3,'gelb',0.12]);
+    bk.bodenmarkierung({linien:L.map(l=>[l[0],l[1]-0.06,l[2],l[3]+0.06,l[4],l[5]]),schriften:[{text:'VERSANDHOF',x:V1.x,z:hof.z0+2.3,b:4.6,h:1.3}],parent:g,y:0.036,schatten:true}); }
   /* Zaun: Doppelstabmatte aus dem Baukasten (bk.zaun, aussen) - vorher eigene Pfosten alle 2 m mit
      halbdurchsichtiger Scheibe (14.10., Fundament Schritt Zaeune) */
   for(const [a,b] of [[[hof.x0,hof.z1],[hof.x0,hof.z0]],[[hof.x1,hof.z1],[hof.x1,hof.z0]],[[hof.x0,hof.z0],[hof.x1,hof.z0]]])
@@ -54660,11 +54527,11 @@ function fwMarke(i,bis,z){
   m.rotation.x=-Math.PI/2; m.position.set(-3.35,0.022,z); scene.add(m); fwTestMarken.push(m);
   /* dazu ein Stehschild an der Wandseite: der Bodenstreifen verschwindet
      von vorn hinter den Kartonreihen */
-  const sm=new THREE.MeshBasicMaterial({color:0xdddddd,map:tex(512,256,(c,W,H)=>{
+  const g=bk.schild(scene,{malen:(c,W,H)=>{
     c.fillStyle='#0e1226'; c.fillRect(0,0,W,H); c.fillStyle=s.farbe; c.fillRect(0,0,W,22); c.fillRect(0,H-22,W,22);
     c.textAlign='center'; c.textBaseline='middle'; c.fillStyle=s.farbe; fitFont(c,s.name,W-130/* Pfosten verdecken die Raender */,84,BUN); c.fillText(s.name,W/2,96);
-    c.fillStyle='#f2f5ff'; c.font=BAR(64); c.fillText(`Level ${s.ab}${bis>s.ab?'–'+bis:''}`,W/2,178); })});
-  const g=schild(-5.75,1.25,z-0.1,0.9,0.45,sm,std(0x5a616c,{metalness:0.6,roughness:0.45})); g.userData.fwSchild=sm; fwTestMarken.push(g);
+    c.fillStyle='#f2f5ff'; c.font=BAR(64); c.fillText(`Level ${s.ab}${bis>s.ab?'–'+bis:''}`,W/2,178); },pw:512,ph:256,b:0.9,h:0.45,x:-5.75,y:1.25,z:z-0.1,pfosten:true,leucht:true});
+  g.userData.fwSchild=g.userData.flaeche.material; fwTestMarken.push(g);
 }
 function fwMarkenWeg(){ fwTestMarken.forEach(m=>{ scene.remove(m);
   if(m.userData.fwSchild){ m.userData.fwSchild.map.dispose(); m.userData.fwSchild.dispose(); return; }

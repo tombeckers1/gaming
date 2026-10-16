@@ -55,8 +55,11 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       if(lack) gr=Infinity; else if(f<=gr) return; else gr=f;
       /* Einheit 15.10.: die Kasse ist ein Geraete-Sammler (bk.kasse) - die Farbe steht dann in den Vertexfarben (haeufigste Farbe) */
       const ca=o.material.vertexColors&&o.geometry.attributes.color;
-      if(ca){ const n={}; for(let i=0;i<ca.count;i++){ const k=new THREE.Color(ca.getX(i),ca.getY(i),ca.getZ(i)).convertLinearToSRGB().getHex(); n[k]=(n[k]||0)+1; }
-        korpus=+Object.keys(n).sort((a,b)=>n[b]-n[a])[0]; }
+      if(ca){ const n={}, P=o.geometry.attributes.position, a=new THREE.Vector3(), b2=new THREE.Vector3(), c=new THREE.Vector3();
+        /* Farbe mit der groessten Flaeche (Dreiecke nach Flaeche gewichtet) - der Korpus */
+        for(let i=0;i+2<ca.count;i+=3){ a.fromBufferAttribute(P,i); b2.fromBufferAttribute(P,i+1); c.fromBufferAttribute(P,i+2);
+          const A=b2.sub(a).cross(c.sub(a)).length()/2, k=new THREE.Color(ca.getX(i),ca.getY(i),ca.getZ(i)).convertLinearToSRGB().getHex(); n[k]=(n[k]||0)+A; }
+        korpus=+Object.keys(n).sort((x,y)=>n[y]-n[x])[0]; }
       else korpus=o.material.color.clone().convertLinearToSRGB().getHex(); });
     return {grund:[e[0],e[1],e[2]],korpus:korpus===null?null:'#'+korpus.toString(16).padStart(6,'0'),n,mitte:+(sx/Math.max(1,n)/W).toFixed(2),rechts:+(rechts/W).toFixed(3)}; });
   console.log('BLENDE  ',JSON.stringify(blende));

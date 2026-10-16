@@ -11,7 +11,7 @@
 const FW_DEV=true;
 let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false, vfGezuendet=0;
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
-function todUhr(){ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
+function todUhr(){ if(typeof LM!=='undefined'&&LM&&LM.uhr) return LM.uhr; /* Leistungsbericht: Feuerwerksort bei Nacht */ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
 /* Stufen nach Level (Tom, 28.09.: "welches Level was ist ... die hat
    man am Anfang, die in der Mitte, das sind die wirklich krassen
    Sachen" - damit die Steigerung beim Testen sichtbar wird) */

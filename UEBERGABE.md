@@ -36,7 +36,7 @@ gleichzeitig, besser einer** (material braucht ~11 GB).
 2. Lampen + Fassade/Hoflampen (`fassade-0910.md`) – Opus.
 3. Balancing nach freigegebener Zielkurve **ohne Silvester-Rekordtag** (`balancing-0910.md` unten) auf der Wirtschaftszentrale.
 4. Regale, Kassen, Fenster, Türen, Schilder, Bodenmarkierungen (Größen/Arten bleiben, nur Bauweise einheitlich).
-5. Leistungsbericht im Spiel (Tom misst auf seinem PC); prüfen: Vorführung hält ~1,3 GB Texturen, Speicherspitze beim ersten Laden-Bild.
+5. ~~Leistungsbericht im Spiel~~ – gebaut 16.10. (Branch claude/leistung): Esc → „Leistung messen“, Doku `docs/uebergabe/leistungsbericht.md`, Test `src/tests/leistungsbericht.js`. Tom misst auf seinem PC und schickt den Text; Prüfpunkte 1,3 GB / Speicherspitze stehen im Bericht.
 6. Danach großes Paket: **Große Halle NEU bauen**, vorher genauer Plan mit Tom, Welten direkt zusammenlegen (warteschlange.md).
 **Halle Etappe A gebaut (14.10. nachts, Agent):** Ausbau `lagerlogistik` (Kapitel 7.3): ③ + gelbe Wand + N1, neue Schleuse,
 Hochregal 3 Gassen (Gasse 1 mit RBG), I/O, Anbruch, Stellplätze, FTS-Logik (Einlagern, Anbruch, Nachschub ③), Bodenmarkierungen,

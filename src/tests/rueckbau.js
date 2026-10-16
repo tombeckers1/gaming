@@ -30,17 +30,19 @@ const GP=process.env.GEGENPROBE==='1';
   await H.neuladen(p);
   /* Weiterspielen = erster Knopf; danach ein paar Sekunden Spielzeit (Meldung kommt nach 2,6 s) */
   await p.evaluate(()=>{ setTimeout(()=>document.querySelector('#startBtns button:first-child').click(),0); });
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:900000,polling:1000});
-  await p.evaluate(()=>window.__bb.stoppSchleife());
+  /* sofort anhalten und zaehlen, bevor Einraeumer/Packer Ware bewegen (Regale + Boden + Verkaufsregale + gutgeschrieben) */
+  await p.waitForFunction("!document.getElementById('start').classList.contains('show')&&!!window.__bb.S&&(window.__bb.stoppSchleife(),true)",null,{timeout:900000,polling:200});
   const r=await p.evaluate(gp=>{ const bb=window.__bb, S=bb.S;
-    bb.run(4,0.05);
-    const toasts=[...document.querySelectorAll('#toasts .toast')].map(e=>e.textContent);
     const R=bb.RUECKBAU;
     if(gp){ const sl=bb.racks.flatMap(r=>r.slots).find(s=>s.box); if(sl){ sl.rk.g.remove(sl.box.mesh); sl.box=null; } }
     const lager={}; const add=(t,c)=>{ lager[t]=(lager[t]||0)+c; };
     bb.racks.forEach(rk=>rk.slots.forEach(s=>{ if(s.box) add(s.box.type,s.box.count); }));
     bb.floorBoxes.forEach(x=>add(x.type,x.count));
+    bb.shelves.forEach(sh=>sh.levels.forEach(l=>{ if(l.type) add(l.type,l.count); }));
+    Object.values(bb.staff).forEach(w=>{ if(w&&w.carry&&w.carry.type) add(w.carry.type,w.carry.count); });
     (R&&R.geldListe||[]).forEach(w=>add(w.t,w.c));
+    bb.run(4,0.05);
+    const toasts=[...document.querySelectorAll('#toasts .toast')].map(e=>e.textContent);
     const racks=bb.racks.map(rk=>({x:+rk.g.position.x.toFixed(2),z:+rk.g.position.z.toFixed(2),ry:rk.g.rotation.y,kind:rk.kind}));
     return {money:S.money,R:R?JSON.parse(JSON.stringify(Object.assign({},R,{ware:R.ware.length}))):null,lager,racks,
       up:bb.RUECKBAU_UP.filter(id=>S.up[id]),staff:bb.RUECKBAU_STAFF.filter(id=>S.staff[id]),hr:S.hr,ll:S.ll,pd:S.pd,toast:toasts.find(t=>/Rückerstattung/.test(t))||'',toastN:toasts.filter(t=>/Rückerstattung/.test(t)).length,
@@ -55,6 +57,7 @@ const GP=process.env.GEGENPROBE==='1';
   rohSoll=Math.round(rohSoll*100)/100;
   const vorher={}; const add=(t,c)=>{ if(t&&c>0) vorher[t]=(vorher[t]||0)+c; };
   D.racks.forEach(rd=>(rd.slots||[]).forEach(s=>s&&add(s.type,s.count)));
+  (D.shelves||[]).forEach(sh=>(sh.levels||[]).forEach(l=>l&&l.type&&add(l.type,l.count)));
   (D.boxes||[]).forEach(x=>{ if(x.x!==undefined) add(x.type,x.count); });   /* ohne Lieferungen unterwegs (die kommen als neue Kartons) */
   if(D.hr){ D.hr.p.forEach(pl=>pl&&pl.forEach(x=>add(x.t,x.c))); D.hr.tr.forEach(l=>l.b.forEach(x=>add(x.t,x.c))); }
   if(D.pd){ D.pd.s.forEach(s=>{ (s.pal||[]).forEach(x=>add(x.t,x.c)); if(s.karton) add(s.karton.t,s.karton.n); });
@@ -83,10 +86,10 @@ const GP=process.env.GEGENPROBE==='1';
     const rc=new THREE.Raycaster(); const ziele=[]; sc.traverse(m=>{ if(m.isMesh) ziele.push(m); });
     const sicht=m=>{ for(let a=m;a;a=a.parent) if(a.visible===false) return false; return true; };
     /* Gegenprobe: das Wandstueck bei z -20 unsichtbar und seine Kollision weg - wie eine offene Schleuse */
-    if(gp){ rc.set(new THREE.Vector3(-14,1,-20),new THREE.Vector3(-1,0,0)); rc.far=12; const h=rc.intersectObjects(ziele,false).filter(i=>sicht(i.object))[0]; if(h) h.object.visible=false;
+    if(gp){ rc.set(new THREE.Vector3(-19.4,1,-20),new THREE.Vector3(-1,0,0)); rc.far=3; const h=rc.intersectObjects(ziele,false).filter(i=>sicht(i.object))[0]; if(h) h.object.visible=false;
       for(let i=bb.colliders.length-1;i>=0;i--){ const c=bb.colliders[i]; if(-20>c.minX&&-20<c.maxX&&-20>c.minZ&&-20<c.maxZ) bb.colliders.splice(i,1); } }
     for(let z=-29.6;z<=-6.4;z+=0.4) for(const y of [0.2,1.0,2.0,3.0,4.6]){
-      rc.set(new THREE.Vector3(-14,y,z),new THREE.Vector3(-1,0,0)); rc.far=12;
+      rc.set(new THREE.Vector3(-19.4,y,z),new THREE.Vector3(-1,0,0)); rc.far=3;
       const h=rc.intersectObjects(ziele,false).filter(i=>sicht(i.object))[0];
       if(!h||h.point.x>-19.8||h.point.x<-20.15) o.loch.push(z.toFixed(1)+'/'+y+' '+(h?h.point.x.toFixed(2)+' '+(h.object.userData.bauteil||h.object.name||'?'):'nichts')); }
     /* Kollision: jeder Punkt der Wandflucht liegt in einem Kollisionsrechteck */

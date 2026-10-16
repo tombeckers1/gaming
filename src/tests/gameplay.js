@@ -43,11 +43,18 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('VERSAND',r.pack===3&&r.packer===3&&r.vmVoll,'Versand nicht in der hoechsten Stufe: '+JSON.stringify({stufe:r.pack,packer:r.packer,vm:r.vmVoll}));
   pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=(HANDY?15:25)&&r.voll>=r.faecher*0.9&&r.sorten>=(HANDY?35:150)&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
   /* drei Spieltage laufen lassen */
-  const tage=await p.evaluate(()=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
-    while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }
-    return {ddl:{rufe:S.stat.ddlRuf||0,abgeholt:S.stat.ddl||0,log:(S.onlineLog||[]).length},vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; });
+  /* PACKMATERIAL deterministisch (16.10.): Die Vorfuehrung bestellt Versandmaterial nur, wenn ein Bestand unter die Haelfte faellt
+     (gpBestellen, beim Tageswechsel). Ob das in drei Tagen zufaellig passiert, haengt vom Paketmix ab (ein Lauf: verbraucht 74,
+     eingelagert 0). Darum Klebeband vorab auf 40 % senken: der Tageswechsel MUSS bestellen, der Rest der Kette (Verbrauch, Bestellung,
+     Lieferung, Einlagern) laeuft unveraendert. GEGENPROBE=1: Bestellungen von Versandmaterial gehen verloren (aus pending gestrichen)
+     -> PACKMATERIAL muss melden. */
+  const tage=await p.evaluate((gegen)=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
+    for(let i=0;i<3;i++) S.vm[i].band=Math.floor(bb.VM.band.kap*0.4);
+    const unter=bb.vmGesamt('band')<bb.vmKapGesamt('band')*0.5;
+    while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(gegen){ const pl=bb.pendingListe(); for(let k=pl.length-1;k>=0;k--) if(pl[k].vm) pl.splice(k,1); } if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }
+    return {unter,ddl:{rufe:S.stat.ddlRuf||0,abgeholt:S.stat.ddl||0,log:(S.onlineLog||[]).length},vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; },process.env.GEGENPROBE==='1');
   console.log('TAGE',JSON.stringify(Object.assign({},tage,{gespeichert:undefined})).slice(0,1500));
-  pruef('PACKMATERIAL',tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
+  pruef('PACKMATERIAL',tage.unter&&tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
   /* 09.10.: DDL nur auf Anruf - der Versand-Disponent der Vorfuehrung ruft am Wandtelefon an */
   pruef('DDL_ANRUF',tage.ddl.rufe>=1&&tage.ddl.rufe<=12&&tage.ddl.abgeholt>0&&tage.ddl.log>=2,'in der Vorfuehrung wird DDL nicht gerufen oder nichts abgeholt: '+JSON.stringify(tage.ddl));
   pruef('LAEUFT',tage.tag>=tage.d0+3,'Tage laufen nicht weiter: '+tage.tag+' (Start '+tage.d0+')');

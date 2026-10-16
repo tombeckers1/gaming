@@ -145,7 +145,9 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bk.dachrand({x0:r.x0-LW*1.5,x1:r.x1+LW*1.5,z0:r.z0-LW*1.5,z1:r.z1+LW*1.5,y:H+0.115,fallrohre:opt.fallrohre});
+  /* Attika (bk.dachrand): bis 5,5 m Raumhoehe direkt auf der Wand (1,5 cm ueber der Decke wie Laden/Lager) - sonst blieb unter dem
+     Ueberstand ein dunkler Spalt; darueber 11,5 cm Abstand (Flimmern Decke/Dach bei 12 m) */
+  if(!opt.keinDach) bk.dachrand({x0:r.x0-LW*1.5,x1:r.x1+LW*1.5,z0:r.z0-LW*1.5,z1:r.z1+LW*1.5,y:H+(H>5.5?0.115:0.005),fallrohre:opt.fallrohre});
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -394,7 +396,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bk.dachrand({x0:S2.x0,x1:xo,z0:mz-ti/2-LW,z1:mz+ti/2+LW,y:H+0.115});
+  bk.dachrand({x0:S2.x0,x1:xo,z0:mz-ti/2-LW,z1:mz+ti/2+LW,y:H+(H>5.5?0.115:0.005)});
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);

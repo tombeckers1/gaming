@@ -740,10 +740,14 @@ function _bkGruppen(geo,mats){ const uniq=[]; for(const m of mats) if(uniq.index
    je 32-m-Feld, Profile laufen im Laibungs-Material mit (kein Zeichenaufruf mehr). o.aussenSockel:false = ohne (z. B. Innenwand). */
 const AUSSEN={sockel:0.5,vor:0.05,profilH:0.04,profilVor:0.08,eck:0.06,eckVor:0.018};
 bk.AUSSEN=AUSSEN;
+/* Sockel, Attikablech und Fallrohre sind schmal und ueberall gleich: im Wandbild EIN Mesh fuer die ganze Welt (wbFeld 'alle')
+   statt eines je 32-m-Feld - ein Zeichenaufruf statt zwei bis fuenf in jeder Aussenansicht */
+function _bkSockelMat(){ return MAT.get('sockelAussen'); }
 function _bkAussenTeil(wand,o,w,h,d,x,y,z,mat,art){
   const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),x,y,z);
   const m=new THREE.Mesh(geo,mat); m.position.set(x-wand.position.x,y-wand.position.y,z-wand.position.z);
   m.userData.bauteil='wand'; m.userData.bauteilArt=art; m.castShadow=wand.castShadow; m.receiveShadow=wand.receiveShadow;
+  if(mat===_bkSockelMat()) m.userData.wbFeld='alle';
   wand.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; }
 function _bkAussenhaut(wand,o,r,ma){
   const art=bk.flaecheArt(ma); if(art!=='fassade'&&art!=='blech') return;
@@ -808,7 +812,7 @@ bk.sockelleiste=function(o){
     const P=AUSSEN, l=L+2*(P.profilVor-A.t), pr=new THREE.Mesh(new THREE.BoxGeometry(o.laengs?l:P.profilVor,P.profilH,o.laengs?P.profilVor:l),bk.flaeche('laibung'));
     pr.position.set(o.laengs?0:o.seite*(P.profilVor-A.t)/2,A.h/2+P.profilH/2,o.laengs?o.seite*(P.profilVor-A.t)/2:0); pr.userData.bauteil='wand'; pr.userData.bauteilArt='sockelProfil';
     m.add(pr); if(o.bild!==false) bk.wandBildAdd(pr); }
-  m.userData.bauteil='wand'; m.userData.bauteilArt=o.art==='aussen'?'sockelAussen':'sockel';
+  m.userData.bauteil='wand'; m.userData.bauteilArt=o.art==='aussen'?'sockelAussen':'sockel'; if(o.art==='aussen') m.userData.wbFeld='alle';
   (o.parent||scene).add(m);
   if(o.zone) zWand(o.zone,m);
   if(o.versteckt) zAdd(o.versteckt,m);
@@ -830,7 +834,7 @@ bk.dachrand=function(o){
   const D=DACHRAND, h=o.h||D.h, y=o.y, g=new THREE.Group(); g.userData.bauteil='dachrand'; (o.parent||scene).add(g);
   const dach=MAT.get('anthrazitMatt'), fas=bk.flaeche('fassade'), blech=MAT.get('lackGraphit');
   const teil=(geo,mat,x,yy,z,art)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,yy,z); m.userData.bauteil='dachrand'; m.userData.bauteilArt=art;
-    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; };
+    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } if(mat===blech) m.userData.wbFeld='alle'; g.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; };
   const w=o.x1-o.x0, d=o.z1-o.z0, cx=(o.x0+o.x1)/2, cz=(o.z0+o.z1)/2;
   { const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),cx,y+h/2,cz), u=_bkGruppen(geo,[fas,fas,dach,dach,fas,fas]);
     teil(geo,u.length===1?u[0]:u,cx,y+h/2,cz,'attika'); }
@@ -873,7 +877,7 @@ bk.wandbild=function(erzwingen){
     const ms=Array.isArray(o.material)?o.material:[o.material];
     const cnt=g.index?g.index.count:g.attributes.position.count;
     const grs=Array.isArray(o.material)&&g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
-    const e=o.matrixWorld.elements, feld=Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld);
+    const e=o.matrixWorld.elements, feld=o.userData.wbFeld||(Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld));
     for(const gr of grs){ const mat=ms[gr.materialIndex]; if(!mat||mat.visible===false) continue;
       const k=mat.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+feld;
       let t=topf.get(k); if(!t){ t={mat,cast:o.castShadow,recv:o.receiveShadow,teile:[],n:0}; topf.set(k,t); }

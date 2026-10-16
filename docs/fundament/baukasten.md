@@ -217,3 +217,10 @@ Neue Töne `anzeigeGruen`, `laserRot`, `anzeigeBlau` (Anzeigen/LEDs an Geräten)
 `freihalteflaeche`, `bodenSchrift`; Texturen `lochblech`, `lochprofil`, `stahlboden`, `regalPaket`, `scannerGlas`, `kassenTastatur`, `kassenband`,
 `fensterSchmutz`, `freihalteschraffur`; `MAT.bild(map)` = eigenes unbeleuchtetes Bildmaterial (Preisschilder, Bildschirme, Leuchtschilder).
 Wächter: `regal`, `kasse`, `tuer` (mit den Drehtür-Wörtern und `streifenvorhang`), `fenster` aktiv; `bk.drehtuer` entfällt (→ `bk.tuer`); `SCHILD` in `HELFER`.
+
+## Fassade (Fundament-Schritt 2, 16.10.) – Doku `fassade.md`
+- `bk.wand` baut an jede Außenfläche Fassade/Trapezblech am Boden automatisch Betonsockel 0,5 m (`MAT sockelAussen`), Tropfkante und
+  Eck-/Stoßprofile (`bk.AUSSEN`); `aussenSockel:false` schaltet ab. `bk.sockelleiste({art:'aussen'})` nur für Stücke ohne Wand.
+- `bk.dachrand({x0,x1,z0,z1,y,h,fallrohre})` – Attika mit Paneelen, Attikablech Graphit, Fallrohre (`bk.DACHRAND`).
+- `bk.lampe({art:'mast'|'wand',punkte:[[x,z,ry]],h,koepfe,neigung,zone})` – Hof-/Mast-/Wandleuchte, Instanzen, nachts Leuchtfläche
+  (`lampeAussen`) + Lichtfleck/-kegel (`lichtfleck`), `bk.LAMPE_AUSSEN`. Flutlichtmasten: `hofMasten(liste)` (05h).

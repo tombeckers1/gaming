@@ -1,3 +1,5 @@
+> **VERWORFEN (Tom 16.10.2026):** große Halle, Hochregal, Werk und Produktion sind komplett zurückgebaut und aus dem Code gelöscht – siehe `docs/rueckbau/rueckbau.md`. Diese Datei ist nur noch Verlauf (Stand V141, a3baa21).
+
 # Große Halle (Plan v7) ins Hauptspiel einhängen
 
 Stand 10.10.2026, Branch `claude/halle-v7`. Die Halle läuft heute als eigener Modus

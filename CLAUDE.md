@@ -19,6 +19,9 @@
 > und Verpackungsmotive. Nach jeder Änderung `node tools/fundament/waechter.js` (4 s, ohne Browser)
 > – Rot wird behoben, nicht in die Ausnahmeliste geschoben; die Liste darf nur schrumpfen.
 
+> **Rückbau (Tom, 16.10. abends):** große Halle, Hochregal, Werk und Produktion sind VERWORFEN und gelöscht –
+> Kern ist Verkauf, Pyrotechnik, Online-Shop, Versand (docs/rueckbau/rueckbau.md, UEBERGABE 000).
+
 > **Neue Richtung (Tom, 08.10. nachts):** Ausbauplan v7 (große Halle, Hochregal, Produktion)
 > wird **in die Zukunft verschoben**. Erst den heutigen Stand auf sehr hohes Niveau bringen:
 > Texturen, Performance, Gameplay, Flow, Wirtschaft. Schritt für Schritt mit Tom. Erste Aufgabe:
@@ -103,7 +106,11 @@ damit sie auch in einem frischen Container gelten.
   Kartonlager, mehrere Bestellungen je Tour, so effizient wie möglich.
   Lager-Plan v7: Schnellplätze an der Hallenwand, Produktion R6 rein/R5 raus,
   Kartonlager ①–③ am Ende ein Raum ohne Trennwände, Schleuse ~13 m.
-- **Großer Bau nach Plan v7 – NUR auf Toms Startsignal** (Tom, 08.10.2026,
+- **VERWORFEN (Tom 16.10.2026):** „Die große Halle ist eine Katastrophe, ergibt keinen Sinn, zu viele Baustellen –
+  ein eigenes Spiel fast. Mach sie KOMPLETT weg.“ Logistikhalle, R2–R5, Hochregal, Werk West und Produktion sind
+  zurückgebaut und aus dem Code gelöscht (docs/rueckbau/rueckbau.md). Fokus: Verkauf, Pyrotechnik, Online-Shop, Versand.
+  Der folgende Abschnitt ist nur noch Verlauf – nichts davon ohne neuen ausdrücklichen Auftrag von Tom wieder anfangen.
+- ~~**Großer Bau nach Plan v7 – NUR auf Toms Startsignal**~~ (VERWORFEN 16.10.; Tom, 08.10.2026,
   "ich gebe Bescheid"). Erst wenn aktuelle Agenten fertig + gemergt sind,
   am besten nach Wochen-Reset in neuer Unterhaltung. Schätzung 6–9 Tage
   Agentenzeit. Phasen:

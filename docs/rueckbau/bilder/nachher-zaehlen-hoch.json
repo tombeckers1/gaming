@@ -1,0 +1,38 @@
+{
+ "ladenEingang": {
+  "calls": 3157,
+  "tris": 22429302,
+  "ms": 29294
+ },
+ "lagerWest": {
+  "calls": 2462,
+  "tris": 22146294,
+  "ms": 17497
+ },
+ "versand": {
+  "calls": 2341,
+  "tris": 22222773,
+  "ms": 17465
+ },
+ "hofR1": {
+  "calls": 3722,
+  "tris": 22502931,
+  "ms": 37007
+ },
+ "aussenWest": {
+  "calls": 3193,
+  "tris": 22318166,
+  "ms": 34264
+ },
+ "draufsicht": {
+  "calls": 2847,
+  "tris": 22554863,
+  "ms": 35380
+ },
+ "speicher": {
+  "geometrien": 2804,
+  "texturen": 663,
+  "meshes": 3668,
+  "sichtbar": 3494
+ }
+}

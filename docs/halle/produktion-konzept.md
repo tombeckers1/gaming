@@ -1,3 +1,5 @@
+> **VERWORFEN (Tom 16.10.2026):** große Halle, Hochregal, Werk und Produktion sind komplett zurückgebaut und aus dem Code gelöscht – siehe `docs/rueckbau/rueckbau.md`. Diese Datei ist nur noch Verlauf (Stand V141, a3baa21).
+
 # Produktion – Konzept-Vorschlag (14.10.2026, von Tom freigegeben – OHNE Wartung)
 
 Ziel (Toms Absicht Finanzbildung): Eigenproduktion = **Fixkosten gegen Marge**. Lohnt erst ab Menge; Break-even sichtbar.

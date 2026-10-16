@@ -1,3 +1,5 @@
+> **VERWORFEN (Tom 16.10.2026):** große Halle, Hochregal, Werk und Produktion sind komplett zurückgebaut und aus dem Code gelöscht – siehe `docs/rueckbau/rueckbau.md`. Diese Datei ist nur noch Verlauf (Stand V141, a3baa21).
+
 # Halle Etappe A – Lager- und Hallenteil (Kapitel 7.3), gebaut 14.10.2026
 
 Bauvorgabe: `plan-1410.md` (Etappe A), Maße: `skizze-1410.html` (Z/LINIEN/TORE/WEGE). Branch `claude/halle-v7` nicht übernommen.

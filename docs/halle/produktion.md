@@ -1,3 +1,5 @@
+> **VERWORFEN (Tom 16.10.2026):** große Halle, Hochregal, Werk und Produktion sind komplett zurückgebaut und aus dem Code gelöscht – siehe `docs/rueckbau/rueckbau.md`. Diese Datei ist nur noch Verlauf (Stand V141, a3baa21).
+
 # Produktion im Werk West – Produktions-Gameplay (15.10.2026)
 
 Konzept: `produktion-konzept.md` (Tom 14.10. freigegeben, **ohne Wartung**). Code: `src/parts/05s-produktion.js` (Logik, Laptop-Tab,

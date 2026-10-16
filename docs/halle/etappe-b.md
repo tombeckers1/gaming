@@ -1,3 +1,5 @@
+> **VERWORFEN (Tom 16.10.2026):** große Halle, Hochregal, Werk und Produktion sind komplett zurückgebaut und aus dem Code gelöscht – siehe `docs/rueckbau/rueckbau.md`. Diese Datei ist nur noch Verlauf (Stand V141, a3baa21).
+
 # Halle Etappe B – Werk West (Kapitel 8 / 8.2 / 8.3), gebaut 15.10.2026
 
 Bauvorgabe: `plan-1410.md` (Etappe B), Maße: `skizze-1410.html` (Z/TORE/WEGE/STRASSEN), Optik: `docs/uebergabe/produktion-referenz.webp`.

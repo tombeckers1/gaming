@@ -10,6 +10,14 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 
 ## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
 
+> **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
+> mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und
+> Produktion sind **VERWORFEN und aus dem Code gelöscht** (−3 200 Zeilen in src/parts, 6 Dateien, 10 Bauteile, 8 MAT-Rezepte). Westwand von
+> Lager Süd durchgehend geschlossen (bk.wand, gelb-schwarzes Sockelband), Lagergang weg, Welt West wie vor Etappe B, NAV x0 −36. Kapitel 7/8
+> gestrichen, geplante heißen jetzt 7 Großhändler, 8 Kette, 9 Imperium. Alte Stände: Kaufpreis/Rohstoffe zurück, Werker/Mischer ohne Kosten
+> weg, Ware ins Lager bzw. zum EK gutgeschrieben (Test `rueckbau.js`). **Progressionslücke:** ab Level 31 kein Ausbauziel mehr → Balancing.
+> Alles unten zu Halle/Werk/Produktion/Hochregal (Punkte „Offen“ 1–3, 5 usw.) ist damit hinfällig. Fokus: Verkauf, Pyrotechnik, Online-Shop, Versand.
+
 **Spiel V141 veröffentlicht (fc3d369)**, Artefakt https://claude.ai/artifact/7zw7iHrZYiYSGzw1QHNwVJ, Branch `claude/artifact-review-task-d47i09`.
 Seit 14.10. erledigt (je Doku in Klammern): V134 EPAL-Paletten + Kartonzelle je Stufe (docs/fundament/paletten.md) ·
 V135–V137 **Große Halle + Werk West** nach Skizze docs/halle/skizze-1410.html (Artefakt DpXBJ4k49w1y33uS2rzV9o; docs/halle/plan-1410.md,
@@ -185,11 +193,9 @@ soll das erzwingen. Start: direkt im neuen Chat (Tom hat zugestimmt), Etappe 1 B
 | 4 | Pyro-Versand (Onlineshop und Packstation) | gebaut |
 | 5 | Eigene Marke (Labor/Rezeptur) | gebaut |
 | 6 | Pyro-Kaufhaus (Süd-Fläche, 2. Eingang) | gebaut |
-| 7 | Pyro-Logistik (Halle West in 3 Stufen: 6,5 / 8,5 / 11 m hoch) | gebaut |
-| 8 | Pyro-Fabrik | geplant, siehe Ausbauplan, Produktion |
-| 9 | Großhändler | geplant |
-| 10 | Kette | geplant |
-| 11 | Imperium, Stadtfeuerwerk | geplant |
+| 7 | Großhändler | geplant (Pyro-Logistik und Pyro-Fabrik: Rückbau 16.10., gestrichen) |
+| 8 | Kette | geplant |
+| 9 | Imperium, Stadtfeuerwerk | geplant |
 
 ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Plan (Abschnitt 7) überholt.
 
@@ -197,7 +203,6 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 - **Welt und Ausbau:**
   - `05-world.js` (Maße `LAY`, Deckenhöhen `WH=3.6`, `HALLE_H=5`).
   - `05h-ausbau.js` (Flächen kaufen, Wände/Durchbrüche, Packstation-Stufen).
-  - `05m-logistik.js` (Halle West).
 - **Personal:**
   - `11-staff.js` (Personal).
   - `11b-einraeumer.js`.
@@ -225,10 +230,7 @@ ROADMAP.md: Die Demo-Idee mit Kapitel 1–6 ist inzwischen durch den Release-Pla
 - Laden x −7,9…37,9 / z −21,9…5,9.
 - Backstock („lbasis“) x −19,9…−8,1 / z −5,9…1,9.
 - Lager Süd 1–3 bis z −29,9.
-- Halle West x −66…−26 / z −34…−7.
-- Schleuse x −26…−19,9 / z −24…−17.
 - Testfeld x −7,9…8 / z −28…−6.
-- Rampen (WRAMPEN) bei x −31 / −38,5 / −47,5 / −57,5, z −34.
 - Haupttür bei x≈0.
 
 ## 3. Was in Version 118 und 119 neu ist (heute fertig)
@@ -482,7 +484,7 @@ flock /tmp/bb-testlock timeout 3600 node -r ./ladezeit-preload.js /home/user/gam
 - **Wichtige Tests nach Bereich:**
   - **Laden/Personal:** personen, kasse, kartonauf, einraeumer, regalsicht, pause.
   - **Versand:** packer, packband, packmaterial, versand, versandtor, tourplan, pakete, karre, kartonlogik, durchgang.
-  - **Ausbau/Lager:** ausbau, stufen, lager, online, hochregal, werk (Halle Etappe B).
+  - **Ausbau/Lager:** ausbau, stufen, lager, online, rueckbau (alter V141-Stand mit Halle/Werk lädt sauber, Rückbau 16.10.).
   - **Feuerwerk:** lochschuss, themen (+R4=1), abschussklang, kugelknall, bodenfontaene, ursprung (test.html), steigerung (test.html), hoehen, anomalie, neuware, sortiment, vfrohr, vfgrafik, vorfuehrung, mblast, kleinfeuer06, verpackung.
   - **Leistung/Gesamt:** leistung, gameplay, H:gameplay (=HANDY=1), baum.
 - **Test-Harness seit 14.10. (Testsanierung, Branch claude/test-sanierung):**

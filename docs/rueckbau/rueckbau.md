@@ -86,7 +86,8 @@ Lagerlogistik, L33/35/37 Werk), Kapitel 7–9 sind nur Vorschau. Für das Balanc
 - grün: `rueckbau` (neu, 421 s; Gegenprobe GEGENPROBE=1 schlägt mit WARE und WESTWAND an), `ausbau`, `stufen`, `lager`, `packer`, `versand`,
   `versandtor` (Test angepasst: Hofschrift aus der Geometrie lesen – seit Einheit/bk.bodenmarkierung lag sie nicht mehr in `position`,
   Altfehler seit 16.10., nicht vom Rückbau), `leistungsbericht` (Route 7 Orte), `licht`, `ausstellung`, `verpackung`, Node-Wächter.
-- Laufzeit-Wächter: Ausgangswerte mit Grund neu (Halle-/Werk-Bauteile weg; Laden 629 → 517, Lager 543 → 422 Zeichenaufrufe).
+- `material` grün (436 s, allein). Laufzeit-Wächter: Ausgangswerte mit Grund neu (Halle-/Werk-Bauteile weg; Laden 629 → 517, Lager 543 → 422
+  Zeichenaufrufe), Schattenpass als Höchstwert aus drei Läufen (schwankt 251/323 je nach Deckenschatten-Bild), danach grün.
 - **gameplay: rot (Speicher).** Aufbau, drei Spieltage, DDL-Anruf und Packmaterial laufen (START/TAGE wie gefordert: 16/16 Ausbauten,
   10/10 Personal, 351/351 Fächer voll, DDL 3 Rufe/90 Pakete, Packmaterial 99/11). Danach stirbt der Renderer beim Neuladen (gpEnde) mit
   > 12,5 GB (zweimal, auch mit BB_MAX_MB 14500 → OOM-Killer). Derselbe Test auf V141 läuft zweimal grün mit 4,7 GB Spitze – also eine

@@ -119,7 +119,7 @@
   ],
   "laufzeit": {
     "stand": "2026-10-16",
-    "grund": "Rueckbau 16.10. (Tom): Logistikhalle, Hochregal, Werk West und Produktion geloescht - Werk-/Hallen-Bauteile entfallen, weniger Tore/Waende/Schilder/Lampen, Zeichenaufrufe Laden -18 %, Lager -22 %",
+    "grund": "Rueckbau 16.10. (Tom): Logistikhalle, Hochregal, Werk West und Produktion geloescht - Werk-/Hallen-Bauteile entfallen, weniger Tore/Waende/Schilder/Lampen, Zeichenaufrufe Laden -18 %, Lager -22 % | Schattenpass: Hoechstwert aus drei Laeufen (Schreiblauf traf ein Bild ohne Deckenschatten, Laden 251 statt 323)",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
@@ -155,37 +155,37 @@
     "ansichten": {
       "laden": {
         "calls": 517,
-        "schatten": 251,
+        "schatten": 323,
         "mats": 207,
         "texs": 129
       },
       "lager": {
         "calls": 423,
-        "schatten": 222,
+        "schatten": 295,
         "mats": 181,
         "texs": 119
       },
       "lagerDock": {
         "calls": 647,
-        "schatten": 218,
+        "schatten": 291,
         "mats": 212,
         "texs": 131
       },
       "dockHof": {
         "calls": 749,
-        "schatten": 204,
+        "schatten": 260,
         "mats": 224,
         "texs": 141
       },
       "testfeld": {
         "calls": 418,
-        "schatten": 238,
+        "schatten": 332,
         "mats": 184,
         "texs": 121
       },
       "strasse": {
         "calls": 125,
-        "schatten": 247,
+        "schatten": 330,
         "mats": 107,
         "texs": 82
       }

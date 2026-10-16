@@ -98,6 +98,7 @@ Kartonwahl des Regals, `wbBox`.)
   + 4 Kartons Serie), Migration erstattet 13.500 €.
 - `gameplay` ALLES OK (Prüfung EIGENE_MARKE: Beispielbatterie „Nordlicht“ wird gezeigt und verkauft),
   `abschussregel` ALLES OK (5 Werkbank-Vorschauen 25…500 Schuss: jeder Schuss aus einem Rohr, 500 Starts/500 Rohre),
+  `verpackung` MANGEL keine, `ausstellung` ALLES OK, Laufzeit-`waechter` ALLES OK (Budget eingehalten, MAT-Wache 0),
   `node tools/fundament/waechter.js` ALLES OK (Wirtschafts-Snapshot neu geschrieben, Ausnahmeliste 17-laptop CSS 517 → 484 Stellen).
 - **Leistung Monster 500** (`src/tests/werkbank-leistung.js`, schwerster Entwurf: Kometenkrone, Brokat, Zeitregen,
   Kronleuchter, Kamuro-Finale, großes Kaliber; Vergleich Ragnarök 409 Schuss, gleiche Kamera, swiftshader):

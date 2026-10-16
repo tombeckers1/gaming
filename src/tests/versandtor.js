@@ -189,7 +189,7 @@ const fs = require('fs');
     const raum = bb.VT.raum; let boden = null; raum.traverse(m => { if (m.isMesh && m.geometry && m.geometry.parameters && Math.abs(m.geometry.parameters.width - bb.LR.len) < 0.01 && Math.abs(m.geometry.parameters.height - bb.LR.w) < 0.01 && m.position.y < 0.5) boden = m; });  /* Ladeboden, nicht die Decke */
     o.bodenY = boden ? boden.position.y : null; let platte = null, schrift = null;
     bb.VD.g.traverse(m => { if (m.isMesh && m.geometry && m.geometry.parameters) { const q = m.geometry.parameters; if (m.geometry.type === 'PlaneGeometry' && Math.abs(q.width - (bb.V1_HOF.x1 - bb.V1_HOF.x0)) < 0.01) platte = m; if (m.geometry.type === 'PlaneGeometry' && Math.abs(q.width - 4.6) < 0.01 && Math.abs(q.height - 1.3) < 0.01) schrift = m; } });
-    o.platteY = platte ? platte.position.y : null; o.schriftZ = schrift ? schrift.position.z : null; o.schriftHalb = 0.65; o.lkwEnde = bb.V1.rz - bb.LR.len - 2.7;
+    o.platteY = platte ? platte.position.y : null; /* Schrift aus bk.bodenmarkierung (Einheit 16.10.): Lage steckt in der Geometrie, nicht in position */ if (schrift) { schrift.geometry.computeBoundingBox(); } o.schriftZ = schrift ? schrift.position.z + (schrift.geometry.boundingBox.min.z + schrift.geometry.boundingBox.max.z) / 2 : null; o.schriftHalb = 0.65; o.lkwEnde = bb.V1.rz - bb.LR.len - 2.7;
     o.tuer = !!(raum.userData && raum.userData.tuer);
     /* Gabel zeigt zum Tor, wenn der Hubwagen steht (Stellung an der Wand): Gabelspitze liegt weiter im LKW als der Fuss? Nein - Gabel zum Tor = +lx */
     { const J = bb.LD.jack.g, v = new THREE.Vector3(0, 0.05, -1.1), w0 = new THREE.Vector3(); J.updateMatrixWorld(true); J.getWorldPosition(w0); const w1 = J.localToWorld(v.clone());

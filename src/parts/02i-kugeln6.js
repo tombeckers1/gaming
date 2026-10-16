@@ -57,7 +57,7 @@ const K6_LIZENZEN=[
   if(P.fackelhimmel150) P.fackelhimmel150.desc='Dreißig lodernde Flammenzungen stehen am Himmel – sie züngeln, flackern im Wind, Funken reißen ab, und fast zehn Sekunden lang sinken sie langsam, bis eine nach der anderen knisternd verlischt.';
   /* alle Kugelbomben sind in dieser Runde geaendert (Knall, Groesse) -
      Toms Pruefliste "Vorfuehrung (Aenderungen)" (17b) */
-  for(const t of ORDER){ const q=P[t]; if(q&&q.shape==='shell'&&!q.eigen&&!q.rezept) q.aenderung=true; }
+  for(const t of ORDER){ const q=P[t]; if(q&&q.shape==='shell'&&!q.eigen) q.aenderung=true; }
   /* Lizenztexte, die gestrichene Kugeln nannten */
   const txt={profi:'Der Götterfunken-Verbund: zweihundert Schuss, und der halbe Ort steht auf der Straße. Dazu die Jumbo-Rakete »Polarstern« und die großen Kugelbomben: Himmelsbrecher, Ringnebel, Kanonade, Sternensturm und Riesenpalme.',
     meister:'Die Jumbo-Rakete »Supernova«, die 300-mm-Kugeln Kometensturm und Urknall – erst ein Boom, dann ein Monster-Schlag. Danach geht es nur noch mit dem Großfeuerwerk weiter.'};

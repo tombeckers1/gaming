@@ -81,10 +81,10 @@ const ERFOLGE=[
   {id:'auftraege',kat:'Aufträge',name:'Für die ganze Stadt',ikon:'auftrag',
    desc:'Großaufträge ausgeliefert',req:{up:'grosskunden'},
    stufen:[5,30,150,600],lohn:WIRT.erfolg.lohn.auftraege},
-  /* --- Eigene Marke: erst mit dem Labor --- */
+  /* --- Eigene Marke: erst mit der Werkbank --- */
   {id:'eigene',kat:'Eigene Marke',name:'Hausmarke',ikon:'labor',
-   desc:'eigene Rezepturen entwickelt',req:{up:'labor'},
-   stufen:[1,4,10,20],lohn:WIRT.erfolg.lohn.eigene},
+   desc:'eigene Batterien an der Werkbank entwickelt',req:{up:'labor'},
+   stufen:[1,3,5,10],lohn:WIRT.erfolg.lohn.eigene},
   {id:'v_eigene',kat:'Eigene Marke',name:'Unter eigenem Namen',ikon:'labor',
    desc:'Artikel der eigenen Marke verkauft',req:{up:'labor'},
    stufen:[50,400,2000,8000],lohn:WIRT.erfolg.lohn.v_eigene},
@@ -130,12 +130,13 @@ function statVerkauf(t,n){
 /* Ein gesehenes Bruchbild wird fuer die eigene Entwicklung freigeschaltet */
 function bruchGesehen(eff){
   if(!S||!Array.isArray(S.gesehen)||!eff) return;
-  /* Nur was sich auch verbauen laesst, wird vermerkt. Die Furzwolke
-     hat feste Farben und passt nicht in den Farbwaehler. */
-  if(typeof BRUCH==='undefined'||!BRUCH[eff]) return;
+  /* Nur was sich an der Werkbank verbauen laesst, wird vermerkt (Bruchbilder
+     und Lichter 'licht:name', 02d wbEffekt). Die Furzwolke hat feste Farben
+     und passt nicht in den Farbwaehler. */
+  if(typeof wbEffekt!=='function'||!wbEffekt(eff)) return;
   if(S.gesehen.indexOf(eff)>=0) return;
   S.gesehen.push(eff);
-  S.stat.brucharten=S.gesehen.length;
+  S.stat.brucharten=S.gesehen.filter(x=>BRUCH[x]).length;
   erfolgPruefen('brucharten');
 }
 

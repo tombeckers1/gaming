@@ -325,6 +325,7 @@ function updateTarget(){
   if(typeof tabHit!=='undefined'&&tabHit) list.push(tabHit);
   if(pultHit) list.push(pultHit);
   if(gravHit) list.push(gravHit);
+  if(wbHit&&nahDran(wbG.position,R)) list.push(wbHit);
   if(packHit&&zoneOffen('packstation')&&nahDran(packTisch.position,12)) list.push(...vsHits());
   if(typeof vsPalHits==='function'&&nahDran({x:V1.x,z:V1.rz},12)) list.push(...vsPalHits());
   if(tfHit&&tfHit.visible) list.push(tfHit);
@@ -373,6 +374,7 @@ function promptFor(t){
     case 'pos': if(reg&&reg.state==='pay') return reg.method==='cash'?{t:`Bargeld annehmen: ${eur(reg.given)}`,a:true}:{t:'Kartenzahlung abschließen',a:true}; return {t:'Kasse',a:false};
     case 'tfsperre': return {t:'Zugang zum Testfeld — im Laptop unter Ausbau freischalten',a:false};
     case 'laptop': return {t:'Laptop öffnen',a:true};
+    case 'werkbank': return wbPrompt();
     case 'laptop2': return {t:'Lager-PC: Onlineshop, Team, Bestellen',a:true};
     case 'tablet': return {t:'Tablet: Ware bestellen',a:true};
     case 'pack': {
@@ -445,6 +447,7 @@ function doAction(){
   else if(k==='pack') vsSpielerPacken(r);
   else if(k==='vmregal'){ if(S.carrying&&S.carrying.vm) vmSpielerEinraeumen(r); }
   else if(k==='laptop') openLaptop(null,'buero');
+  else if(k==='werkbank') wbOeffnen();
   else if(k==='laptop2') openLaptop('online','lager');
   else if(k==='tablet') openLaptop('order','tablet');
   else if(k==='station'){ if(S.carrying) placeOnStation(r); }

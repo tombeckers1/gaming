@@ -232,11 +232,11 @@ const KAPITEL=[
   {nr:2,name:'Kleines Fachgeschäft',up:'lager',txt:'Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.'},
   {nr:3,name:'Großes Fachgeschäft',up:'shop_gross',txt:'Das Ladenlokal nebenan gehört dir. Jetzt wird es richtig groß.'},
   {nr:4,name:'Pyro-Versand',up:'onlineshop',txt:'Onlineshop und Packstation: du verkaufst ins ganze Land.'},
-  {nr:5,name:'Eigene Marke',up:'labor',txt:'Im Labor mischst du eigene Effekte und verkaufst sie unter deinem Namen.'},
+  {nr:5,name:'Eigene Marke',up:'labor',txt:'An der Werkbank im Lager entwirfst du eigene Batterien, lässt sie fertigen und verkaufst sie unter deinem Namen.'},
   {nr:6,name:'Pyro-Kaufhaus',up:'shop_sued',txt:'Riesige Verkaufsfläche und ein zweiter Eingang mit eigener Kasse.'},
   {nr:7,name:'Pyro-Logistik',up:'lager_west',voll:true,txt:'Logistikzentrum mit Toren und Hof – der Grundstein für dein Imperium.'},
   {nr:8,name:'Pyro-Fabrik',up:'fabrik',voll:true,txt:'Eigene Fabrikhalle: du produzierst deine Feuerwerke selbst.',
-    vorschau:['Fabrikhalle mit Mischraum und Fertigungsstraße','Eigene Produkte in Serie statt Einzelstücke aus dem Labor','Rohstoffe einkaufen, Qualität steuern']},
+    vorschau:['Fabrikhalle mit Mischraum und Fertigungsstraße','Eigene Produkte selbst herstellen statt beim Lohnfertiger','Rohstoffe einkaufen, Qualität steuern']},
   {nr:9,name:'Pyro-Großhändler',up:'grosshandel',voll:true,geplant:true,txt:'Du belieferst andere Läden mit deinen eigenen Marken.',
     vorschau:['Händlerverträge und Lieferfristen','Eigene LKW-Flotte vom Logistikzentrum aus','Deine Marke in den Regalen der Konkurrenz']},
   {nr:10,name:'Pyro-Kette',up:'filialen',voll:true,geplant:true,txt:'Filialen in anderen Städten, geführt von deinem Team.',
@@ -328,8 +328,14 @@ const UPGRADES=[
      Tuer standen sie im Weg, und bezahlt wird an der Kasse oder an den
      SB-Kassen der Erweiterung. Alte Staende bekommen den Preis zurueck
      (18-save). */
-  {id:'labor',kat:'flaeche',lvl:20,req:'shop_gross',kap:5,name:'Entwicklungslabor',desc:'Ein Labortisch im Lager. Ab hier entwickelst du eigene Rezepturen: Träger, Bruchbild und Farben aussuchen, Prototyp auf dem Testfeld zünden, in Produktion geben. Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast.',cost:()=>WIRT.ausbau.preis.labor,done:()=>S.up.labor},
-  {id:'labor2',kat:'einr',lvl:28,req:'labor',name:'Zweite Zündstufe',desc:'Erweitert das Labor um eine zweite Stufe im Rezept: Nach dem Hauptbruch geht ein zweites Bruchbild auf. Der größte einzelne Sprung im Wert einer Rezeptur.',cost:()=>WIRT.ausbau.preis.labor2,done:()=>S.up.labor2},
+  /* Werkbank (Tom 16.10.: "eigenes Feuerwerk bauen ... gesteuert ueber eine Werkbank im Lager"): ersetzt das
+     Entwicklungslabor. labor = Werkbank mit Stufe 1, labor2-5 = groessere Batterien. Preise: WIRT.ausbau.preis,
+     Begruendung WIRT.werkbank (01c), docs/werkbank/werkbank.md. Steht in Lager Nord - darum req lager_nord. */
+  {id:'labor',kat:'flaeche',lvl:WIRT.werkbank.stufen[0].lvl,req:'lager_nord',kap:5,name:'Werkbank – eigene Marke',desc:`Eine Werkbank im Lager (Lager Nord, neben dem Rolltor). Dort entwirfst du eigene Batterien mit ${WIRT.werkbank.stufen[0].schuss} Schuss aus den Effekten, die du schon gesehen hast: Abschnitte, Farben, Abfolge, Takt – mit Vorschau. Ein Lohnfertiger stellt sie her, ab einer Mindestmenge und gegen Vorkasse; du verkaufst sie unter deinem Namen. Höchstens ${WIRT.werkbank.slots} eigene Batterien gleichzeitig.`,cost:()=>WIRT.ausbau.preis.labor,done:()=>S.up.labor},
+  {id:'labor2',kat:'einr',lvl:WIRT.werkbank.stufen[1].lvl,req:'labor',name:`Werkbank – Batterien mit ${WIRT.werkbank.stufen[1].schuss} Schuss`,desc:`Größere Rohre (${WIRT.werkbank.stufen[1].kal} mm) und ein Fächer-Raster: Batterien mit ${WIRT.werkbank.stufen[1].schuss} Schuss für die Werkbank. Mehr Marge je Stück, längere Shows.`,cost:()=>WIRT.ausbau.preis.labor2,done:()=>S.up.labor2},
+  {id:'labor3',kat:'einr',lvl:WIRT.werkbank.stufen[2].lvl,req:'labor2',name:`Werkbank – Batterien mit ${WIRT.werkbank.stufen[2].schuss} Schuss`,desc:`Verbund aus zwei Blöcken, ${WIRT.werkbank.stufen[2].kal} mm: Batterien mit ${WIRT.werkbank.stufen[2].schuss} Schuss. Lieferzeit ${WIRT.werkbank.stufen[2].liefertage} Tage.`,cost:()=>WIRT.ausbau.preis.labor3,done:()=>S.up.labor3},
+  {id:'labor4',kat:'einr',lvl:WIRT.werkbank.stufen[3].lvl,req:'labor3',name:`Werkbank – Batterien mit ${WIRT.werkbank.stufen[3].schuss} Schuss`,desc:`Großverbund aus drei Blöcken: ${WIRT.werkbank.stufen[3].schuss} Schuss, Platz für lange Abläufe mit Steigerung und Finale.`,cost:()=>WIRT.ausbau.preis.labor4,done:()=>S.up.labor4},
+  {id:'labor5',kat:'einr',lvl:WIRT.werkbank.stufen[4].lvl,req:'labor4',name:`Werkbank – Batterien mit ${WIRT.werkbank.stufen[4].schuss} Schuss`,desc:`Die Monsterbatterie: ${WIRT.werkbank.stufen[4].schuss} Schuss in drei Blöcken – das Aushängeschild deiner Marke.`,cost:()=>WIRT.ausbau.preis.labor5,done:()=>S.up.labor5},
   {id:'gravur',kat:'einr',lvl:9,name:'Gravur-Automat',desc:'Kunden beschriften ihre eigene Rakete. Hohe Marge, du musst nur Blanko-Ware nachfüllen.',cost:()=>WIRT.ausbau.preis.gravur,done:()=>S.up.gravur}
 ];
 const DEKO=[

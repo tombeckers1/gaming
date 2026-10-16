@@ -10,7 +10,7 @@
 
    Hier steht GENAU EINMAL, fuer jeden Zuend-Ort (Testfeld-Stationen im
    Spiel und in der Teststation, alle drei Vorfuehrungen auf PC und Handy,
-   Prototyp der eigenen Rezeptur):
+   Vorschau der Werkbank):
    - der Platz (abPlatz, abPlatzStation): Zuendtisch, Abschussrohr
      (Raketen, Roemische Lichter), Moerser je Kaliber. Ein Ort liefert nur
      Koordinaten, alles andere ist hier gleich.
@@ -321,31 +321,19 @@ function abTischBau(g,x0,z0,B){ const M=abMat(), TB=B/2;
   bbox(0.06,0.06,0.9,M.stahlDunkel,x0+TB-0.15,0.3,z0,g,false);
   bbox(0.06,0.06,0.9,M.stahlDunkel,x0-TB+0.15,0.3,z0,g,false); }
 
-/* ---------- Prototyp der eigenen Rezeptur ----------
-   Vorher schoss rezProto (17-laptop) seine Effekte frei in die Luft ueber
-   den Stationen (ohne Produkt, mit eigener Kopie der Rezeptur-Logik).
-   Jetzt: ein Probestueck kommt wie jedes Produkt auf seinen Platz und
-   zuendet ueber denselben Weg (Kanal, Darstellung, Zuendschnur). Das
-   Probestueck ist nur fuer diese Zuendung im Katalog P (nicht im
-   Sortiment, kein Hype, keine Erfahrung) und danach wieder weg. */
-let _abProtoN=0;
-function abProtoProdukt(r){
-  const id='proto_'+(++_abProtoN);
-  P[id]=rezeptProdukt(Object.assign({},r,{id,name:String(r.name||'Prototyp').trim()||'Prototyp',cost:0,market:0,hype:0}));
-  P[id].proto=true; return id; }
+/* ---------- Vorschau-Stuecke (Werkbank 17h, 16.10.) ----------
+   Die Vorschau einer eigenen Batterie zuendet ein Probestueck mit eigenem
+   Katalogeintrag (P[id].proto: kein Hype, keine Erfahrung) ueber denselben
+   Weg wie jedes Produkt (abPlatz, abAufstellen, abZuenden). Danach raeumt
+   abProtoWeg Eintrag, Drehbuch und alle Zwischenspeicher wieder ab.
+   (Vorher: abProtoZuenden fuer die Laptop-Rezeptur - mit dem Labor entfallen.) */
 function abProtoWeg(id){ if(!P[id]||!P[id].proto) return;
   for(const C of [typeof _rohrBedarf!=='undefined'?_rohrBedarf:null,typeof _rohrLayout!=='undefined'?_rohrLayout:null,typeof _zplan!=='undefined'?_zplan:null,
     typeof _korpus!=='undefined'?_korpus:null,typeof _rohrGeo!=='undefined'?_rohrGeo:null,_abOben]) if(C) delete C[id];
   for(const C of [typeof _pools!=='undefined'?_pools:null,typeof _poolsAus!=='undefined'?_poolsAus:null,_abPools]) if(C&&C[id]){
     for(const m of C[id].meshes||[]) if(m.parent) m.parent.remove(m); delete C[id]; }
+  if(typeof SHOWS!=='undefined') delete SHOWS[id];
   delete P[id]; }
-function abProtoZuenden(r){
-  const id=abProtoProdukt(r), sid=stationOf(id), st=stations[sid];
-  const slot=sid==='moerser'?moerserRohr(id):freierPlatz(st);
-  if(!st||slot<0||itemAufPlatz(st,slot)){ abProtoWeg(id); return {frei:false,name:STATION_POS[sid]?STATION_POS[sid].name:''}; }
-  const pl=abPlatzStation(st,slot), it=Object.assign(abAufstellen(pl,id),{type:id,q:1,slot,kanal:kanalVon(st,slot),state:'bereit',proto:true});
-  st.items.push(it); drawPult(); zuendeItem(st,it,true);
-  return {frei:true,kanal:it.kanal,id}; }
 /* QS-Stichprobe der Eigenproduktion (Werk West, 05s pdQs): ein Stueck aus der Fertigung wird auf dem Testfeld gezuendet - gleicher Platz,
    gleiche Mechanik, Effekt unveraendert; q = Effektqualitaet (Blindgaenger bei schlechter Qualitaet wie bei Lieferantenware),
    it.qs: kein Hype, keine Erfahrung, nicht "selbst gezuendet" (das Stueck ist Teil der Produktion). Ohne Testfeld/freien Platz: frei false */
@@ -363,6 +351,6 @@ function abStichprobe(t,q){
 try{ window.__abschuss={abForm,abPlatz,abPlatzStation,abMuendung,abKerze,abKerzenLoecher,abOben,abPool,abTeile,abAufstellen,abZuenden,abWeg,
   log(a){ AB_LOG=a; }, verpackungsMats:()=>[typeof folieKlar!=='undefined'?folieKlar:null,typeof folieMat!=='undefined'?folieMat:null,typeof glassMat!=='undefined'?glassMat:null].filter(Boolean),
   get rohrGeometrie(){ return rohrGeometrie; }, get rohrLayout(){ return rohrLayout; }, get VF(){ return {VF_TISCH,VF_ROHR,VF_MOERSER,VF_Z}; }, fontDuesenLage, FT_DUESE:typeof FT_DUESE!=='undefined'?FT_DUESE:null,
-  AB_VOR,AB_KOERPER,AB_OFFEN,AB_ZAEHLER,AB_FLIEGT,AB_FLIEGT_T,MOERSER_MUND,ROHR_ACHSE,RAMPE_TISCH,abProtoZuenden,
+  AB_VOR,AB_KOERPER,AB_OFFEN,AB_ZAEHLER,AB_FLIEGT,AB_FLIEGT_T,MOERSER_MUND,ROHR_ACHSE,RAMPE_TISCH,abProtoWeg,abTischBau,
   get KUGEL_ABSCHUSS(){ return typeof KUGEL_ABSCHUSS!=='undefined'?KUGEL_ABSCHUSS:null; },
   get KUGEL(){ return KUGEL; }, get vfAnlage(){ return typeof vfAnlage!=='undefined'?vfAnlage:null; }}; }catch(e){}

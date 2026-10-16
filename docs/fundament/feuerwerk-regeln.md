@@ -213,3 +213,14 @@ Gelöscht: `stationsModell`, `stationSlot`, `rampeMund`, `kerzeImRohr`, `station
 - `gameplay`: nur PACKMATERIAL (bekannter Flake laut UEBERGABE 0.5).
 - Angepasst: `ursprung` (Mündungshöhe aus `muendung`, Zündschnurdauer aus dem Baustein), `zuendpult`
   (Rakete fliegt mit statt zu verschwinden), `bodenfontaene` (Emitter `abModell`).
+
+---
+
+## 8. Nachtrag 16.10.2026: Labor → Werkbank (`docs/werkbank/werkbank.md`)
+Den Prototyp der Laptop-Rezeptur (`abProtoZuenden`, sechs Träger) gibt es nicht mehr. Eigene Produkte sind jetzt nur noch
+**Batterien von der Werkbank** (02d-werkbank, 17h); sie laufen wie jede Batterie über `SHOWS[t]` und den Abschuss-Baustein.
+Neuer Zünd-Ort **Vorschau** (`ort:'vorschau'`): ein Zündtisch aus `abTischBau` am Testfeld, Platz `abPlatz('tisch',…)`, dann
+`abAufstellen` + `abZuenden` – das Probestück (`P[id].proto`, kein Hype) räumt `abProtoWeg` danach samt Drehbuch wieder ab.
+Die Abfolge eines Abschnitts (links → rechts, Fächer, Z, W, V-Salve, Finale …) entsteht wie bei echten Fächerbatterien aus der
+**Verdrahtung und Neigung der Rohre** (`p.folgeVon`, `p.rohrNeig` in 04c `rohrLayout`/`rohrNeigung`) – jedes Rohr feuert genau
+einmal, Rohre = Schuss (R2/R3). `abschussregel.js` prüft statt der sechs Prototypen die Vorschau aller fünf Größen (25 … 500 Schuss).

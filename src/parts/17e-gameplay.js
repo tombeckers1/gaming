@@ -27,6 +27,8 @@ const GP_ORTE=[
   ['Kassen',        6.0, 5.4, 1.0, -0.2],
   ['Halle Süd',    22.0,-8.0, Math.PI*0.95, -0.10],
   ['Lager',       -10.5, 1.0, Math.PI*0.62, -0.10],
+  /* 16.10.: Werkbank (Kapitel 5) - vor dem Werktisch an der Westwand, Blick auf Lochwand und Tablet */
+  ['Werkbank',    -17.4, 3.4, Math.PI/2, -0.28],
   /* 07.10.: die Versandecke steht am Hallenende hinter Sued 3 (Tor V1) - Blick von vorn in die Ecke */
   ['Versand',     -13.0,-19.0, 0.1, -0.1],
   /* 09.10.: DDL auf Anruf - Blick vom Wandtelefon auf Ladezone und Rolltor V1 */
@@ -132,7 +134,7 @@ function gpPasstStd(t){ return layout(t,{kind:'standard',levels:[]},{li:0}).cap>
 /* was am Handy auf jeden Fall dabei ist */
 function gpMuss(ware){
   const kug=ware.filter(t=>P[t].shape==='shell').sort((a,b)=>P[b].dims[0]-P[a].dims[0]).slice(0,4);
-  return ware.filter(t=>P[t].kasse||!gpPasstStd(t)).concat(kug.filter(t=>!P[t].kasse&&gpPasstStd(t)));
+  return ware.filter(t=>P[t].kasse||!gpPasstStd(t)||P[t].werk).concat(kug.filter(t=>!P[t].kasse&&gpPasstStd(t)));
 }
 /* Stellplaetze vom Eingang nach hinten: Zone fuer Zone, vorn vor hinten */
 function gpSlotFolge(){
@@ -229,7 +231,11 @@ function* gpAufbau(){
      beliebtesten Sorten (jede Sorte kostet ein Druckbild) - dabei immer
      die Ware fuers Kassenregal, die grossen Batterien und die groessten
      Kugelbomben (05.10., Tom: "dass ich die genau im Regal sehe") */
-  let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept);
+  /* Eigene Marke (Werkbank, 16.10.): eine fertige Beispiel-Batterie des Spielers im Sortiment */
+  const gpEigen=gpBeispielBatterie();
+  yield [0.275,'Werkbank: Beispiel-Batterie'];
+  let ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].eigen);
+  if(gpEigen) ware.unshift(gpEigen);
   if(ware.length>GP_KLEIN.sorten){ const muss=gpMuss(ware);
     ware=muss.concat(ware.filter(t=>muss.indexOf(t)<0).sort((a,b)=>P[b].weight-P[a].weight)).slice(0,Math.max(GP_KLEIN.sorten,muss.length)); }
   /* Regale nach Abteilungen aufstellen (gpPlan), dann Lagerregale */
@@ -286,6 +292,21 @@ function* gpAufbau(){
    regale, Personen, Teile direkt in der Szene (Waende, Zonen), Teile mit
    Kindern, eigenen Daten, Trefferflaechen, Durchsichtiges, Eckfarben,
    Sichtschutz (occluders) und alles mit eigener Zeichenreihenfolge. */
+/* Beispiel-Batterie der Vorfuehrung: 110 Schuss mit Steigerung und Finale, schon geliefert (keine offene Serie) */
+function gpBeispielBatterie(){
+  if(!S.up.labor||typeof wbEntwickeln!=='function') return null;
+  BRUCH_IDS.forEach(e=>bruchGesehen(e)); Object.keys(WB_LICHT).forEach(k=>bruchGesehen('licht:'+k));
+  const st=[2,1,0].find(i=>wbStufeOffen(i)); if(st===undefined) return null;
+  const N=WIRT.werkbank.stufen[st].schuss, n=f=>Math.max(1,Math.round(N*f));
+  const d={stufe:st,name:'Nordlicht',abschnitte:[
+    wbAbschnitt({e:'licht:goldkomet',A:'gold',B:'weiss',n:n(0.2),takt:2,muster:'faecher',hoehe:0,kal:1,pause:1.5}),
+    wbAbschnitt({e:'chrys',A:'tuerkis',B:'blau',n:n(0.25),takt:1,muster:'lr',hoehe:1,kal:1}),
+    wbAbschnitt({e:'crossette',A:'violett',B:'gold',n:n(0.25),takt:1,muster:'z',hoehe:2,kal:1,pause:1.5})]};
+  d.abschnitte.push(wbAbschnitt({e:'kamuro',A:'gold',B:'violett',n:N-wbSchuss(d),muster:'finale',hoehe:2,kal:2}));
+  S.money=Math.max(S.money,450000);
+  const r=wbEntwickeln(d,0,0); if(!r.ok) return null;
+  r.e.serien=[]; return r.e.id;
+}
 function* gpStatisch(){
   const raus=new Set(); shelves.forEach(x=>raus.add(x.g)); racks.forEach(x=>raus.add(x.g));
   const tops=scene.children.filter(o=>!o.isMesh&&!o.isSprite&&!o.isPoints&&!o.isLight&&!raus.has(o)&&!(o.userData&&o.userData.legs));
@@ -349,7 +370,7 @@ function gpTick(dt){
 /* Disponent: was im Laden und Lager zusammen unter einen Karton faellt,
    wird mit einem Karton nachbestellt - ueber den echten Warenkorb */
 function gpBestellen(){
-  const ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].rezept&&typeof canOrder==='function'&&canOrder(t));
+  const ware=ORDER.filter(t=>P[t]&&isUnlocked(t)&&!P[t].noOrder&&!P[t].eigen&&typeof canOrder==='function'&&canOrder(t));
   let n=0;
   for(const t of ware){ if(n>=24) break; if(stockOf(t)<P[t].box*0.6){ try{ cartAdd(t,1,(supplierFor(t)||{}).id); n++; }catch(e){} } }
   if(n){ try{ S.money=Math.max(S.money,0); cartOrder(); }catch(e){ console.warn('GP Bestellung',e); } }

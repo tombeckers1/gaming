@@ -7,7 +7,7 @@ let laptopOpen=false, startOpen=true, pauseOpen=false, ltab='order', resetArm=fa
    Lager-PC in der Versandecke = Bestellen, Onlineshop (Versandkosten, Aktionen, Statistik)
    und Team; Tablet im Laden = Ware bestellen. Das Handy bleibt, wie es ist. */
 const GERAETE={
-  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','rez','prod','shop'],zu:'Laptop zuklappen'},
+  buero :{name:'Büro-Laptop',tabs:['order','price','liz','up','deko','prod','shop'],zu:'Laptop zuklappen'},
   lager :{name:'Lager-PC',tabs:['order','online','staff','prod'],zu:'Abmelden'},
   /* Werk West (05s): Leitstand auf der Galerie - Produktion (mit "Zelle freigeben") und Team */
   leitstand:{name:'Leitstand Werk West',tabs:['prod','staff'],zu:'Leitstand verlassen'},
@@ -227,6 +227,8 @@ function cartBoxes(){ return cartLines().reduce((a,l)=>a+lineBoxes(l),0); }
 function cartFee(){ return cartLines().length?(cartGoods()>=VERSANDFREI?0:VERSAND):0; }
 function cartTotal(){ return r2(cartGoods()+cartFee()); }
 function cartAdd(t,n,supId){
+  /* eigene Batterien fertigt der Lohnfertiger in Serien (Werkbank 02d) - nicht beim Fachhandel */
+  if(P[t]&&P[t].eigen){ toast('Eigene Batterien gibt es nur in Serie vom Lohnfertiger: an der Werkbank oder unter Bestellen › Eigene Marke.','bad'); return; }
   /* Fachhandel oder Grosshandel - je nachdem, in welchem Reiter der
      Knopf sitzt. Ein gesperrter Grosshandel faellt auf den Fachhandel
      zurueck, und der verkauft nur einzelne Kartons. */
@@ -295,6 +297,7 @@ function orderRegal(id){
 }
 /* Direktbestellung eines einzelnen Postens (eigene Lieferung, eigener Versand) */
 function orderBox(t,n,supId){
+  if(P[t]&&P[t].eigen) return cartAdd(t,n,supId);
   let sup=supplierOf(supId||'fachhandel'); if(sup.mystery||!supOffen(sup)){ sup=SUPPLIERS[0]; n=1; }
   const p=P[t];
   const tier=(sup.tiers||[{n:1,d:0}]).find(x=>x.n===n)||{n,d:0};
@@ -683,32 +686,24 @@ const UP_MOTIV={
     h.nummer(n); },
   rampe2(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,2); }, rampe3(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,3); },
   rampe4(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,4); }, rampe5(g,W,H,h){ UP_MOTIV.rampe(g,W,H,h,5); },
-  labor(g,W,H,h){ h.grund('#141c30','#0a0f1c'); h.boden(110);
-    /* Labortisch: Kolben, Reagenzglaeser, Pulverschalen, ein Kugelbomben-Rohling */
-    g.fillStyle='#e9edf5'; g.fillRect(12,96,200,8); g.fillStyle='#39414d'; g.fillRect(20,104,8,30); g.fillRect(196,104,8,30);
-    const kolben=(x,c)=>{ g.fillStyle='rgba(220,235,255,.35)'; g.beginPath(); g.moveTo(x-4,50); g.lineTo(x+4,50); g.lineTo(x+4,66); g.lineTo(x+18,94); g.lineTo(x-18,94); g.lineTo(x-4,66); g.closePath(); g.fill();
-      g.fillStyle=c; g.beginPath(); g.moveTo(x-11,80); g.lineTo(x+11,80); g.lineTo(x+18,94); g.lineTo(x-18,94); g.closePath(); g.fill(); g.strokeStyle='rgba(255,255,255,.5)'; g.lineWidth=1; g.stroke(); };
-    kolben(44,'#c8322a'); kolben(88,'#2f9e57');
-    g.fillStyle='#8a9099'; g.fillRect(112,62,44,4);
-    ['#f2c230','#6fa8d8','#e06ad8','#6cf2a8'].forEach((c,i)=>{ const x=116+i*10; g.fillStyle='rgba(220,235,255,.35)'; g.fillRect(x,52,6,42); g.fillStyle=c; g.fillRect(x,72+i*3,6,22-i*3); });
-    for(const [x,c] of [[172,'#d8b468'],[196,'#9aa0a8']]){ g.fillStyle='#c9ced8'; g.beginPath(); g.ellipse(x,94,12,4,0,0,Math.PI*2); g.fill(); g.fillStyle=c; g.beginPath(); g.ellipse(x,91,9,3,0,0,Math.PI*2); g.fill(); }
-    /* Rohling: Halbkugel mit Sternen */
-    g.fillStyle='#b88d5e'; g.beginPath(); g.arc(184,70,16,Math.PI,0); g.fill(); g.fillStyle='#3a2a1a'; g.fillRect(168,70,32,3);
-    ['#c8322a','#f2c230','#2f6bb8','#6cf2a8','#e06ad8'].forEach((c,i)=>{ g.fillStyle=c; g.beginPath(); g.arc(174+i*5,64-(i%2)*5,2.6,0,Math.PI*2); g.fill(); });
-    h.schild('LABOR',112,26,'#6cf2a8'); },
-  labor2(g,W,H,h){ const gr=g.createRadialGradient(112,70,4,112,70,150); gr.addColorStop(0,'#1d1a38'); gr.addColorStop(1,'#060814'); g.fillStyle=gr; g.fillRect(0,0,W,H);
-    /* Zweite Zuendstufe: der erste Bruch, an jedem Arm zuendet ein zweiter */
-    const cx=112, cy=66;
-    for(let a=0;a<10;a++){ const w=a/10*Math.PI*2+0.2, ex=cx+Math.cos(w)*40, ey=cy+Math.sin(w)*34;
-      const lg=g.createLinearGradient(cx,cy,ex,ey); lg.addColorStop(0,'rgba(255,214,120,0)'); lg.addColorStop(1,'rgba(255,214,120,.95)');
-      g.strokeStyle=lg; g.lineWidth=2; g.beginPath(); g.moveTo(cx,cy); g.lineTo(ex,ey); g.stroke();
-      const c=a%2?'#6fd0ff':'#ff5fa0';
-      for(let k=0;k<7;k++){ const v=k/7*Math.PI*2, fx=ex+Math.cos(v)*11, fy=ey+Math.sin(v)*11;
-        g.strokeStyle=c; g.globalAlpha=0.85; g.lineWidth=1.4; g.beginPath(); g.moveTo(ex,ey); g.lineTo(fx,fy); g.stroke(); g.globalAlpha=1;
-        g.fillStyle='#fff'; g.beginPath(); g.arc(fx,fy,1.3,0,Math.PI*2); g.fill(); } }
-    g.fillStyle='#fff6d8'; g.beginPath(); g.arc(cx,cy,4,0,Math.PI*2); g.fill();
-    g.strokeStyle='rgba(255,214,120,.6)'; g.lineWidth=2; g.setLineDash([3,4]); g.beginPath(); g.moveTo(cx,H); g.lineTo(cx,cy+8); g.stroke(); g.setLineDash([]);
-    h.nummer(2); },
+  /* Werkbank (Kapitel 5, 16.10.): Werktisch mit Lochwand, Schraubstock, Musterbatterie und Tablet - Farben aus der Palette */
+  labor(g,W,H,h){ const C=MAT.css; h.grund(); h.boden(112);
+    g.fillStyle=C('lichtgrau'); g.fillRect(28,22,168,62); g.fillStyle=C('hellgrau'); for(let y=28;y<82;y+=8) for(let x=34;x<192;x+=8) g.fillRect(x,y,2,2);
+    g.fillStyle=C('nachtblau'); g.fillRect(70,10,84,16); g.fillStyle=C('schildgold'); g.font='700 11px sans-serif'; g.textAlign='center'; g.fillText('WERKBANK',112,22);
+    g.fillStyle=C('signalgruen'); g.beginPath(); g.arc(160,52,11,0,Math.PI*2); g.fill(); g.fillStyle=C('signalrot'); g.beginPath(); g.arc(182,52,11,0,Math.PI*2); g.fill();
+    g.fillStyle=C('holzPalette'); g.fillRect(16,84,192,9); g.fillStyle=C('anthrazit'); g.fillRect(22,93,7,40); g.fillRect(195,93,7,40);
+    g.fillStyle=C('signalblau'); g.fillRect(30,94,54,38); g.fillStyle=C('aluminium'); for(let i=0;i<3;i++) g.fillRect(48,101+i*11,18,3);
+    g.fillStyle=C('gummischwarz'); g.fillRect(56,50,40,28); g.fillStyle=C('anzeigeBlau'); g.fillRect(59,53,34,22);
+    for(let i=0;i<4;i++) for(let k=0;k<3;k++){ g.fillStyle=C('graphit'); g.beginPath(); g.arc(112+i*9,78-k*4,3.6,0,Math.PI*2); g.fill(); g.fillStyle=C('wellpappe'); g.beginPath(); g.arc(112+i*9,77-k*4,2.2,0,Math.PI*2); g.fill(); }
+    g.fillStyle=C('signalblau'); g.fillRect(170,70,22,12); g.fillStyle=C('anthrazit'); g.fillRect(168,80,26,5); },
+  /* groessere Batterien an der Werkbank: Rohrraster waechst mit der Stufe */
+  labor2(g,W,H,h){ UP_MOTIV.wbStufe(g,W,H,h,1); }, labor3(g,W,H,h){ UP_MOTIV.wbStufe(g,W,H,h,2); },
+  labor4(g,W,H,h){ UP_MOTIV.wbStufe(g,W,H,h,3); }, labor5(g,W,H,h){ UP_MOTIV.wbStufe(g,W,H,h,4); },
+  wbStufe(g,W,H,h,i){ const C=MAT.css; h.grund(); h.boden(120); const n=[5,8,11,14,20][i], m=[3,4,5,7,10][i], R=Math.min(90/n,4.5), x0=112-n*R, y0=112-m*R*1.4;
+    g.fillStyle=C('wellpappe'); g.fillRect(x0-6,y0-6,n*R*2+12,m*R*1.4+12);
+    for(let a=0;a<n;a++) for(let b=0;b<m;b++){ g.fillStyle=C('graphit'); g.beginPath(); g.arc(x0+R+a*R*2,y0+R*0.7+b*R*1.4,R*0.9,0,Math.PI*2); g.fill(); }
+    g.fillStyle=C('schildgold'); g.font='700 15px sans-serif'; g.textAlign='center'; g.fillText(String(WIRT.werkbank.stufen[i].schuss)+' SCHUSS',112,30);
+    h.nummer(i+1); },
   heizung(g,W,H,h){ h.grund('#20222c','#10121a'); h.boden(124);
     /* Heizstrahler an der Decke: Gehaeuse, gluehende Staebe, Waermewellen */
     g.fillStyle='#4a515c'; g.fillRect(40,20,144,26); g.fillStyle='#2b3140'; g.fillRect(40,42,144,6);
@@ -1215,7 +1210,8 @@ function lapZeichnen(body){
        Einrichtung, Ware beim Fachhandel (Standard, einzelne Kartons),
        Ware beim Grosshandel (Zehner/Zwanziger mit Rabatt, ab Level 8
        mit Lager), Restposten (ab Level 14, wechselndes Angebot). */
-    if(['regal','ware','gross','rest','vm'].indexOf(lsup)<0) lsup='ware';
+    if(['regal','ware','gross','rest','vm','eigen'].indexOf(lsup)<0) lsup='ware';
+    if(lsup==='eigen'&&!S.up.labor) lsup='ware';
     if(lsup==='vm'&&!zoneOffen('packstation')) lsup='ware';
     const rest=supplierOf('ratzke'), restOffen=supOffen(rest), gh=SUPPLIERS[1], gross=grossOffen();
     if(lsup==='rest'&&!restOffen) lsup='ware';
@@ -1229,7 +1225,13 @@ function lapZeichnen(body){
       knopf('regal','Regale &amp; Einrichtung',true)+knopf('ware','Ware · Fachhandel',true)+
       knopf('gross',gross?'Ware · Großhandel':S.level<gh.lvl?`Großhandel · Lvl ${gh.lvl}`:'Großhandel · eigenes Lager',gross)+
       knopf('rest',restOffen?`Restposten${nRest?` (${nRest})`:''}`:`Restposten · Lvl ${rest.lvl}`,restOffen)+
-      knopf('vm',zoneOffen('packstation')?'Versandmaterial':'Versandmaterial · Packstation',zoneOffen('packstation'))+`</div></div>`;
+      knopf('vm',zoneOffen('packstation')?'Versandmaterial':'Versandmaterial · Packstation',zoneOffen('packstation'))+
+      (S.up.labor?knopf('eigen',`Eigene Marke (${eigeneListe().length})`,true):'')+`</div></div>`;
+    /* Eigene Marke (Werkbank, 16.10.): Serien beim Lohnfertiger nachbestellen - Mindestmenge, Vorkasse, Lieferung nach Tagen */
+    if(lsup==='eigen'){
+      h=`<div class="row"><div class="rm"><b>Eigene Marke · Lohnfertiger</b><small>Deine Batterien von der Werkbank. Gefertigt wird in Serien ab der Mindestmenge, bezahlt im Voraus; die Kartons kommen nach ein paar Tagen mit dem LKW wie jede Lieferung. Neue Entwürfe, größere Serien und Rabatt gibt es an der Werkbank im Lager.</small></div></div>`+knoepfe+wbBestellHtml();
+      body.innerHTML=h; if(korbOpen) renderKorb(); return;
+    }
     /* Versandmaterial (05.10.): Kartons, Folie, Klebeband fuer die
        Packmaterial-Regale - Kauf sofort, kommt mit dem LKW */
     if(lsup==='vm'){
@@ -1299,7 +1301,7 @@ function lapZeichnen(body){
       if(KF.indexOf(lkat)<0) lkat='alle';
       h+=`<div class="kfilter">`+KF.map(k=>`<button data-a="lkat" data-t="${k}" class="${k===lkat?'on':''}">${k==='alle'?'Alle':SPARTE_NAME[k]} <span style="opacity:.65">${ORDER.filter(t=>canOrder(t)&&(k==='alle'||sparteVon(t)===k)).length}</span></button>`).join('')+`</div>`;
       h+=sucheFeld('Produkt suchen … z. B. „stu“ für Sturmfeuerzeug');
-      const ware=ORDER.filter(t=>canOrder(t)).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
+      const ware=ORDER.filter(t=>canOrder(t)&&!P[t].eigen).sort((x,y)=>lizLevel(x)-lizLevel(y)||P[x].lvl-P[y].lvl||P[x].name.localeCompare(P[y].name));
       let gruppe=null;
       h+=`<div class="karten">`+ware.map(t=>{ const p=P[t], un=isUnlocked(t), cap=shelfCapOf(t), lz=lizenzOf(t), l=lz?lizenzDaten(lz):null;
         let kopf='';
@@ -1410,9 +1412,7 @@ function lapZeichnen(body){
           '</div>'; }).join('');
     }).join('');
     const zu=ERFOLGE.filter(e=>!erfOffen(e)).length;
-    if(zu) h+=`<div class="row locked"><div class="rm"><b>${zu} weitere Herausforderungen</b><small>Sie erscheinen, sobald du den passenden Bereich freigeschaltet hast: Lizenzpakete, Onlineshop, Packstation, Großkunden oder das Entwicklungslabor.</small></div></div>`;
-  } else if(ltab==='rez'){
-    h=renderRezeptur(); hint=rezHint;
+    if(zu) h+=`<div class="row locked"><div class="rm"><b>${zu} weitere Herausforderungen</b><small>Sie erscheinen, sobald du den passenden Bereich freigeschaltet hast: Lizenzpakete, Onlineshop, Packstation, Großkunden oder die Werkbank.</small></div></div>`;
   } else if(ltab==='deko'){
     hint=`Stimmung im Laden: ${ambienteScore()} von 100. Verschieben: Möbel anschauen und F.`;
     const sw=(arr,cur,kind)=>arr.map(w=>{ const lock=S.level<w.lvl, own=cur===w.id;
@@ -1581,11 +1581,8 @@ function lapKlick(e,imHandy){
       S.prices[t2]=Math.max(0.05,neu); n++; });
     toast(`${n} Preise um ein Prozent ${f>1?'angehoben':'gesenkt'}.`); save(); }
   else if(a==='liz') buyLizenz(t);
-  else if(a==='rz'){ const f=b.dataset.f, v=b.dataset.v;
-    entwurfInit();
-    if(f==='eff2') entwurf.eff2=v||null; else entwurf[f]=v; }
-  else if(a==='rzproto'){ rezNameLesen(); rezProto(); return; }
-  else if(a==='rzbau'){ rezNameLesen(); rezBauen(); }
+  else if(a==='wbnach'){ const e=eigeneListe().find(x=>x.id===t); if(e){ const r=wbNachbestellen(t,WIRT.werkbank.stufen[e.stufe].mindest);
+    if(r.ok){ sfx.cash(); toast(`${e.name}: ${r.serie.kartons} Kartons in Fertigung, Lieferung in ${r.serie.tage} Tagen.`,'money'); } else toast(r.grund,'bad'); } }
   else if(a==='up') buyUp(t);
   else if(a==='deko') buyDeko(t);
   else if(a==='wall') setWall(t);
@@ -1715,6 +1712,8 @@ function buyUp(id){
     if(id==='onlineshop'){ drawPackSchild(); }
 
     if(id==='gravur'){ buildGravur(null); toast('Der Gravur-Automat steht. Blanko-Raketen im Laptop unter Bestellen (Fachhandel) ordern.'); }
+    else if(id==='labor'){ wbBauen(null); toast('Die Werkbank steht im Lager Nord neben dem Rolltor. Hingehen und eigene Batterien entwerfen.','money'); }
+    else if(/^labor[2-5]$/.test(id)){ const st=WIRT.werkbank.stufen[+id.slice(5)-1]; toast(`An der Werkbank gehen jetzt Batterien mit ${st.schuss} Schuss.`,'money'); if(typeof wbOpen!=='undefined'&&wbOpen) wbRender(); }
     else if(id==='grosskunden') toast('Eintrag ist online. Veranstalter rufen jetzt an.');
     else if(id==='plakat') toast('Plakate hängen. Mehr Kunden ab sofort.');
     else if(id==='tag4') toast('Ab jetzt darfst du auch sonntags öffnen.');
@@ -1745,21 +1744,6 @@ function setFloor(id){ const f=FLOORS.find(x=>x.id===id); if(!f||S.level<f.lvl||
   const paid=(S.paint||[]).indexOf(id)>=0;
   if(!paid&&f.cost){ if(S.money<f.cost){ toast(`Zu wenig Geld: ${f.name} kostet ${eur(f.cost)}, du hast ${eur(S.money)}.`); return; } S.money=r2(S.money-f.cost); DS.upgrades=r2(DS.upgrades+f.cost); S.paint=(S.paint||[]).concat(id); }
   S.floor=id; repaint(); sfx.pop(); toast(`Neuer Boden: ${f.name}.`); save(); }
-/* =========================================================
-   Maske fuer die eigene Rezeptur
-   ========================================================= */
-let rezHint='';
-function rezNameLesen(){ const i=$('rezName'); if(i&&entwurf) entwurf.name=i.value; }
-/* Der Entwurf, an dem gerade gebaut wird */
-let entwurf=null;
-function entwurfInit(){
-  if(entwurf) return entwurf;
-  const tr=TRAEGER.filter(traegerOffen)[0]||TRAEGER[0];
-  const bl=bruchListe();
-  entwurf={traeger:tr.id,eff:bl[0]||'kugel',eff2:null,A:'gold',B:'blau',
-           etikett:'klassik',name:''};
-  return entwurf;
-}
 /* Kleines Vorschaubild fuer eine Herausforderung */
 const _erfPic={};
 function erfPic(e){
@@ -1831,140 +1815,3 @@ function erfPic(e){
   return (_erfPic[e.id]=c.toDataURL('image/png'));
 }
 
-/* Vorschaukarte: so wuerde das Etikett im Regal aussehen */
-function rezVorschau(r){
-  const et=etikettVon(r.etikett), b=BRUCH[r.eff]||BRUCH.kugel;
-  const W=260,H=150,c=document.createElement('canvas'); c.width=W; c.height=H;
-  const g=c.getContext('2d');
-  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,et.bg1); gr.addColorStop(1,et.bg2);
-  g.fillStyle=gr; g.fillRect(0,0,W,H);
-  /* die beiden Rezeptfarben als Strahlen */
-  const fa=farbVon(r.A).hex, fb=farbVon(r.B).hex;
-  g.save(); g.translate(W/2,H*0.52); g.globalAlpha=0.5;
-  for(let i=0;i<26;i++){ const a=i/26*Math.PI*2;
-    g.strokeStyle=i%3?fa:fb; g.lineWidth=2.6;
-    g.beginPath(); g.moveTo(Math.cos(a)*16,Math.sin(a)*13); g.lineTo(Math.cos(a)*56,Math.sin(a)*46); g.stroke(); }
-  g.restore(); g.globalAlpha=1;
-  g.fillStyle=et.ac; g.fillRect(0,0,W,7); g.fillRect(0,H-7,W,7);
-  g.textAlign='center'; g.textBaseline='middle';
-  const nm=(r.name||'Ohne Namen').toUpperCase().slice(0,18);
-  g.font='700 26px "Bungee","Barlow Condensed",sans-serif';
-  g.lineWidth=6; g.strokeStyle='rgba(0,0,0,.6)'; g.strokeText(nm,W/2,H*0.36);
-  g.fillStyle=et.ac; g.fillText(nm,W/2,H*0.36);
-  g.font='600 15px "Barlow Condensed",sans-serif'; g.fillStyle='#f2f5ff';
-  g.fillText(b.name+(r.eff2?' + '+(BRUCH[r.eff2]||BRUCH.kugel).name:''),W/2,H*0.76);
-  g.font='600 13px "Barlow Condensed",sans-serif'; g.fillStyle=et.ac2||'#ffffff';
-  g.fillText(traegerVon(r.traeger).name,W/2,H*0.89);
-  return c.toDataURL('image/png');
-}
-
-function renderRezeptur(){
-  if(!S.up.labor){
-    const u=UPGRADES.find(x=>x.id==='labor');
-    rezHint='Noch kein Labor im Lager.';
-    return `<div class="row locked"><img class="pic" src="${upPic('labor')}" alt="">`+
-      `<div class="rm"><b>Entwicklungslabor</b><small>${u.desc}</small>`+
-      `<small class="warn">Ab Level ${u.lvl}, Kosten ${eur(u.cost())} — unter Ausbau (Kapitel 5) zu kaufen.</small></div></div>`;
-  }
-  const r=entwurfInit();
-  const bl=bruchListe();
-  if(bl.length&&!bruchOffen(r.eff)) r.eff=bl[0];
-  const trOffen=TRAEGER.filter(traegerOffen);
-  if(trOffen.length&&!traegerOffen(traegerVon(r.traeger))) r.traeger=trOffen[0].id;
-  const gueltig=rezeptGueltig(r)&&bl.length>0;
-  const kosten=gueltig?rezeptKosten(r):0, markt=gueltig?rezeptMarkt(r):0;
-  const entw=gueltig?rezeptEntwicklung(r):0;
-  const laufend=eigeneListe().filter(e=>!e.fertig);
-  const fertig=eigeneListe().filter(e=>e.fertig);
-  rezHint=r.eff2&&typeof effPassen==='function'&&!effPassen(r.eff,r.eff2)
-    ? `${(BRUCH[r.eff]||{}).name||r.eff} und ${(BRUCH[r.eff2]||{}).name||r.eff2} passen nicht zusammen: eine Figur steht am Himmel allein. Wähle einen anderen Zweitbruch.`
-    : bl.length
-    ? `Verbauen darfst du nur Bruchbilder, die du selbst schon am Himmel gesehen hast — ${bl.length} von ${BRUCH_IDS.length} sind es bisher. Zünde neue Ware auf dem Testfeld, dann wächst die Liste.`
-    : 'Du hast noch kein Bruchbild gesehen. Zünde erst etwas auf dem Testfeld, dann kannst du hier entwickeln.';
-
-  let h='<div class="rez"><div class="rezl">';
-  /* Traeger */
-  h+='<div class="rezfeld"><label>Träger</label><div class="rezwahl">'+
-    TRAEGER.map(t=>{ const off=traegerOffen(t);
-      return `<button data-a="rz" data-f="traeger" data-v="${t.id}" class="${r.traeger===t.id?'on':''}" ${off?'':'disabled'} title="${off?t.desc:'Ab Level '+t.lvl+(t.req?', Lizenz '+(lizenzDaten(t.req)||{}).name:'')}">${t.name}</button>`; }).join('')+
-    `</div><div class="rezinfo">${traegerVon(r.traeger).desc}</div></div>`;
-  /* Bruchbild */
-  h+='<div class="rezfeld"><label>Bruchbild</label><div class="rezwahl">'+
-    (bl.length?bl.map(id=>`<button data-a="rz" data-f="eff" data-v="${id}" class="${r.eff===id?'on':''}" title="${BRUCH[id].desc}">${BRUCH[id].name}</button>`).join('')
-              :'<small class="warn">Noch nichts gesehen.</small>')+
-    `</div>${bl.length?`<div class="rezinfo">${(BRUCH[r.eff]||BRUCH.kugel).desc}</div>`:''}</div>`;
-  /* Farben */
-  h+='<div class="rezfeld"><label>Farbe 1</label><div class="farbw">'+
-    REZ_FARBEN.map(f=>`<button data-a="rz" data-f="A" data-v="${f.id}" class="${r.A===f.id?'on':''}" style="background:${f.hex}" title="${f.name}"></button>`).join('')+'</div></div>';
-  h+='<div class="rezfeld"><label>Farbe 2</label><div class="farbw">'+
-    REZ_FARBEN.map(f=>`<button data-a="rz" data-f="B" data-v="${f.id}" class="${r.B===f.id?'on':''}" style="background:${f.hex}" title="${f.name}"></button>`).join('')+'</div></div>';
-  /* Zweite Stufe */
-  h+='<div class="rezfeld"><label>Zweite Zündstufe</label>';
-  if(!S.up.labor2){
-    const u2=UPGRADES.find(x=>x.id==='labor2');
-    h+=`<small class="warn">Braucht die zweite Zündstufe im Labor — ab Level ${u2.lvl}, ${eur(u2.cost())}.</small>`;
-  } else {
-    h+='<div class="rezwahl">'+
-      `<button data-a="rz" data-f="eff2" data-v="" class="${r.eff2?'':'on'}">ohne</button>`+
-      bl.map(id=>`<button data-a="rz" data-f="eff2" data-v="${id}" class="${r.eff2===id?'on':''}" title="${BRUCH[id].desc}">${BRUCH[id].name}</button>`).join('')+'</div>';
-  }
-  h+='</div>';
-  /* Etikett und Name */
-  h+='<div class="rezfeld"><label>Etikett</label><div class="rezwahl">'+
-    ETIKETT.map(e=>`<button data-a="rz" data-f="etikett" data-v="${e.id}" class="${r.etikett===e.id?'on':''}">${e.name}</button>`).join('')+'</div></div>';
-  h+=`<div class="rezfeld"><label>Name</label><input id="rezName" maxlength="20" placeholder="z. B. Nordlicht" value="${(r.name||'').replace(/"/g,'&quot;')}"></div>`;
-  h+='</div>';
-  /* rechte Spalte: Vorschau und Zahlen */
-  h+='<div class="rezr">';
-  h+=`<img class="pic" style="width:100%;height:auto;margin-bottom:10px" src="${rezVorschau(r)}" alt="">`;
-  h+=`<div class="rezwert"><span>Wow-Wert</span><b>${gueltig?rezeptWow(r).toFixed(2):'—'}</b></div>`;
-  h+=`<div class="rezwert"><span>Hype je Stück</span><b>${gueltig?rezeptHype(r):'—'}</b></div>`;
-  h+=`<div class="rezwert"><span>Herstellkosten</span><b>${gueltig?eur(kosten):'—'}</b></div>`;
-  h+=`<div class="rezwert"><span>Karton</span><b>${traegerVon(r.traeger).box} Stück</b></div>`;
-  h+=`<div class="rezwert gross"><span>Marktpreis</span><b>${gueltig?eur(markt):'—'}</b></div>`;
-  h+=`<div class="rezwert"><span>Entwicklung</span><b>${gueltig?eur(entw):'—'}</b></div>`;
-  h+=`<div class="rezwert"><span>Dauer</span><b>${gueltig?rezeptDauer(r)+' Tage':'—'}</b></div>`;
-  h+='<div class="btns" style="margin-top:12px">'+
-     `<button class="ghost" data-a="rzproto" ${gueltig?'':'disabled'}>Prototyp zünden</button>`+
-     `<button data-a="rzbau" ${gueltig&&S.money>=entw?'':'disabled'}>In Produktion</button></div>`;
-  h+=`<small style="display:block;color:var(--muted);margin-top:8px;line-height:1.35">Der Prototyp ist kostenlos und geht sofort auf dem Testfeld hoch. Der Marktpreis ergibt sich aus dem Rezept, verhandeln kannst du ihn später über die Preisliste.</small>`;
-  h+='</div></div>';
-  /* laufende und fertige Entwicklungen */
-  if(laufend.length) h+='<div class="kathead">In Entwicklung</div>'+laufend.map(e=>
-    `<div class="row"><div class="rm"><b>${e.name}</b><small>${(BRUCH[e.eff]||BRUCH.kugel).name} · ${traegerVon(e.traeger).name}</small>`+
-    `<small class="warn">Noch ${e.rest} Tag${e.rest===1?'':'e'}</small></div><div class="price">${eur(e.market)}</div></div>`).join('');
-  if(fertig.length) h+='<div class="kathead">Eigene Marke im Sortiment</div>'+fertig.map(e=>
-    `<div class="row"><div class="rm"><b>${e.name}</b><small>${(BRUCH[e.eff]||BRUCH.kugel).name}${e.eff2?' + '+(BRUCH[e.eff2]||BRUCH.kugel).name:''} · ${traegerVon(e.traeger).name}</small>`+
-    `<small>Im Laden: ${shelfStockOf(e.id)} im Regal, ${stockOf(e.id)} insgesamt</small></div>`+
-    `<div class="price">${eur(marketOf(e.id))}</div></div>`).join('');
-  return h;
-}
-/* Prototyp: geht sofort auf dem Testfeld hoch, kostet nichts. Seit dem
-   13.10. (Fundament 2b) wie jedes Produkt: das Probestueck steht auf seinem
-   Platz (Mörser, Rohr, Zündtisch) und zündet über den Abschuss-Baustein
-   (14z4 abProtoZuenden) - vorher stiegen die Effekte ohne Produkt frei
-   über den Stationen auf. */
-function rezProto(){
-  const r=entwurf; if(!rezeptGueltig(r)) return;
-  const z=abProtoZuenden(r);
-  if(!z.frei){ toast(`Für den Prototyp ist auf ${z.name} kein Platz frei. Erst zünden.`,'bad'); return; }
-  toast(`Prototyp steigt auf dem Testfeld (Kanal ${z.kanal}).`,'xp');
-  closeLaptop(true);
-}
-/* In Produktion geben */
-function rezBauen(){
-  const r=entwurf; if(!rezeptGueltig(r)) return;
-  const kosten=rezeptEntwicklung(r);
-  if(S.money<kosten) return;
-  const nm=(r.name||'').trim().slice(0,20)||('Eigenmarke '+(eigeneListe().length+1));
-  S.money=r2(S.money-kosten); DS.upgrades=r2(DS.upgrades+kosten);
-  const e={id:eigenId(Date.now().toString(36)+eigeneListe().length),
-    name:nm,traeger:r.traeger,eff:r.eff,eff2:r.eff2,A:r.A,B:r.B,etikett:r.etikett,
-    cost:rezeptKosten(r),market:rezeptMarkt(r),hype:rezeptHype(r),
-    rest:rezeptDauer(r),fertig:false};
-  S.eigene=eigeneListe().concat(e);
-  entwurf=null;
-  sfx.cash();
-  toast(`${nm} ist in Entwicklung. In ${e.rest} Tagen steht es im Katalog.`,'money');
-  save();
-}

@@ -11,7 +11,7 @@
 const FW_DEV=true;
 let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false, vfGezuendet=0;
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
-function todUhr(){ if(typeof LM!=='undefined'&&LM&&LM.uhr) return LM.uhr; /* Leistungsbericht: Feuerwerksort bei Nacht */ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
+function todUhr(){ if(typeof LM!=='undefined'&&LM&&LM.uhr) return LM.uhr; /* Leistungsbericht: Feuerwerksort bei Nacht */ return (FW_DEV&&(fwTestAn||vfAn))||(typeof wbVs!=='undefined'&&wbVs)?Math.max(clock,1320):clock; }   /* Werkbank-Vorschau (17h): Abendlicht */
 /* Stufen nach Level (Tom, 28.09.: "welches Level was ist ... die hat
    man am Anfang, die in der Mitte, das sind die wirklich krassen
    Sachen" - damit die Steigerung beim Testen sichtbar wird) */
@@ -25,7 +25,7 @@ function fwStufe(lvl){ let i=0; FW_STUFEN.forEach((s,k)=>{ if(lvl>=s.ab) i=k; })
 /* Reihenfolge = Spielverlauf: Level, bei gleichem Level Tisch, Rohre, Moerser */
 function fwTestProdukte(){
   const reihe={tisch:0,rampe:1,moerser:2};
-  return ORDER.filter(t=>{ const p=P[t]; return p&&p.cat&&!p.rezept&&!p.noOrder&&stationOf(t); })
+  return ORDER.filter(t=>{ const p=P[t]; return p&&p.cat&&!p.eigen&&!p.noOrder&&stationOf(t); })
     .sort((a,b)=>(P[a].lvl-P[b].lvl)||(reihe[stationOf(a)]-reihe[stationOf(b)]));
 }
 /* Aufkleber oben auf dem Karton: Level in der Farbe der Stufe */

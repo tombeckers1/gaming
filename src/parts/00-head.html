@@ -216,28 +216,106 @@ button:focus-visible{outline:3px solid var(--spark);outline-offset:2px}
 .erfstufen b.on{background:var(--mint);color:var(--ink)}
 .kathead{margin:16px 0 2px;font-family:var(--display);font-size:17px;color:var(--signal)}
 .kathead:first-child{margin-top:4px}
-/* Rezeptur */
-.rez{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-.rezl{flex:1;min-width:340px}
-.rezr{width:290px;flex-shrink:0;background:rgba(242,245,255,.05);border:1px solid var(--line);border-radius:12px;padding:14px}
-.rezfeld{margin-bottom:12px}
-.rezfeld>label{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:4px}
-.rezwahl{display:flex;gap:5px;flex-wrap:wrap}
-.rezwahl button{background:rgba(242,245,255,.10);color:var(--snow);font-size:15px;padding:7px 11px;border-radius:8px;text-align:left}
-.rezwahl button.on{background:var(--signal);color:var(--ink)}
-.rezwahl button:disabled{opacity:.3}
-.farbw{display:flex;gap:5px;flex-wrap:wrap}
-.farbw button{width:30px;height:30px;border-radius:7px;padding:0;border:2px solid transparent}
-.farbw button.on{border-color:var(--snow);box-shadow:0 0 0 2px rgba(255,210,63,.5)}
-.rezwert{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:16px}
-.rezwert b{font-variant-numeric:tabular-nums}
-.rezwert.gross{font-size:19px;border-bottom:2px solid var(--signal)}
-.rezwert.gross b{font-family:var(--display);color:var(--signal)}
-.rezinfo{font-size:14px;color:var(--muted);line-height:1.35;margin:8px 0 12px}
-#rezName{width:100%;font-family:var(--ui);font-size:18px;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--snow)}
-#rezName:focus{outline:2px solid var(--signal)}
-body.compact .rezr{width:100%}
-body.compact .rezl{min-width:0}
+/* Werkbank (17h, 16.10.): Bauprogramm eigene Batterien - Vollbild im Hausstil, am Handy einspaltig */
+#werkbank{padding:10px}
+#werkbank .wbcard{max-width:min(1240px,98vw);width:100%;height:calc(100% - 4px);padding:0;display:flex;flex-direction:column;overflow:hidden;background:var(--ink)}
+.wbkopf{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--night);border-bottom:2px solid var(--signal);flex-shrink:0}
+.wbkopf b{font-family:var(--display);font-weight:400;font-size:19px;color:var(--signal)}
+.wbkopf em{font-style:normal;color:var(--muted);font-size:16px;flex:1}
+.wbkopf span{font-family:var(--display);font-size:18px}
+.wbkoerper{flex:1;overflow:auto;padding:10px 14px 14px;touch-action:pan-y}
+.wbtipp{margin:4px 0 10px;color:var(--muted);font-size:16px;line-height:1.35}
+.wbkopfzeile{margin:14px 0 6px;font-family:var(--display);font-size:16px;color:var(--signal)}
+.wbplaetze{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
+.wbplatz{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;background:rgba(242,245,255,.06);border:1px solid var(--line);border-radius:12px;padding:10px}
+.wbplatz.leer{flex-direction:column;align-items:flex-start;justify-content:center;min-height:120px;border-style:dashed}
+.wbplatz.leer small{color:var(--muted)}
+.wbbild{width:96px;height:72px;object-fit:contain;border-radius:8px;background:rgba(0,0,0,.25)}
+.wbinfo{flex:1;min-width:180px}
+.wbinfo b{display:block;font-size:20px}
+.wbinfo small{display:block;color:var(--muted);font-size:15px;line-height:1.3}
+.wbaktion{display:flex;flex-direction:column;gap:6px;width:100%}
+.wbzeile{display:flex;gap:6px;flex-wrap:wrap}
+.wbzeile button,.wbaktion>button{font-size:15px;padding:8px 10px}
+.wbstep{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wbstep button{min-width:44px;padding:8px 10px;font-size:16px;background:rgba(242,245,255,.12);color:var(--snow)}
+.wbstep b,.wbstep span{min-width:56px;text-align:center;font-variant-numeric:tabular-nums}
+.wbstufen{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.wbstufe{background:rgba(242,245,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px 10px;opacity:.75}
+.wbstufe.an{opacity:1;border-color:var(--signal)}
+.wbstufe b{display:block;font-family:var(--display);font-weight:400;font-size:17px}
+.wbstufe small{display:block;color:var(--muted);font-size:14px;line-height:1.3}
+.wbstufe button{margin-top:6px;font-size:15px;padding:7px 10px}
+.wbsterne b{color:rgba(242,245,255,.25);font-size:18px}
+.wbsterne b.an{color:var(--signal)}
+.wbsterne b.halb{color:var(--signal);opacity:.55}
+.wbleiste{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.wbleiste button{background:rgba(242,245,255,.1);color:var(--snow);font-size:16px;padding:8px 12px}
+.wbleiste button.on,.wbwahl button.on{background:var(--signal);color:var(--ink)}
+.wbkenn{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.wbkenn>div{background:rgba(242,245,255,.06);border-radius:10px;padding:6px 10px}
+.wbkenn small{display:block;color:var(--muted);font-size:13px;line-height:1.2}
+.wbkenn b{display:block;font-family:var(--display);font-weight:400;font-size:20px}
+.wbkenn b.ok,small.ok,.wbfuss small.ok{color:var(--mint)}
+.wbkenn b.warn,small.warn,.wbinfo .warn{color:var(--signal)}
+small.no,.wbwert.no b{color:var(--fire)}
+.wbvoll{height:6px;border-radius:3px;background:rgba(242,245,255,.12);margin:8px 0;overflow:hidden}
+.wbvoll i{display:block;height:100%;background:var(--signal)}
+.wbzeit{display:flex;gap:2px;height:38px;border-radius:8px;overflow:hidden;background:rgba(242,245,255,.08)}
+.wbzeit button{padding:0;border-radius:0;min-width:10px;position:relative;opacity:.85}
+.wbzeit button.on{opacity:1;box-shadow:inset 0 0 0 3px var(--snow)}
+.wbzeit button span{position:absolute;left:4px;top:2px;font-size:12px;color:var(--ink);font-weight:700}
+.wbrest{background:repeating-linear-gradient(45deg,rgba(242,245,255,.08) 0 6px,transparent 6px 12px)}
+.wbabschnitte{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.wbab{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:rgba(242,245,255,.05);cursor:pointer;font-size:16px}
+.wbab.on{background:rgba(255,210,63,.16);outline:1px solid var(--signal)}
+.wbab>b{font-family:var(--display);font-weight:400;min-width:22px}
+.wbab>span{flex:1;min-width:0}
+.wbab em{display:flex;gap:3px;font-style:normal}
+.wbab em button{padding:5px 9px;font-size:14px;min-width:34px;background:rgba(242,245,255,.12);color:var(--snow)}
+.wbab.neu{background:transparent;cursor:default}
+.wbab.neu button{background:rgba(242,245,255,.12);color:var(--snow);font-size:15px;padding:7px 12px}
+.wbfp{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.4)}
+.wbedit{margin-top:8px;padding:8px 10px;border-radius:12px;background:rgba(242,245,255,.04);border:1px solid var(--line)}
+.wbfeld{margin:8px 0}
+.wbfeld>label,.wbfeld>div>label{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:4px}
+.wbfeld label small{font-weight:500;margin-left:6px}
+.wbunter{margin-top:8px}
+.wbhinweis{display:block;margin-top:6px;color:var(--muted);font-size:14px}
+.wbwahl{display:flex;gap:5px;flex-wrap:wrap}
+.wbwahl button{background:rgba(242,245,255,.10);color:var(--snow);font-size:15px;padding:7px 10px;border-radius:8px}
+.wbkl{font-style:normal;font-size:10px;letter-spacing:-1px;opacity:.7;margin-left:3px}
+.wbzwei{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wbfarben{display:flex;gap:5px;flex-wrap:wrap}
+.wbfarbe{width:34px;height:34px;padding:0;border-radius:8px;border:2px solid transparent}
+.wbfarbe.on{border-color:var(--snow);box-shadow:0 0 0 2px var(--signal)}
+.wbfuss{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.wbfuss small{font-size:15px}
+.wbprodukt{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.wbpack{width:300px;flex-shrink:0}
+.wbpack canvas{width:100%;height:auto;border-radius:10px;display:block}
+.wbpack small{display:block;color:var(--muted);font-size:14px;margin-top:6px}
+.wbrechnung{flex:1;min-width:300px}
+.wbrechnung input{width:100%;box-sizing:border-box;font:600 18px var(--ui);padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--night);color:var(--snow);-webkit-user-select:text;user-select:text}
+.wbwert{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:17px}
+.wbwert b{font-variant-numeric:tabular-nums}
+.wbwert input{width:130px}
+.wbwert.gross{font-size:20px;border-bottom:2px solid var(--signal)}
+.wbwert.gross b{font-family:var(--display);font-weight:400;color:var(--signal)}
+.wbrechnung>small{display:block;color:var(--muted);font-size:14px;margin:4px 0 6px}
+#wbVsBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:14px;padding:8px 14px;border-radius:12px;background:var(--panel-strong);border:1px solid var(--signal)}
+#wbVsBar b{font-family:var(--display);font-weight:400;color:var(--signal)}
+body.wbvs #hud,body.wbvs #touch{display:none}
+@media (max-width:700px){
+  .wbkenn{grid-template-columns:1fr 1fr}
+  .wbzwei{grid-template-columns:1fr}
+  .wbplaetze{grid-template-columns:1fr}
+  .wbpack{width:100%;max-width:300px}
+  .wbab{flex-wrap:wrap}
+  .wbab>span{flex-basis:calc(100% - 80px)}
+  .wbkopf em{display:none}
+  .wbwahl button{padding:9px 11px}
+}
 body.compact .spark{width:74px;height:24px}
 body.compact .mkcol{min-width:74px}
 .ok{color:var(--mint)!important}.warn{color:var(--signal)!important}.no{color:#ffab9f!important}
@@ -603,11 +681,12 @@ body.compact .pdahead2 b{font-size:16px}
 <div class="ov" id="laptop"><div class="card">
   <div class="lhead"><b id="lGeraet">Feuerwerksladen OS</b><em id="lLevel"></em><span id="lMoney"></span></div>
   <div class="tabs" id="ltabs">
-    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="rez">Entwicklung</button><button data-tab="shop">Laden</button><button data-tab="online">Onlineshop</button><button data-tab="staff">Team</button><button data-tab="prod">Produktion</button>
+    <button data-tab="order">Bestellen</button><button data-tab="price">Preise &amp; Markt</button><button data-tab="liz">Sortiment</button><button data-tab="up">Ausbau</button><button data-tab="deko">Deko</button><button data-tab="shop">Laden</button><button data-tab="online">Onlineshop</button><button data-tab="staff">Team</button><button data-tab="prod">Produktion</button>
   </div>
   <div class="lbody" id="lbody"></div>
   <div class="lfoot lfoot-r"><button class="ghost" id="lclose">Zuklappen</button><button id="lKorb">Warenkorb anzeigen</button></div>
 </div></div>
+<div class="ov" id="werkbank"><div class="card wbcard"></div></div>
 <div class="ov" id="handy"><div class="geraet"><div class="schirm">
   <div class="kerbe"></div>
   <div class="hstatus"><span id="hZeit"></span><span id="hGeld"></span></div>

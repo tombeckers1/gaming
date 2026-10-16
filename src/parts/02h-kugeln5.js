@@ -54,7 +54,7 @@ const KUGEL_MARGE=WIRT.ware.kugelMarge;   /* 01c-wirtschaft.js */
   /* Preise und Nachfrage aller Kugelbomben; alle sind in dieser Runde
      geaendert (Knall, Groesse, Optik) - Toms Pruefliste "Vorfuehrung
      (Aenderungen)" (17b) */
-  for(const t of ORDER){ const q=P[t]; if(!q||q.shape!=='shell'||q.eigen||q.rezept) continue;
+  for(const t of ORDER){ const q=P[t]; if(!q||q.shape!=='shell'||q.eigen) continue;
     const vk=KUGEL_VK[Math.max(14,Math.min(26,q.lvl|0))]; if(!vk) continue;
     q.market=vk; q.cost=Math.round(vk/KUGEL_MARGE*100)/100; q.weight=(q.weight||3)+(q.lvl>=17?2:1); q.aenderung=true; }
   /* Lizenztexte, die gestrichene Kugeln nannten */

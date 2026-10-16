@@ -1658,6 +1658,75 @@ bk.zelle=function(o){
                                    (ein Atlas, Zelle je Schild; Statusstreifen tauscht nur die UVs)
    Doku: docs/fundament/baukasten.md (Ausstellung 2.0)
    ========================================================= */
+/* ---------- Werkbank (Kapitel 5 Eigene Marke, 16.10.) ----------
+   bk.werkbank({parent,x,z,ry,laenge,malen,pw,ph}) -> {g, schirm, teile}
+   Werktisch 2,0 x 0,75 m, Arbeitshoehe 0,92 m (DIN 33402 / Werkbank-Norm 0,85-0,95 m): Stahlgestell Anthrazit, Multiplexplatte
+   Holz mit Stahlkante, Schubladenblock Signalblau (Werkstattmoebel), Lochwand 1,0 m (Lochblech lichtgrau, MAT lochblechKasse),
+   Schraubstock, zwei Spulen Zuendschnur (gruen/rot), Musterbatterie (Rohrraster aus Pappe-Rohren, Grundplatte Alu), zwei
+   Musterkartons, Tablet auf Staender (Bildschirm = bk.schild mit malen, darf neu gemalt werden), Arbeitsleuchte unter dem Bord
+   (lampeWarm), Hausschild WERKBANK oben an der Lochwand. Vorn ist +z (Spielerseite), Laenge entlang x.
+   Detailgrad: Rohre/Zylinder 6/10/14 Segmente, Ultra Low ohne Fasen. */
+bk.werkbank=function(o){
+  const F=MAT.farbe, L=o.laenge||2.0, D=0.75, YT=0.92, seg=[6,10,14][bk.lod()], hl=L/2;
+  const g=new THREE.Group(); g.position.set(o.x||0,0,o.z||0); g.rotation.y=o.ry||0; g.userData.bauteil='werkbank'; (o.parent||scene).add(g);
+  const S=bk.sammler({form:{fase:0.008,faseMin:0.03,lod0Kasten:true},bauteil:'werkbank'});
+  const ANTH=F('anthrazit'), STAHL=F('silbergrau'), BLAU=F('signalblau');
+  /* Gestell: vier Beine, Zargen, Bodenablage, Fuesse */
+  for(const sx of [-1,1]) for(const sz of [-1,1]){ S.box(0.06,YT-0.05,0.06,sx*(hl-0.05),(YT-0.05)/2,sz*(D/2-0.05),ANTH,'lackMetall'); bk.fuss(S,sx*(hl-0.05),sz*(D/2-0.05),0.1); }
+  for(const sz of [-1,1]) S.box(L-0.1,0.08,0.035,0,YT-0.1,sz*(D/2-0.05),ANTH,'lackMetall');
+  for(const sx of [-1,1]) S.box(0.035,0.08,D-0.1,sx*(hl-0.05),YT-0.1,0,ANTH,'lackMetall');
+  S.box(L-0.14,0.025,D-0.14,0,0.18,0,F('graphit'),'lackMetall');
+  /* Platte: Multiplex mit Stahlkante vorn */
+  S.box(L,0.04,D,0,YT-0.02,0,F('holzPalette'),'matt');
+  S.box(L,0.045,0.012,0,YT-0.022,D/2+0.006,STAHL,'stahl');
+  /* Schubladenblock links: vier Schubladen mit Griffleisten */
+  const bx=-hl+0.34, bw=0.52;
+  S.box(bw,0.6,D-0.16,bx,0.5,0.0,BLAU,'lackMetall');
+  for(let i=0;i<4;i++){ const y=0.27+i*0.15; S.box(bw-0.04,0.13,0.012,bx,y,(D-0.16)/2+0.006,BLAU,'lackMetall'); S.box(0.22,0.018,0.02,bx,y+0.04,(D-0.16)/2+0.02,F('aluminium'),'stahl'); }
+  /* Lochwand: zwei Pfosten, Bord oben, Schild */
+  const zw=-D/2+0.03, yw0=YT+0.03, hw=1.0;
+  for(const sx of [-1,1]) S.box(0.05,hw+0.08,0.05,sx*(hl-0.03),yw0+(hw+0.08)/2,zw-0.01,ANTH,'lackMetall');
+  S.box(L,0.03,0.24,0,yw0+hw+0.02,zw+0.1,ANTH,'lackMetall');
+  /* Werkzeug an der Lochwand: Zangen, Schraubendreher, Seitenschneider - einfache Silhouetten */
+  for(let i=0;i<5;i++){ const x=-0.55+i*0.14; S.box(0.02,0.16,0.012,x,yw0+0.62,zw+0.025,F('gummischwarz'),'kunststoff',0,0,i%2?0.12:-0.12);
+    S.box(0.012,0.09,0.01,x,yw0+0.5,zw+0.025,STAHL,'stahl'); }
+  /* zwei Spulen Zuendschnur an Haken (gruen = Anzuendlitze, rot = elektrische Zuendleitung) */
+  for(const [x,c] of [[0.35,'signalgruen'],[0.6,'signalrot']]){ S.zyl(0.075,0.075,0.05,seg,x,yw0+0.58,zw+0.05,F(c),'kunststoff',Math.PI/2,0,0);
+    S.zyl(0.03,0.03,0.056,seg,x,yw0+0.58,zw+0.05,F('wellpappe'),'matt',Math.PI/2,0,0);
+    S.box(0.012,0.05,0.04,x,yw0+0.66,zw+0.03,STAHL,'stahl'); }
+  /* lose Zuendleitung auf der Platte zur Musterbatterie */
+  S.box(0.5,0.008,0.008,0.15,YT+0.004,0.12,F('signalrot'),'kunststoff',0,0.25,0);
+  /* Schraubstock rechts vorn */
+  const vx=hl-0.2, vz=D/2-0.12;
+  S.box(0.16,0.05,0.18,vx,YT+0.025,vz,ANTH,'lackMetall').box(0.15,0.08,0.05,vx,YT+0.09,vz-0.05,BLAU,'lackMetall').box(0.15,0.08,0.05,vx,YT+0.09,vz+0.06,BLAU,'lackMetall')
+   .box(0.14,0.02,0.012,vx,YT+0.14,vz-0.022,STAHL,'stahl').box(0.14,0.02,0.012,vx,YT+0.14,vz+0.032,STAHL,'stahl');
+  S.zyl(0.012,0.012,0.22,seg,vx,YT+0.09,vz+0.16,STAHL,'stahl',Math.PI/2,0,0);
+  S.zyl(0.008,0.008,0.2,seg,vx,YT+0.09,vz+0.27,STAHL,'stahl',0,0,Math.PI/2);
+  /* Musterbatterie: 5 x 5 Pappe-Rohre auf Alu-Platte (wie die Stufe 1 der Werkbank) */
+  const mx=0.05, mz=0.02, t=0.04;
+  S.box(0.23,0.012,0.23,mx,YT+0.006,mz,F('aluminium'),'stahl');
+  for(let i=0;i<5;i++) for(let k=0;k<5;k++){ const x=mx+(i-2)*t, z=mz+(k-2)*t;
+    S.zyl(0.016,0.016,0.13,seg,x,YT+0.012+0.065,z,F('graphit'),'matt');
+    S.zyl(0.0125,0.0125,0.004,seg,x,YT+0.012+0.131,z,F('wellpappe'),'matt'); }
+  /* Musterkartons hinten rechts */
+  S.box(0.22,0.16,0.22,hl-0.5,YT+0.08,-D/2+0.2,F('wellpappe'),'matt').box(0.3,0.2,0.24,hl-0.22,YT+0.1,-D/2+0.2,F('wellpappe'),'matt')
+   .box(0.3,0.04,0.245,hl-0.22,YT+0.17,-D/2+0.2,F('nachtblau'),'matt');
+  /* Tablet auf Staender (Mitte hinten) */
+  const tx=-0.38, tz=-D/2+0.22, tn=-0.32;
+  S.box(0.12,0.012,0.1,tx,YT+0.006,tz,ANTH,'lackMetall').box(0.025,0.16,0.025,tx,YT+0.08,tz-0.02,ANTH,'lackMetall');
+  S.pivot(tx,YT+0.27,tz,tn,0,0).box(0.42,0.29,0.016,0,0,0,F('gummischwarz'),'kunststoff').pivot();
+  /* Arbeitsleuchte unter dem Bord */
+  S.box(L-0.3,0.035,0.06,0,yw0+hw-0.02,zw+0.17,ANTH,'lackMetall').box(L-0.36,0.008,0.04,0,yw0+hw-0.04,zw+0.17,F('lampeWarm'),'leucht');
+  S.fertig(g,{nachher:(me,k)=>{ if(k!=='leucht') me.receiveShadow=true; }});
+  /* Lochblech (eine Textur fuer alle Lochwaende, Massstab ueber die UVs: 0,4 m je Kachel) */
+  const lg=MAT.kachel(new THREE.PlaneGeometry(L-0.08,hw),(L-0.08)/0.4,hw/0.4), lw=new THREE.Mesh(lg,MAT.get('lochblechKasse'));
+  lw.position.set(0,yw0+hw/2,zw); lw.userData.bauteil='werkbank'; g.add(lw);
+  bk.schild(g,{text:'WERKBANK',unter:'EIGENE MARKE',b:0.9,h:0.22,x:0,y:yw0+hw+0.17,z:zw+0.005,leucht:true});
+  /* Bildschirm des Tablets: Anzeige, die neu gemalt wird */
+  const schirm=bk.schild(g,{malen:o.malen||((c,W,H)=>{ c.fillStyle=MAT.css('anzeigeBlau'); c.fillRect(0,0,W,H); }),pw:o.pw||512,ph:o.ph||352,b:0.39,h:0.265,x:0,y:0,z:0,leucht:true});
+  schirm.position.set(tx,YT+0.27,tz); schirm.rotation.set(tn,0,0); schirm.translateZ(0.0095);
+  return {g,schirm,laenge:L,tiefe:D,hoehe:YT};
+};
 bk.verkaufstischTeile=function(K,box){
   const W=K.w, D=K.d, y=K.lv[K.lv.length-1], iw=W-0.1, st=[];
   st.push({geo:box(W,0.04,D),m:tm(0,y-0.02,0),rolle:'platte'});

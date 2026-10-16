@@ -122,6 +122,8 @@ function vorDieTuer(){
   if(n) toast(`Lieferung: ${n} Karton${n>1?'s':''} vor der Ladentür abgestellt.`,'xp');
   if(regale) toast(`${regale} Paket${regale>1?'e':''} mit Einrichtung vor der Ladentür. Hinbringen, wo es stehen soll, und mit F auspacken.`,'money');
 }
+/* Zeitgeber (later) - auch die Werkbank-Vorschau (17h wbVsStep) laesst nur sie und das Feuerwerk laufen */
+function timerTakt(dt){ for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } } }
 function step(dt){
   if(typeof gpAn!=='undefined'&&gpAn) gpTick(dt);
   updatePlayer(dt);
@@ -157,7 +159,7 @@ function step(dt){
   }
   updateSonne(pl.x,pl.z);
   updateInnenlicht(dt); updateTruck(dt); updateWBays(dt); if(typeof hrTick==='function') hrTick(dt); if(typeof wkTick==='function') wkTick(dt); updateSchiebetuer(dt); updateVersand(dt); updatePaletten(dt); updateSchweber(dt); updateWischen(dt); updateSchoner(dt); updateZiel(dt); karreNachziehen(); karreFolgen(); kartonTick(dt);
-  for(let i=timers.length-1;i>=0;i--){ timers[i].t-=dt; if(timers[i].t<=0){ const tm=timers[i]; timers.splice(i,1); if(tm.fw){ FW_KTX++; try{ tm.fn(); } finally { FW_KTX--; } } else tm.fn(); } }
+  timerTakt(dt);
   if(phase==='open') addGrime(dt*0.0016*(1+customers.length*0.05));
   hype=Math.max(0,hype-dt*WIRT.kunden.hype.verfallJeSek);
   updateFireworks(dt); updateSnow(dt); updateDeko(dt); updateStadt(dt); updatePark(dt);
@@ -173,7 +175,7 @@ function frame(now){
   let dt=(now-last)/1000; last=now; const roh=dt; if(dt>0.05) dt=0.05;
   if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen()&&!LM.an);
   if(LM.an) lmVor();
-  if(S&&!paused){ step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); }
+  if(S&&!paused){ if(wbVs) wbVsStep(dt); else { step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); } }
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   regaleImBlick();

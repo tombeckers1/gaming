@@ -706,7 +706,7 @@ function igniteType(t,o0,it){
   const o=o0||padOf(t), sh=p.shape;
   /* Vorfuehrung (Entwicklung): kein Hype, keine Erfahrung - sonst ging
      nach gut zwanzig Zuendungen das Level-Fenster auf und fing die Tasten */
-  /* Prototyp der eigenen Rezeptur (14z4 abProtoZuenden): kostenlos, ohne Hype */
+  /* Vorschau einer eigenen Batterie an der Werkbank (17h, P.proto): kostenlos, ohne Hype */
   /* QS-Stichprobe der Eigenproduktion (14z4 abStichprobe, it.qs): auch ohne Hype - das Stueck gehoert zur Produktion */
   if(!(typeof vfAn!=='undefined'&&vfAn)&&!p.proto&&!(it&&it.qs)){
     hype=Math.min(WIRT.kunden.hype.max,hype+p.hype); DS.burned=r2(DS.burned+costOf(t)); addXP(Math.max(WIRT.xp.zuenden.min,Math.round(p.hype/WIRT.xp.zuenden.hypeTeiler)));
@@ -720,35 +720,7 @@ function igniteType(t,o0,it){
   if(typeof kleinZuenden==='function'&&kleinZuenden(t,o,it)) return;
   /* neue Ware (Sortiment mal drei): Fontaenen, Boeller, Kleinfeuerwerk, Kugelsorten */
   if(typeof neuZuenden==='function'&&neuZuenden(t,o)) return;
-  /* ----- Eigene Rezeptur: das Rezept sagt, was passiert ----- */
-  if(p.rezept){
-    const rz=p.rezept, tr=traegerVon(rz.traeger);
-    const A=K(rz.A)||FW.gold, B=K(rz.B)||FW.weiss;
-    const st=rz.eff2?[{t:0.55,eff:rz.eff2,sz:tr.kal*0.6,streu:5,A:B,B:A}]:null;
-    if(tr.shape==='shell'){
-      kugelbombe(o,rz.traeger==='kugel100'?2:1,{A,B,eff:rz.eff});
-    } else if(tr.shape==='battery'){
-      /* eigene Batterie: wie jede Batterie Rohr fuer Rohr nach Plan */
-      emitters.push({t:0.7,k:'fuse',o});
-      const Z=zuendPlan(t), RS=rohrSatz(o,t);
-      if(Z&&RS){ Z.S.forEach((e,i)=>later(0.7+e.tt,()=>{ const os=RS.ort(e.k); RS.feuer(e.k,os);
-          shot(os,{sz:tr.kal,eff:rz.eff,A,B,ang:e.ang,dir:e.dir,stufen:i===Z.S.length-1?st:null}); }));
-        later(0.7+Z.letzter+0.35,()=>RS.nachrauch(3.2)); }
-      else for(let i=0;i<tr.schuss;i++) later(0.7+i*0.32,()=>
-        shot(o,{sz:tr.kal,eff:rz.eff,A,B,ang:rand(-0.08,0.08),stufen:i===tr.schuss-1?st:null}));
-    } else if(tr.shape==='cylinder'){
-      const v=distVol(o);
-      emitters.push({t:3.2,k:'fountain',o,A:FW.gold,B:A});
-      sfx.fizz(v);   /* danach rauscht das Klangbett der Fontaene (30.09.) */
-      later(3.2,()=>shot(o,{pw:3,sz:tr.kal*1.2,eff:rz.eff,A,B,fuse:1.3,dick:1,stufen:st}));
-    } else {
-      /* Raketenset: eine Rakete je Rohr wie jede Rakete im Sortiment (13.10.,
-         Fundament 2b: Loch = Schuss) - vorher stiegen tr.schuss Raketen aus
-         einem Rohr, in dem nur eine steckte */
-      shot(o,{pw:tr.kal>1.1?3:0,sz:tr.kal,eff:rz.eff,A,B,stufen:st});
-    }
-    return;
-  }
+  /* Eigene Batterien der Werkbank (02d) laufen ueber SHOWS[t] wie jede Batterie im Sortiment */
   /* ----- Kugelbomben aus der Moerserbatterie ----- */
   if(sh==='shell'){
     const kal={kugel75:1,kugel100:2,kugel150:3,kugel200:4,kugel300:5}[kugelTyp(t)]||1;

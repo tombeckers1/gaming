@@ -24,7 +24,6 @@ function rohrBedarf(t){
       b+=bo.filter(x=>!x.je).length;
       b+=bo.filter(x=>x.je).length*pl.schuesse.filter(x=>x.q===0).length; });
   }
-  else if(P[t]&&P[t].rezept&&typeof traegerVon==='function'){ const tr=traegerVon(P[t].rezept.traeger); if(tr.shape==='battery') s=tr.schuss; }
   const r={schuss:s,boden:b,n:s}; if(typeof SHOWS!=='undefined') _rohrBedarf[t]=r; return r;
 }
 function istBatterie(t){ const sh=P[t]&&P[t].shape; return (sh==='battery'||sh==='fan')&&rohrBedarf(t).schuss>0; }
@@ -101,6 +100,9 @@ function rohrLayout(t){
     if(art==='schlange'&&A.blk!==Bb.blk) return A.blk-Bb.blk;
     if(A.row!==Bb.row) return A.row-Bb.row;
     return rang(A)-rang(Bb); });
+  /* Eigene Batterie (Werkbank, 02d): die Verdrahtung kommt aus dem Entwurf - jeder Abschnitt seine Reihen, darin
+     die Rohre in der Reihenfolge seines Musters (p.folgeVon); die Neigung je Rohr liefert p.rohrNeig */
+  if(typeof p.folgeVon==='function'){ const f=p.folgeVon(rohre); if(f&&f.length===rohre.length) folge=f; }
   /* Fontaenen-Module fuer die Boden-Effekte: eine Leiste vorn vor der
      Batterie, so viele wie Boden-Effekte */
   const nb=rohrBedarf(t).boden, module=[];
@@ -157,11 +159,8 @@ function zuendPlan(t){
   if(_zplan[t]) return _zplan[t];
   const p=P[t], L=rohrLayout(t); if(!L) return null;
   let Z;
-  if(SHOWS[t]){ const o={x:0,y:0,z:0,ab:0.005,jit:0.002,hx:p.dims[0]/2,hz:p.dims[2]/2,ry:Math.PI};
-    Z=playShow(o,SHOWS[t](),t,1,{plan:true}); }
-  else { /* eigene Rezeptur: gleichmaessig im Takt 0,32 s, leicht schraeg */
-    const EV=[]; rohrSaat(saatZahl(t),()=>{ for(let i=0;i<L.N;i++){ const a=rand(-0.08,0.08), dr=rand(0,Math.PI*2); EV.push({art:'s',tt:0.32*i,ang:a,dir:dr}); } });
-    Z=zuendFolge(EV,t,0.32*L.N); }
+  const o={x:0,y:0,z:0,ab:0.005,jit:0.002,hx:p.dims[0]/2,hz:p.dims[2]/2,ry:Math.PI};
+  Z=playShow(o,SHOWS[t](),t,1,{plan:true});
   /* Neigung der Rohre (01.10. abends, Tom: "sieht nicht gut aus" - die
      Rohre standen im Winkel ihres Drehbuch-Schusses kreuz und quer und
      steckten ineinander). Jetzt wie bei echten Batterien: die Rohre
@@ -178,7 +177,7 @@ function zuendPlan(t){
 /* 02.10.: je Block (Verbund) eigener Faecher - vorher zaehlte die Spalte
    ueber die ganze Breite, und der linke Block schoss nur nach links, der
    rechte nur nach rechts (Goldader: erst alles rechts, dann alles links) */
-function rohrNeigung(t,k){ const L=rohrLayout(t), r=L.rohre[k], cpb=L.cols/L.B, h=(cpb-1)/2; return h>0?((r.col-r.blk*cpb)-h)/h*zuendPlan(t).neig:0; }
+function rohrNeigung(t,k){ if(P[t]&&P[t].rohrNeig){ rohrLayout(t); return P[t].rohrNeig(k); } const L=rohrLayout(t), r=L.rohre[k], cpb=L.cols/L.B, h=(cpb-1)/2; return h>0?((r.col-r.blk*cpb)-h)/h*zuendPlan(t).neig:0; }
 /* Muendung von Rohr k im Produkt (lokal, y ab Tischplatte) */
 function rohrHoehe(t){ const p=P[t], h=p.dims[1], fan=p.shape==='fan'; return {bh:fan?h*0.72:h*0.94,lp:fan?h*0.26:Math.max(0.012,h*0.06)}; }
 function rohrMund(t,k){ const L=rohrLayout(t), r=L.rohre[k], H=rohrHoehe(t), n=rohrNeigung(t,k), u=[Math.sin(n),Math.cos(n),0];

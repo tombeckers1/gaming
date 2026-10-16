@@ -74,7 +74,7 @@ const VP_FL=(()=>{ const M=VP_ZEILEN.map(vpZeilenMass);
   const B=2*VP_SEITE+M.reduce((a,m)=>a+m.t,0)+VP_GANG*(M.length-1), T=VP_VORN+Math.max(...M.map(m=>m.l))+VP_HINTEN;
   return {x0:VP_URSPRUNG.x, x1:VP_URSPRUNG.x+B, z0:VP_URSPRUNG.z, z1:VP_URSPRUNG.z+T}; })();
 /* Alle Produkte, die im Laden im Regal stehen koennen */
-function vpProdukte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.noOrder&&!p.rezept; }); }
+function vpProdukte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.noOrder&&!p.eigen; }); }
 /* Stellplaetze: die Zeilen laufen vom Hauptgang (Norden, +z) nach
    Sueden. Ein Regal mit ry=+90 Grad schaut nach Osten, -90 nach Westen. */
 function vpStellplaetze(){

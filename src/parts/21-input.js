@@ -9,7 +9,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen; }
+function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen||wbOpen||!!wbVs; }
 /* =========================================================
    Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
    Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
@@ -206,6 +206,7 @@ addEventListener('keydown',e=>{
   if(pdaOpen){ if(e.code==='Escape') closePDA(); return; }
   if(vp2ListeOffen){ if(e.code==='Escape'||(e.code==='KeyL'&&e.target!==document.getElementById('vp2Text'))) vp2ListeZu(); return; }
   if(gravOpen){ if(e.code==='Escape') closeGravInput(false); if(e.code==='Enter') closeGravInput(true); return; }
+  if(wbTaste(e)) return;
   if(dealOpen){ if(e.code==='Escape') declineDeal(); return; }
   /* Feuerwerk-Vorfuehrung (Entwicklung): Leertaste zuendet das naechste */
   if(typeof gpAn!=='undefined'&&gpAn&&S&&!overlayOpen()&&gpTaste(e)) return;

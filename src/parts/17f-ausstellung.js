@@ -43,7 +43,7 @@ function vp2KatVon(t){
   return 'bod';
 }
 /* Alle Produkte des Spiels mit Verpackung: die der Vorfuehrung 1 (vpProdukte) und die nicht bestellbaren (Gravur-Rakete), ohne eigene Rezepte */
-function vp2Produkte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.rezept&&!p.eigen; }); }
+function vp2Produkte(){ return ORDER.filter(t=>{ const p=P[t]; return p&&p.dims&&!p.eigen; }); }
 /* Nummern und Reihenfolge: Kategorie, dann Produkt-ID - stabil, solange das Sortiment gleich bleibt */
 function vp2Sammeln(){
   const L=vp2Produkte().map(t=>{ const p=P[t]; return {t,kat:vp2KatVon(t),w:p.dims[0],hh:p.dims[1],d:p.dims[2],stat:0,hd:null}; });

@@ -742,25 +742,40 @@ const AUSSEN={sockel:0.5,vor:0.05,profilH:0.04,profilVor:0.08,eck:0.06,eckVor:0.
 bk.AUSSEN=AUSSEN;
 /* Sockel, Attikablech und Fallrohre sind schmal und ueberall gleich: im Wandbild EIN Mesh fuer die ganze Welt (wbFeld 'alle')
    statt eines je 32-m-Feld - ein Zeichenaufruf statt zwei bis fuenf in jeder Aussenansicht */
-function _bkSockelMat(){ return MAT.get('sockelAussen'); }
-function _bkAussenTeil(wand,o,w,h,d,x,y,z,mat,art){
-  const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),x,y,z);
-  const m=new THREE.Mesh(geo,mat); m.position.set(x-wand.position.x,y-wand.position.y,z-wand.position.z);
-  m.userData.bauteil='wand'; m.userData.bauteilArt=art; m.castShadow=wand.castShadow; m.receiveShadow=wand.receiveShadow;
-  if(mat===_bkSockelMat()) m.userData.wbFeld='alle';
-  wand.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; }
+/* Mehrere Teile (Geometrie in Weltlage) als EIN Mesh mit einer Gruppe je Material - ein Szenen-Objekt je Wand statt vier.
+   teile = [{geo, mat} | {geo, mats:[Material je Gruppe der Geometrie]}]; Lage des Meshes = (ox,oy,oz) im Elternteil (Elternteil in
+   Weltlage ohne Drehung). ud = userData; ud.wbAlle = Materialien, die im Wandbild weltweit in ein Mesh gehen. -> Mesh */
+function _bkTeileMesh(teile,parent,ox,oy,oz,ud,bild){
+  const seg=[], mats=[];
+  for(const t of teile){ const g=t.geo.index?t.geo.toNonIndexed():t.geo;
+    if(t.mats&&g.groups.length){ for(const gr of g.groups) seg.push({g,s:gr.start,c:gr.count,mat:t.mats[gr.materialIndex]}); }
+    else seg.push({g,s:0,c:g.attributes.position.count,mat:t.mat}); }
+  for(const q of seg) if(mats.indexOf(q.mat)<0) mats.push(q.mat);
+  let n=0; for(const q of seg) n+=q.c;
+  const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), geo=new THREE.BufferGeometry(); let k=0;
+  mats.forEach((mat,mi)=>{ const k0=k; for(const q of seg){ if(q.mat!==mat) continue; const P=q.g.attributes.position.array, N=q.g.attributes.normal.array, U=q.g.attributes.uv&&q.g.attributes.uv.array;
+      for(let i=q.s;i<q.s+q.c;i++,k++){ pos[k*3]=P[i*3]-ox; pos[k*3+1]=P[i*3+1]-oy; pos[k*3+2]=P[i*3+2]-oz; nor[k*3]=N[i*3]; nor[k*3+1]=N[i*3+1]; nor[k*3+2]=N[i*3+2]; if(U){ uv[k*2]=U[i*2]; uv[k*2+1]=U[i*2+1]; } } }
+    geo.addGroup(k0,k-k0,mi); });
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.setAttribute('normal',new THREE.BufferAttribute(nor,3)); geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  if(mats.length===1) geo.clearGroups(); geo.computeBoundingSphere();
+  const m=new THREE.Mesh(geo,mats.length===1?mats[0]:mats); m.position.set(ox,oy,oz); Object.assign(m.userData,ud||{});
+  if(HIQ){ m.castShadow=true; m.receiveShadow=true; }
+  parent.add(m); if(bild!==false) bk.wandBildAdd(m); return m; }
+/* Kasten in Weltlage mit UV in Metern */
+function _bkKastenW(w,h,d,x,y,z){ return _bkMeterUV(new THREE.BoxGeometry(w,h,d),x,y,z).translate(x,y,z); }
 function _bkAussenhaut(wand,o,r,ma){
   const art=bk.flaecheArt(ma); if(art!=='fassade'&&art!=='blech') return;
   const A=AUSSEN, y0=Math.min(r.y0,r.y1), y1=Math.max(r.y0,r.y1), laengs=(r.x1-r.x0)>(r.z1-r.z0), au=_WOPP[o.innen], s=au[0]==='-'?-1:1;
   const ebene=laengs?(s<0?r.z0:r.z1):(s<0?r.x0:r.x1), a0=laengs?r.x0:r.z0, a1=laengs?r.x1:r.z1, L=a1-a0, am=(a0+a1)/2;
-  const teil=(lang,hoch,tief,mitte,y,vor,mat,artN)=>{ const q=ebene+s*vor;
-    return laengs?_bkAussenTeil(wand,o,lang,hoch,tief,mitte,y,q,mat,artN):_bkAussenTeil(wand,o,tief,hoch,lang,q,y,mitte,mat,artN); };
-  const sockel=y0<0.05&&y1-y0>=0.6&&L>0.25, prof=bk.flaeche('laibung');
+  const T=[], teil=(lang,hoch,tief,mitte,y,vor,mat)=>{ const q=ebene+s*vor;
+    T.push({geo:laengs?_bkKastenW(lang,hoch,tief,mitte,y,q):_bkKastenW(tief,hoch,lang,q,y,mitte),mat}); };
+  const sockel=y0<0.05&&y1-y0>=0.6&&L>0.25, prof=bk.flaeche('laibung'), sm=MAT.get('sockelAussen');
   if(sockel){
-    teil(L+2*A.vor,A.sockel,A.vor,am,A.sockel/2,A.vor/2,MAT.get('sockelAussen'),'sockelAussen');
-    teil(L+2*A.profilVor,A.profilH,A.profilVor,am,A.sockel+A.profilH/2,A.profilVor/2,prof,'sockelProfil'); }
+    teil(L+2*A.vor,A.sockel,A.vor,am,A.sockel/2,A.vor/2,sm);
+    teil(L+2*A.profilVor,A.profilH,A.profilVor,am,A.sockel+A.profilH/2,A.profilVor/2,prof); }
   const e0=sockel?A.sockel+A.profilH:y0;
-  if(y1-e0>0.3&&L>0.25) for(const e of [a0,a1]) teil(A.eck,y1-e0,A.eckVor,e,(e0+y1)/2,A.eckVor/2,prof,'eckProfil');
+  if(y1-e0>0.3&&L>0.25) for(const e of [a0,a1]) teil(A.eck,y1-e0,A.eckVor,e,(e0+y1)/2,A.eckVor/2,prof);
+  if(T.length) _bkTeileMesh(T,wand,wand.position.x,wand.position.y,wand.position.z,{bauteil:'wand',bauteilArt:sockel?'aussenhaut':'eckProfil',wbAlle:[sm]},o.bild).position.set(0,0,0);
 }
 /* Wandstueck. o = {x0,x1,z0,z1,y0,y1, innen:'+x'|'-x'|'+z'|'-z' (Seite der Innenflaeche),
      flaechen:{innen, aussen (Standard 'fassade'), laibung (Standard 'laibung')} (Art-Name oder Material),
@@ -833,13 +848,13 @@ bk.DACHRAND=DACHRAND;
 bk.dachrand=function(o){
   const D=DACHRAND, h=o.h||D.h, y=o.y, g=new THREE.Group(); g.userData.bauteil='dachrand'; (o.parent||scene).add(g);
   const dach=MAT.get('anthrazitMatt'), fas=bk.flaeche('fassade'), blech=MAT.get('lackGraphit');
-  const teil=(geo,mat,x,yy,z,art)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,yy,z); m.userData.bauteil='dachrand'; m.userData.bauteilArt=art;
-    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } if(mat===blech) m.userData.wbFeld='alle'; g.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; };
+  /* alle Teile in EIN Mesh (Gruppen je Material); Attikablech und Fallrohre im Wandbild weltweit ein Mesh */
+  const T=[], teil=(geo,mat,x,yy,z)=>{ T.push({geo:geo.translate(x,yy,z),mat}); };
   const w=o.x1-o.x0, d=o.z1-o.z0, cx=(o.x0+o.x1)/2, cz=(o.z0+o.z1)/2;
-  { const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),cx,y+h/2,cz), u=_bkGruppen(geo,[fas,fas,dach,dach,fas,fas]);
-    teil(geo,u.length===1?u[0]:u,cx,y+h/2,cz,'attika'); }
-  teil(new THREE.BoxGeometry(w+2*D.ueber,D.deckel,d+2*D.ueber),blech,cx,y+h+D.deckel/2,cz,'attikablech');
+  T.push({geo:_bkKastenW(w,h,d,cx,y+h/2,cz),mats:[fas,fas,dach,dach,fas,fas]});
+  teil(new THREE.BoxGeometry(w+2*D.ueber,D.deckel,d+2*D.ueber),blech,cx,y+h+D.deckel/2,cz);
   for(const f of o.fallrohre||[]) _bkFallrohr(teil,blech,f,y);
+  _bkTeileMesh(T,g,cx,y,cz,{bauteil:'dachrand',bauteilArt:'attika',wbAlle:[blech]},o.bild);
   return g;
 };
 /* Fallrohr an der Wand: f = [x,z,Richtung nach aussen], y = Unterkante der Attika */
@@ -877,9 +892,9 @@ bk.wandbild=function(erzwingen){
     const ms=Array.isArray(o.material)?o.material:[o.material];
     const cnt=g.index?g.index.count:g.attributes.position.count;
     const grs=Array.isArray(o.material)&&g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
-    const e=o.matrixWorld.elements, feld=o.userData.wbFeld||(Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld));
+    const e=o.matrixWorld.elements, feld=o.userData.wbFeld||(Math.floor(e[12]/WB.feld)+','+Math.floor(e[14]/WB.feld)), alle=o.userData.wbAlle;
     for(const gr of grs){ const mat=ms[gr.materialIndex]; if(!mat||mat.visible===false) continue;
-      const k=mat.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+feld;
+      const k=mat.uuid+'|'+o.castShadow+'|'+o.receiveShadow+'|'+(alle&&alle.indexOf(mat)>=0?'alle':feld);
       let t=topf.get(k); if(!t){ t={mat,cast:o.castShadow,recv:o.receiveShadow,teile:[],n:0}; topf.set(k,t); }
       t.teile.push({o,s:gr.start,c:gr.count}); t.n+=gr.count; }
     o.layers.set(3); }
@@ -1128,7 +1143,7 @@ function _bkLampeGeo(o){
       const R=Math.max(3.0,p.y*0.95);
       const f=new THREE.PlaneGeometry(2*R,2*R), uv=f.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,uv.getX(i)*0.5);
       licht.push({geo:f,m:tm(ziel.x,0.03,ziel.z,-Math.PI/2,0,0)});
-      if(L>0){ const hk=p.distanceTo(ziel)-0.05, c=new THREE.CylinderGeometry(0.16,R*0.55,hk,14,1,true), cu=c.attributes.uv; for(let i=0;i<cu.count;i++) cu.setX(i,0.52+cu.getX(i)*0.46);
+      if(L>0){ const hk=p.distanceTo(ziel)-0.05, c=new THREE.CylinderGeometry(0.16,R*0.4,hk,12,1,true), cu=c.attributes.uv; for(let i=0;i<cu.count;i++) cu.setX(i,0.52+cu.getX(i)*0.46);
         const mitte=p.clone().add(ziel).multiplyScalar(0.5), q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),p.clone().sub(ziel).normalize());
         licht.push({geo:c,m:new THREE.Matrix4().compose(mitte,q,new THREE.Vector3(1,1,1))}); } }
     S.pivot();

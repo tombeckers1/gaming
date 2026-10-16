@@ -351,7 +351,7 @@ const MAT=(function(){
     lichtfleck:()=>tex(128,64,(g,W,H)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H);
         const r=g.createRadialGradient(32,32,0,32,32,31); r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(0.3,'rgba(255,255,255,.82)'); r.addColorStop(0.65,'rgba(255,255,255,.3)'); r.addColorStop(1,'rgba(255,255,255,0)');
         g.fillStyle=r; g.fillRect(0,0,64,64);
-        const k=g.createLinearGradient(0,0,0,H); k.addColorStop(0,'rgba(255,255,255,.5)'); k.addColorStop(0.35,'rgba(255,255,255,.2)'); k.addColorStop(1,'rgba(255,255,255,.03)');
+        const k=g.createLinearGradient(0,0,0,H); k.addColorStop(0,'rgba(255,255,255,.34)'); k.addColorStop(0.3,'rgba(255,255,255,.13)'); k.addColorStop(1,'rgba(255,255,255,0)');
         g.fillStyle=k; g.fillRect(65,0,62,H); }),
     /* Lagerwand (vorher lagerWallTex in 05-world.js): hell, unten 35 cm Sockelband gelb/schwarz, Raumhoehe 3,6 m */
     lagerwand:()=>{ const WH=3.6, t=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?css('signalgelb'):'#1f1f24'; g.fillRect(0,y,W,16);} });

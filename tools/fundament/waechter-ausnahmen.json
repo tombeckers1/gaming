@@ -122,8 +122,8 @@
     {"datei":"reuse-pack.js","art":"material","anzahl":1,"werte":{"MeshStandardMaterial":1},"grund":"Ware/Produktmodelle und Pools: Verpackung (frei) gemischt mit Hilfsmaterialien (glassMat, Etiketten, Karton-Texturen je Sorte)","schritt":"Schritt Paletten/Kartons (Karton-Atlas) + glassMat -> MAT-Rezept","anlass":"Ausgangsstand 14.10.2026 (d9e733d, Hauptstand V130) - Fundament Etappe 5","seit":"2026-10-14"}
   ],
   "laufzeit": {
-    "stand": "2026-10-15",
-    "grund": "Merge DDL/Ausstellung/Produktion: bk.hubwagen, Ausstellung, Produktion",
+    "stand": "2026-10-16",
+    "grund": "Einheit 15.10.: bk.drehtuer heisst bk.tuer (Bauteil tuer statt drehtuer), neue Bauteile regal/kasse/fenster/tuer; SB-Terminal jetzt kasse statt geraet",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
@@ -131,20 +131,22 @@
     "ansicht": "neues Spiel, Level 99, alle Ausbauten, applyZonen, Stufe Hoch (gespeichert), swiftshader 480x300, Abend (clock 1000), vor der Laufzeit-Buendelung",
     "tore": 15,
     "bauteile": {
+      "bodenmarkierung": 47,
       "wand": 346,
+      "fenster": 14,
       "lampe": 42,
+      "tuer": 67,
+      "schild": 142,
       "absperrung": 9,
       "zaun": 68,
       "palette": 17,
       "tor": 105,
       "versandhof": 1,
-      "schild": 98,
+      "kasse": 9,
       "anfahrschutz": 2,
       "stadtmoebel": 6,
       "stadthaus": 18,
-      "drehtuer": 45,
       "brandschutztor": 3,
-      "bodenmarkierung": 15,
       "hochregal": 7,
       "foerderer": 29,
       "packmaterial": 2,
@@ -175,50 +177,51 @@
       "werkstueck": 6,
       "mischhaus": 6,
       "erdwall": 2,
-      "hubwagen": 6
+      "hubwagen": 6,
+      "regal": 25
     },
     "sechsMaterial": 25,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 2606,
-      "materialien": 510,
-      "texturen": 299
+      "meshes": 2336,
+      "materialien": 478,
+      "texturen": 292
     },
     "ansichten": {
       "laden": {
-        "calls": 688,
-        "schatten": 377,
-        "mats": 246,
-        "texs": 139
+        "calls": 629,
+        "schatten": 358,
+        "mats": 228,
+        "texs": 136
       },
       "lager": {
-        "calls": 586,
-        "schatten": 388,
-        "mats": 223,
-        "texs": 133
+        "calls": 543,
+        "schatten": 363,
+        "mats": 207,
+        "texs": 129
       },
       "lagerDock": {
-        "calls": 781,
-        "schatten": 390,
-        "mats": 224,
+        "calls": 682,
+        "schatten": 366,
+        "mats": 217,
         "texs": 130
       },
       "dockHof": {
-        "calls": 928,
-        "schatten": 377,
-        "mats": 242,
+        "calls": 790,
+        "schatten": 342,
+        "mats": 231,
         "texs": 141
       },
       "testfeld": {
-        "calls": 464,
-        "schatten": 386,
-        "mats": 195,
-        "texs": 118
+        "calls": 431,
+        "schatten": 372,
+        "mats": 183,
+        "texs": 115
       },
       "strasse": {
-        "calls": 120,
-        "schatten": 381,
-        "mats": 102,
+        "calls": 122,
+        "schatten": 362,
+        "mats": 104,
         "texs": 81
       }
     }

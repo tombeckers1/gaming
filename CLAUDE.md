@@ -142,6 +142,7 @@ damit sie auch in einem frischen Container gelten.
   sich Testsperre oder Dateien teilen würden, starte ich von mir aus nacheinander (der nächste
   erst, wenn der vorige fertig ist) und sage Tom das vorher. Gleichzeitig blockierende Agenten
   lesen doppelt ein und verbrauchen mehr Tokens – vermeiden. Parallel nur wirklich Unabhängiges.
+- **Qualität vor Token-Sparen** (Tom, 16.10.2026): Bei knappem Wochenlimit trotzdem sauber arbeiten lassen – „bringt nichts, wenn ich dann wieder Verbesserungsvorschläge habe; zur Not ist das Limit halt heute Abend verbraucht“. Sparen nur bei unnötigen Wiederholungen/blindem Probieren und bei der Zahl neuer Pakete, nie an Gründlichkeit, Tests oder Bildprüfung.
 - **Wochenlimit ausreizen** (Tom, 09.10.2026): Ich kann den Verbrauch nicht selbst ablesen –
   Tom nennt den Prozentstand. Bei "reiz aus" bis höchstens ~95–98 % planen (Puffer!), Kosten je
   Paket aus dem bisherigen Agenten-Verbrauch schätzen, und vor dem Limit bremsen.

@@ -72,17 +72,11 @@ function buildDock(){
   /* Vordach, Streben und Poller gehoeren seit 13.10. zum Tor (bk.tor) */
   /* Hofbeleuchtung: zwei Wandstrahler an der Lagerwand, dazu zwei
      Mastleuchten im Hof. Vorher schwebten die Leuchten frei in der Luft. */
-  for(const z of [-4.9,0.9]){
-    const wm=MAT.get('stahlGraphit');
-    bbox(0.16,0.22,0.16,wm,-20.16,2.85,z,null,false);              // Wandsockel
-    const arm=bbox(0.34,0.07,0.07,wm,-20.42,2.95,z,null,false); arm.rotation.z=0.22;
-    const geh=rbox(0.3,0.16,0.4,0.03,MAT.get('stahlAnthrazit'),-20.64,3.02,z,null);
-    geh.rotation.z=0.34;
-    const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff0d0),emissiveIntensity:0}); lampMats.push(lm);
-    const wa=bbox(0.06,0.13,0.34,lm,-20.76,2.94,z,null,false); wa.rotation.z=0.34;
-    bbox(0.34,0.03,0.44,MAT.get('stahlVerzinkt'),-20.62,3.12,z,null,false);
-  }
-  if(typeof strassenlampe==='function'){ strassenlampe(-26.4,-5.2,Math.PI/2); strassenlampe(-31.6,-2,Math.PI/2); }
+  /* 16.10. (Fundament-Schritt 2): Wandleuchten und Mastleuchten aus dem Baukasten (bk.lampe wand/mast) - vorher Einzelkaesten mit
+     je eigenem Leuchtmaterial bzw. Strassenlaternen im Hof */
+  bk.lampe({art:'wand',h:3.0,punkte:[[-20.1,-4.9,-Math.PI/2],[-20.1,0.9,-Math.PI/2]]});
+  bk.lampe({art:'mast',h:6.0,punkte:[[-26.4,-5.2,Math.PI/2],[-31.6,-2,Math.PI/2]]});
+  for(const [x,z] of [[-26.4,-5.2],[-31.6,-2]]) col(x-0.2,x+0.2,z-0.2,z+0.2);
   /* Bodenmarkierung fuer den LKW: gestrichelte Fahrspur, Endlinie, Bodenschrift (bk.bodenmarkierung, Einheit 15.10.) */
   bk.bodenmarkierung({linien:[[-33.3,-3.55,-20.7,-3.55,'gelb',0.12,0.6,0.4],[-33.3,-0.45,-20.7,-0.45,'gelb',0.12,0.6,0.4],[-33.3,-3.7,-33.3,-0.3,'gelb',0.12]],
     schriften:[{text:'ANLIEFERUNG',x:-26,z:2.6,b:5.2,h:1.6}],y:0.012,schatten:true});

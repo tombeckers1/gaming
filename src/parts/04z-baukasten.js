@@ -715,12 +715,55 @@ bk.flaecheArt=function(m){
 };
 /* Material einer Box-Seite (0 +x, 1 -x, 2 +y, 3 -y, 4 +z, 5 -z) - fuer Tests und Pruefungen */
 bk.wandFlaeche=function(o,k){ const f=o&&o.userData&&o.userData.flaechen; if(f) return f[k]; return Array.isArray(o.material)?o.material[k]:o.material; };
+/* UV in Metern (wie meterUV): die Tapete ist auf jedem Stueck gleich gross, Naehte fallen weg. cx/cy/cz = Lage der Geometrie-Mitte in der Welt */
+function _bkMeterUV(geo,cx,cy,cz){ const p=geo.attributes.position, n=geo.attributes.normal, uv=geo.attributes.uv;
+  if(p&&n&&uv&&uv.count===p.count){ for(let i=0;i<p.count;i++){ const x=p.getX(i)+cx, y=p.getY(i)+cy, z=p.getZ(i)+cz, ax=Math.abs(n.getX(i)), ay=Math.abs(n.getY(i)), az=Math.abs(n.getZ(i));
+      if(ay>ax&&ay>az) uv.setXY(i,x,z); else if(ax>az) uv.setXY(i,z,y); else uv.setXY(i,x,y); } uv.needsUpdate=true; }
+  return geo; }
+/* Box-Seiten nach Material gruppieren (mats[6]): hoechstens so viele Gruppen wie verschiedene Materialien -> Liste der Materialien */
+function _bkGruppen(geo,mats){ const uniq=[]; for(const m of mats) if(uniq.indexOf(m)<0) uniq.push(m);
+  if(geo.index&&geo.groups&&geo.groups.length===6&&geo.setIndex){
+    const src=geo.index.array, out=new src.constructor(src.length); let q=0; const gr=geo.groups.slice(); geo.clearGroups();
+    for(let k=0;k<uniq.length;k++){ const s0=q; gr.forEach((g,f)=>{ if(mats[f]!==uniq[k]) return; out.set(src.subarray(g.start,g.start+g.count),q); q+=g.count; }); geo.addGroup(s0,q-s0,k); }
+    geo.setIndex(new THREE.BufferAttribute(out,1));
+    if(uniq.length===1) geo.clearGroups();
+  }
+  return uniq; }
+/* ---------- Aussenhaut (Fundament-Schritt 2, 16.10., Toms Fotos docs/uebergabe/fassade-0910-*.jpg) ----------
+   Jede Aussenwand am Boden (Aussenflaeche Fassade oder Trapezblech) bekommt automatisch:
+   - Betonsockel/Spritzschutz 0,5 m hoch, 5 cm vor der Wand (MAT sockelAussen: Struktur, Fuge alle 2 m, Spritzschmutz), an den
+     Enden um die eigene Tiefe verlaengert (Ecken geschlossen);
+   - Sockelabschlussprofil (Tropfkante Alu, 4 cm hoch, 8 cm vor der Wand) auf dem Sockel;
+   - Eck-/Stossprofile (Alu 6 cm, 1,8 cm stark) an beiden Enden der Aussenflaeche, ueber dem Sockel bis zur Wandoberkante -
+     an Ecken bilden die beiden Profile einen Eckwinkel, an Stoessen in der Flucht ein Stossprofil, an Oeffnungen die Laibungskante.
+   Alles Kinder der Wand (gleiche Sichtbarkeit: Zonen, Ausbaustufen) und im Wandbild mit gezeichnet - Sockel = ein Material mehr
+   je 32-m-Feld, Profile laufen im Laibungs-Material mit (kein Zeichenaufruf mehr). o.aussenSockel:false = ohne (z. B. Innenwand). */
+const AUSSEN={sockel:0.5,vor:0.05,profilH:0.04,profilVor:0.08,eck:0.06,eckVor:0.018};
+bk.AUSSEN=AUSSEN;
+function _bkAussenTeil(wand,o,w,h,d,x,y,z,mat,art){
+  const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),x,y,z);
+  const m=new THREE.Mesh(geo,mat); m.position.set(x-wand.position.x,y-wand.position.y,z-wand.position.z);
+  m.userData.bauteil='wand'; m.userData.bauteilArt=art; m.castShadow=wand.castShadow; m.receiveShadow=wand.receiveShadow;
+  wand.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; }
+function _bkAussenhaut(wand,o,r,ma){
+  const art=bk.flaecheArt(ma); if(art!=='fassade'&&art!=='blech') return;
+  const A=AUSSEN, y0=Math.min(r.y0,r.y1), y1=Math.max(r.y0,r.y1), laengs=(r.x1-r.x0)>(r.z1-r.z0), au=_WOPP[o.innen], s=au[0]==='-'?-1:1;
+  const ebene=laengs?(s<0?r.z0:r.z1):(s<0?r.x0:r.x1), a0=laengs?r.x0:r.z0, a1=laengs?r.x1:r.z1, L=a1-a0, am=(a0+a1)/2;
+  const teil=(lang,hoch,tief,mitte,y,vor,mat,artN)=>{ const q=ebene+s*vor;
+    return laengs?_bkAussenTeil(wand,o,lang,hoch,tief,mitte,y,q,mat,artN):_bkAussenTeil(wand,o,tief,hoch,lang,q,y,mitte,mat,artN); };
+  const sockel=y0<0.05&&y1-y0>=0.6&&L>0.25, prof=bk.flaeche('laibung');
+  if(sockel){
+    teil(L+2*A.vor,A.sockel,A.vor,am,A.sockel/2,A.vor/2,MAT.get('sockelAussen'),'sockelAussen');
+    teil(L+2*A.profilVor,A.profilH,A.profilVor,am,A.sockel+A.profilH/2,A.profilVor/2,prof,'sockelProfil'); }
+  const e0=sockel?A.sockel+A.profilH:y0;
+  if(y1-e0>0.3&&L>0.25) for(const e of [a0,a1]) teil(A.eck,y1-e0,A.eckVor,e,(e0+y1)/2,A.eckVor/2,prof,'eckProfil');
+}
 /* Wandstueck. o = {x0,x1,z0,z1,y0,y1, innen:'+x'|'-x'|'+z'|'-z' (Seite der Innenflaeche),
      flaechen:{innen, aussen (Standard 'fassade'), laibung (Standard 'laibung')} (Art-Name oder Material),
      ue (Ueberstand in Laengsrichtung gegen Haarfugen, Standard 6 mm; 0 zwischen Stuecken derselben Flucht),
      still (kein Hindernis fuer den Zielstrahl), sockel (true = Laden-Fussleiste auf jeder Seite mit
      Ladentapete, oder Liste der Seiten -1/+1 quer zur Wand), zone (zWand: faellt beim Kauf), parent,
-     bild:false (nicht ins Wandbild - zeichnet sich selbst) }
+     bild:false (nicht ins Wandbild - zeichnet sich selbst), aussenSockel:false (ohne Sockel/Profile der Aussenhaut) }
    -> Mesh (userData: bauteil 'wand', bauteilArt = Flaeche innen, aabb, flaechen[6]) */
 bk.wand=function(o){
   let x0=o.x0,x1=o.x1,z0=o.z0,z1=o.z1; const y0=o.y0,y1=o.y1, u=o.ue===undefined?0.006:o.ue;
@@ -728,19 +771,8 @@ bk.wand=function(o){
   const F=o.flaechen||{}, mi=bk.flaeche(F.innen), ma=bk.flaeche(F.aussen)||bk.flaeche('fassade'), ml=bk.flaeche(F.laibung)||bk.flaeche('laibung');
   const mats=[ml,ml,ml,ml,ml,ml]; mats[_WFACE[o.innen]]=mi; mats[_WFACE[_WOPP[o.innen]]]=ma;
   const w=x1-x0,h=y1-y0,d=z1-z0, cx=(x0+x1)/2, cy=(y0+y1)/2, cz=(z0+z1)/2;
-  const geo=new THREE.BoxGeometry(w,h,d);
-  /* UV in Metern (wie meterUV): die Tapete ist auf jedem Stueck gleich gross, Naehte fallen weg */
-  { const p=geo.attributes.position, n=geo.attributes.normal, uv=geo.attributes.uv;
-    if(p&&n&&uv&&uv.count===p.count){ for(let i=0;i<p.count;i++){ const x=p.getX(i)+cx, y=p.getY(i)+cy, z=p.getZ(i)+cz, ax=Math.abs(n.getX(i)), ay=Math.abs(n.getY(i)), az=Math.abs(n.getZ(i));
-        if(ay>ax&&ay>az) uv.setXY(i,x,z); else if(ax>az) uv.setXY(i,z,y); else uv.setXY(i,x,y); } uv.needsUpdate=true; } }
-  /* Seiten nach Material gruppieren: hoechstens drei Gruppen statt sechs */
-  const uniq=[]; for(const m of mats) if(uniq.indexOf(m)<0) uniq.push(m);
-  if(geo.index&&geo.groups&&geo.groups.length===6&&geo.setIndex){
-    const src=geo.index.array, out=new src.constructor(src.length); let q=0; const gr=geo.groups.slice(); geo.clearGroups();
-    for(let k=0;k<uniq.length;k++){ const s0=q; gr.forEach((g,f)=>{ if(mats[f]!==uniq[k]) return; out.set(src.subarray(g.start,g.start+g.count),q); q+=g.count; }); geo.addGroup(s0,q-s0,k); }
-    geo.setIndex(new THREE.BufferAttribute(out,1));
-    if(uniq.length===1) geo.clearGroups();
-  }
+  const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),cx,cy,cz);
+  const uniq=_bkGruppen(geo,mats);
   const m=new THREE.Mesh(geo,uniq.length===1?uniq[0]:uniq); m.position.set(cx,cy,cz);
   m.userData.aabb={x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)};
   m.userData.bauteil='wand'; m.userData.bauteilArt=bk.flaecheArt(mi); m.userData.flaechen=mats;
@@ -751,6 +783,7 @@ bk.wand=function(o){
   if(Math.min(y0,y1)<0.9) WAENDE.push(m);
   if(o.zone) zWand(o.zone,m);
   if(o.bild!==false) bk.wandBildAdd(m);
+  if(o.aussenSockel!==false) _bkAussenhaut(m,o,{x0,x1,z0,z1,y0,y1},ma);
   if(o.sockel){ const laengs=w>d, fest=laengs?cz:cx, a0=laengs?o.x0:o.z0, a1=laengs?o.x1:o.z1, si=o.innen[0]==='-'?-1:1;
     const seiten=Array.isArray(o.sockel)?o.sockel:[si,-si].filter(s=>(s===si?mi:ma)===shopWall);
     for(const s of seiten) bk.sockelleiste({laengs,fest,a0,a1,seite:s,dicke:laengs?d:w,zone:o.zone,parent:o.parent,bild:o.bild}); }
@@ -759,16 +792,22 @@ bk.wand=function(o){
 /* Sockel vor einer Wandflucht: laengs = Wand laeuft in x, fest = Mitte der Wand quer, a0..a1 Laenge,
    seite -1/+1 = vor welcher Wandseite, dicke = Wandstaerke (Standard LW), x/z = Mitte direkt vorgeben.
    art 'laden' (Standard): Fussleiste 10 cm hoch, 2 cm stark, Farbe folgt der Tapete (sockelM, 05o).
-   art 'aussen': Spritzwassersockel 1,05 m hoch, 6 cm stark, graphit matt (Hallenwand aussen).
+   art 'aussen': Betonsockel 0,5 m hoch, 5 cm stark (wie die Aussenhaut von bk.wand, UV in Metern) - nur fuer Stuecke ohne eigene
+   Wand (z. B. vor einer zugemauerten Oeffnung); Aussenwaende bekommen ihren Sockel automatisch.
    o.zone: faellt mit der Bauwand; o.versteckt: gehoert zum noch gesperrten Bereich (zAdd). -> Mesh */
-const SOCKEL_ART={laden:{h:0.1,t:0.02},aussen:{h:1.05,t:0.06}};
+const SOCKEL_ART={laden:{h:0.1,t:0.02},aussen:{h:0.5,t:0.05}};
 bk.sockelleiste=function(o){
   const A=SOCKEL_ART[o.art||'laden'], L=o.a1-o.a0, D=(o.dicke===undefined?LW:o.dicke)/2+A.t/2+0.001;
   const mat=o.art==='aussen'?MAT.get('sockelAussen'):sockelM();
-  const geo=roundedBoxGeo(o.laengs?L:A.t,A.h,o.laengs?A.t:L,Math.min(0.02,A.t*0.17));
+  const geo=o.art==='aussen'?new THREE.BoxGeometry(o.laengs?L:A.t,A.h,o.laengs?A.t:L):roundedBoxGeo(o.laengs?L:A.t,A.h,o.laengs?A.t:L,Math.min(0.02,A.t*0.17));
   const m=new THREE.Mesh(geo,mat);
   if(o.laengs) m.position.set((o.a0+o.a1)/2,A.h/2,o.fest+o.seite*D); else m.position.set(o.fest+o.seite*D,A.h/2,(o.a0+o.a1)/2);
   if(o.x!==undefined) m.position.set(o.x,A.h/2,o.z);
+  if(o.art==='aussen'){ _bkMeterUV(geo,m.position.x,m.position.y,m.position.z);
+    /* Abschlussprofil (Tropfkante Alu) wie an der Aussenhaut von bk.wand */
+    const P=AUSSEN, l=L+2*(P.profilVor-A.t), pr=new THREE.Mesh(new THREE.BoxGeometry(o.laengs?l:P.profilVor,P.profilH,o.laengs?P.profilVor:l),bk.flaeche('laibung'));
+    pr.position.set(o.laengs?0:o.seite*(P.profilVor-A.t)/2,A.h/2+P.profilH/2,o.laengs?o.seite*(P.profilVor-A.t)/2:0); pr.userData.bauteil='wand'; pr.userData.bauteilArt='sockelProfil';
+    m.add(pr); if(o.bild!==false) bk.wandBildAdd(pr); }
   m.userData.bauteil='wand'; m.userData.bauteilArt=o.art==='aussen'?'sockelAussen':'sockel';
   (o.parent||scene).add(m);
   if(o.zone) zWand(o.zone,m);
@@ -776,6 +815,40 @@ bk.sockelleiste=function(o){
   if(o.bild!==false) bk.wandBildAdd(m);
   return m;
 };
+/* ---------- Dachrand / Attika (Fundament-Schritt 2, 16.10.) ----------
+   Vorher lag auf jedem Bau eine 25-cm-Platte in Anthrazit (Toms Foto: "schwarzer Balken" ueber der Wand). Jetzt eine Attika wie an
+   Gewerbebauten: Aufkantung (Standard 0,45 m) mit den Fassadenpaneelen (UV in Metern - die Paneele laufen von der Wand weiter),
+   darauf das Attikablech (Graphit lackiert, 5 cm, 4 cm Ueberstand = Tropfkante), Dachhaut oben dunkel. Optional Fallrohre:
+   Rinnenkessel unter der Attika, Rohr 10 cm mit Schellen alle 2 m, Standrohr unten.
+   o = {x0,x1,z0,z1 (Aussenkante), y (Unterkante = Wandoberkante), h, fallrohre:[[x,z,'+x'|'-x'|'+z'|'-z']] (Punkt auf der
+        Wandflaeche, Richtung nach aussen), parent, bild:false} -> Group (alle Teile im Wandbild; zAdd/zWand auf die Gruppe wirkt).
+   Zeichenaufrufe: keine eigenen - Attika laeuft im Fassaden-, Dachhaut im Anthrazit-, Blech und Rohre im Graphit-Material des
+   Wandbilds (je 32-m-Feld). */
+const DACHRAND={h:0.45,deckel:0.05,ueber:0.04,rohr:0.05,abstand:0.09,schelle:2.0};
+bk.DACHRAND=DACHRAND;
+bk.dachrand=function(o){
+  const D=DACHRAND, h=o.h||D.h, y=o.y, g=new THREE.Group(); g.userData.bauteil='dachrand'; (o.parent||scene).add(g);
+  const dach=MAT.get('anthrazitMatt'), fas=bk.flaeche('fassade'), blech=MAT.get('lackGraphit');
+  const teil=(geo,mat,x,yy,z,art)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,yy,z); m.userData.bauteil='dachrand'; m.userData.bauteilArt=art;
+    if(HIQ){ m.castShadow=true; m.receiveShadow=true; } g.add(m); if(o.bild!==false) bk.wandBildAdd(m); return m; };
+  const w=o.x1-o.x0, d=o.z1-o.z0, cx=(o.x0+o.x1)/2, cz=(o.z0+o.z1)/2;
+  { const geo=_bkMeterUV(new THREE.BoxGeometry(w,h,d),cx,y+h/2,cz), u=_bkGruppen(geo,[fas,fas,dach,dach,fas,fas]);
+    teil(geo,u.length===1?u[0]:u,cx,y+h/2,cz,'attika'); }
+  teil(new THREE.BoxGeometry(w+2*D.ueber,D.deckel,d+2*D.ueber),blech,cx,y+h+D.deckel/2,cz,'attikablech');
+  for(const f of o.fallrohre||[]) _bkFallrohr(teil,blech,f,y);
+  return g;
+};
+/* Fallrohr an der Wand: f = [x,z,Richtung nach aussen], y = Unterkante der Attika */
+function _bkFallrohr(teil,mat,f,y){
+  const D=DACHRAND, n={'+x':[1,0],'-x':[-1,0],'+z':[0,1],'-z':[0,-1]}[f[2]], px=f[0]+n[0]*D.abstand, pz=f[1]+n[1]*D.abstand, seg=bk.lod()===0?6:10;
+  const H0=0.34, H1=y-0.2, C=(r1,r2,l)=>new THREE.CylinderGeometry(r1,r2,l,seg);
+  teil(C(D.rohr,D.rohr,H1-H0),mat,px,(H0+H1)/2,pz,'fallrohr');
+  teil(new THREE.BoxGeometry(0.2,0.2,0.2),mat,px,y-0.1,pz,'fallrohr');                      /* Rinnenkessel */
+  teil(C(D.rohr*0.7,D.rohr,0.06),mat,px,H1+0.03,pz,'fallrohr');                              /* Trichter in den Kessel */
+  teil(C(D.rohr+0.012,D.rohr+0.012,H0),mat,px,H0/2,pz,'fallrohr');                           /* Standrohr */
+  for(let yy=H0+0.6;yy<H1-0.3;yy+=D.schelle){ teil(C(D.rohr+0.008,D.rohr+0.008,0.035),mat,px,yy,pz,'fallrohr');
+    if(bk.lod()>0) teil(n[0]?new THREE.BoxGeometry(D.abstand,0.025,0.022):new THREE.BoxGeometry(0.022,0.025,D.abstand),mat,f[0]+n[0]*D.abstand/2,yy,f[1]+n[1]*D.abstand/2,'fallrohr'); }
+}
 /* ---------- Wandbild: alle Wandteile je Material in wenigen Meshes ---------- */
 const WB={liste:[],sig:null,g:null,meshes:[],takt:0,aus:false,n:0,neu:0,feld:32};
 bk.WB=WB;
@@ -990,7 +1063,80 @@ bk.foerderer=function(o){
    art 'halle' (Hallenleuchte, LED-Hallenstrahler linear 1,4 m an Pendeln): o = {punkte:[[x,z],...], y (Unterkante), decke (Pendel bis),
        zone (LAMPEN-id), aus (Zone, mit der die Leuchte ausgeht), parent} - zwei InstancedMesh (Gehaeuse, Leuchtflaeche).
    art 'strasse' (Mastleuchte, vorher lampTeile 05e): o.add(k,geo,matrix,farbe) bekommt die Teile in lokalen Koordinaten. */
+/* ---------- Aussenleuchten: Mast und Wand (Fundament-Schritt 2, 16.10., Toms Foto fassade-0910-hof.jpg: vorher ein Kasten auf
+   einer Stange bzw. Strahler aus Einzelkaesten mit je eigenem Leuchtmaterial) ----------
+   art 'mast': Fussplatte mit Flansch, vier Ankerbolzen, Mastfuss mit Rippen, konischer Rundmast (Standard 6 m) mit Revisionstuer,
+     Kopfkappe; Ausleger (koepfe 1: ein Arm nach +z, leicht steigend) oder Traverse (koepfe 2: nach +-x), LED-Kopf mit flachem Gehaeuse,
+     Kuehlrippen und opaler Leuchtflaeche, zum Platz geneigt.
+   art 'wand': Wandplatte, Arm, LED-Strahler (geneigt), Leuchtflaeche.
+   Nachts: Leuchtflaeche warmweiss (lampeAussen ueber MAT.neu, an lampMats) und ein Lichtfleck am Boden, ab Niedrig dazu ein
+   schwacher Lichtkegel (eine additive Textur lichtfleck, keine Lichtquelle). Tagsueber ist das Licht unsichtbar (0 Zeichenaufrufe).
+   o = {art, punkte:[[x,z,ry]], h (Masthoehe bzw. Montagehoehe an der Wand), koepfe, neigung, parent, zone}
+   -> {meshes, ...} je Aufruf drei InstancedMesh (Korpus, Leuchtflaeche, Licht) fuer alle Punkte. */
+const LAMPE_AUSSEN={h:6.0,arm:0.85,hWand:3.0};
+bk.LAMPE_AUSSEN=LAMPE_AUSSEN;
+let _bkLA=null;
+function _bkLampeMat(){ if(_bkLA) return _bkLA;
+  const leucht=MAT.neu('lampeAussen');
+  const licht=MAT.bild(MAT.tex('lichtfleck'),{transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,color:MAT.farbe('lampeWarm'),polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});
+  licht.visible=false;
+  if(typeof lampMats!=='undefined'){ lampMats.push(leucht);
+    lampMats.push({set emissiveIntensity(v){ const k=Math.max(0,Math.min(1,v/3)); licht.opacity=0.5*k; licht.visible=k>0.02; }}); }
+  return _bkLA={leucht,licht};
+}
+function _bkLampeGeo(o){
+  const L=bk.lod(), art=o.art, h=o.h||(art==='wand'?LAMPE_AUSSEN.hWand:LAMPE_AUSSEN.h), n=o.koepfe||1, nei=o.neigung===undefined?(art==='wand'?0.45:(n===2?0.38:0.08)):o.neigung;
+  return _bkHRGeo('aussenlampe:'+[art,h,n,nei,L].join('|'),()=>{
+    const S=bk.sammler({form:{fase:0.012,faseMin:0.03,lod0Kasten:true}}), A=MAT.farbe('anthrazit'), G=MAT.farbe('silbergrau'), sg=L===0?6:(L===2?16:12);
+    const koepfe=[];                           /* [Matrix des Kopfs] - Leuchtflaeche und Licht haengen daran */
+    const kopf=(m,b,t)=>{ S.pivot(); const K=m;
+      S.geo(bk.kasten(b,0.07,t,{fase:0.02,lod0Kasten:true}),K.clone().multiply(tm(0,0.035,0)),A,'lackMetall');
+      if(L>0) for(let i=-2;i<=2;i++) S.geo(new THREE.BoxGeometry(b*0.8,0.025,0.008),K.clone().multiply(tm(0,0.08,i*t*0.17)),A,'lackMetall');
+      S.geo(new THREE.BoxGeometry(b*0.84,0.012,t*0.82),K.clone().multiply(tm(0,-0.002,0)),0xffffff,'leucht');
+      koepfe.push(K); };
+    if(art==='wand'){
+      S.box(0.14,0.2,0.02,0,h,0.01,A,'lackMetall');
+      if(L>0) for(const [x,y] of [[-0.045,0.07],[0.045,0.07],[-0.045,-0.07],[0.045,-0.07]]) S.zyl(0.008,0.008,0.012,6,x,h+y,0.024,G,'lackMetall',Math.PI/2,0,0);
+      S.zyl(0.022,0.022,0.3,sg,0,h,0.17,A,'lackMetall',Math.PI/2,0,0);
+      kopf(tm(0,h-0.02,0.42,-nei,0,0),0.32,0.26);
+    } else {
+      S.box(0.34,0.025,0.34,0,0.0125,0,A,'lackMetall');
+      for(const x of [-0.12,0.12]) for(const z of [-0.12,0.12]){ S.zyl(0.012,0.012,0.07,6,x,0.05,z,G,'lackMetall'); if(L>0) S.box(0.032,0.018,0.032,x,0.034,z,G,'lackMetall'); }
+      S.zyl(0.1,0.115,0.16,sg,0,0.105,0,A,'lackMetall');
+      if(L>0) for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; S.box(0.012,0.12,0.07,Math.cos(a)*0.1,0.085,Math.sin(a)*0.1,A,'lackMetall',0,-a,0); }
+      S.zyl(0.055,0.085,h-0.18,sg,0,0.18+(h-0.18)/2,0,A,'lackMetall');
+      S.box(0.07,0.3,0.014,0,0.7,0.081,A,'lackMetall');
+      S.zyl(0.062,0.062,0.04,sg,0,h+0.02,0,A,'lackMetall');
+      if(n===2){
+        S.box(1.5,0.07,0.07,0,h-0.12,0,A,'lackMetall');
+        for(const sx of [-1,1]){ S.box(0.05,0.14,0.05,sx*0.72,h-0.2,0,A,'lackMetall'); kopf(tm(sx*0.72,h-0.29,0.05,nei,0,0),0.46,0.34); }
+      } else {
+        const a=LAMPE_AUSSEN.arm;
+        S.box(0.12,0.14,0.12,0,h-0.09,0.02,A,'lackMetall');
+        S.zyl(0.03,0.034,a,sg,0,h-0.08+Math.sin(0.08)*a/2,a/2,A,'lackMetall',Math.PI/2-0.08,0,0);
+        kopf(tm(0,h-0.08+Math.sin(0.08)*a,a+0.2,-nei,0,0),0.3,0.56);
+      }
+    }
+    /* Licht je Kopf: Fleck am Boden (links im Bild), ab Niedrig ein Kegel (rechts im Bild) vom Kopf zum Fleck */
+    const licht=[];
+    for(const K of koepfe){ const p=new THREE.Vector3().setFromMatrixPosition(K), d=new THREE.Vector3(0,-1,0).transformDirection(K).normalize();
+      const t=d.y<-0.2?p.y/-d.y:p.y, ziel=p.clone().addScaledVector(d,t); ziel.y=0.03;
+      const R=Math.max(3.0,p.y*0.95);
+      const f=new THREE.PlaneGeometry(2*R,2*R), uv=f.attributes.uv; for(let i=0;i<uv.count;i++) uv.setX(i,uv.getX(i)*0.5);
+      licht.push({geo:f,m:tm(ziel.x,0.03,ziel.z,-Math.PI/2,0,0)});
+      if(L>0){ const hk=p.distanceTo(ziel)-0.05, c=new THREE.CylinderGeometry(0.16,R*0.55,hk,14,1,true), cu=c.attributes.uv; for(let i=0;i<cu.count;i++) cu.setX(i,0.52+cu.getX(i)*0.46);
+        const mitte=p.clone().add(ziel).multiplyScalar(0.5), q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),p.clone().sub(ziel).normalize());
+        licht.push({geo:c,m:new THREE.Matrix4().compose(mitte,q,new THREE.Vector3(1,1,1))}); } }
+    S.pivot();
+    return {korpus:S.geometrie('lackMetall'),leucht:S.geometrie('leucht'),licht:merge(licht)}; });
+}
 bk.lampe=function(o){
+  if(o.art==='mast'||o.art==='wand'){ const G=_bkLampeGeo(o), LM=_bkLampeMat(), y=o.art==='wand'?0:(o.y||0);
+    const M=o.punkte.map(([x,z,ry])=>tm(x,y,z,0,ry||0,0)), opt={parent:o.parent,bauteil:'lampe',art:o.art};
+    const meshes=[bk.inst(G.korpus,MAT.vc('lackMetall'),M,opt),bk.inst(G.leucht,LM.leucht,M,Object.assign({schatten:false},opt)),bk.inst(G.licht,LM.licht,M,Object.assign({schatten:false},opt))];
+    meshes[2].renderOrder=3;
+    if(o.zone&&typeof zAdd==='function') for(const me of meshes) zAdd(o.zone,me);
+    return {meshes,licht:meshes[2]}; }
   if(o.art==='strasse'){ const add=o.add, D=MAT.farbe('anthrazit'), MA=MAT.farbe('basaltgrau'), C=(a,b,h,s)=>new THREE.CylinderGeometry(a,b,h,s);
     add('lack',C(0.15,0.19,0.34,14),tm(0,0.17,0),D);
     add('lack',new THREE.BoxGeometry(0.1,0.16,0.02),tm(0,0.2,0.185),MAT.farbe('mittelgrau'));

@@ -408,7 +408,7 @@ const VORHER=[
   /* ---- Lampen ---- */
   {kat:'Lampen',id:'lampe-decke',titel:'Deckenleuchte Laden',baut:'buildWorld',datei:'05c-buildworld.js',blick:0,hoehe:-30,sel:{own:'buildWorld',box:[-7.1,3.5,-4.2,-5.3,3.75,-3.0]}},
   {kat:'Lampen',id:'lampe-raster',titel:'Leuchtenraster Halle (Zonen)',baut:'leuchtenRaster',datei:'05h-ausbau.js',blick:0,hoehe:-30,sel:{own:'leuchtenRaster',nth:3,ausschnitt:7}},
-  {kat:'Lampen',id:'lampe-mast',titel:'Hofmast mit Strahlern',baut:'hofMast',datei:'05h-ausbau.js',blick:0,sel:{own:'hofMast'}},
+  {kat:'Lampen',id:'lampe-mast',titel:'Hofmast mit zwei LED-Koepfen (bk.lampe mast)',baut:'hofMasten',datei:'05h-ausbau.js',blick:0,sel:{own:'hofMasten'}},
   {kat:'Lampen',id:'lampe-strasse',titel:'Straßenlampe',baut:'strassenlampe',datei:'05e-street.js',blick:0,sel:{owns:['strassenlampe','lampTeile']}},
   {kat:'Lampen',id:'lampe-strahler',titel:'Wandstrahler (Dock)',baut:'buildDock',datei:'05g-dock.js',blick:0,sel:{own:'buildDock',box:[-21.2,2.6,-5.4,-19.9,3.4,-4.4]}},
   {kat:'Lampen',id:'lampe-fassade',titel:'Fassadenstrahler',baut:'buildFacade',datei:'05f-facade.js',blick:0,sel:{own:'buildFacade',box:[-2.65,6.6,6.2,-2.15,7.1,6.7]}},

@@ -436,7 +436,7 @@ function wkAussen(){
   bk.tor({art:'gitter',breite:7.0,hoehe:2.0,bewegung:'schiebe',pfosten:false,x:ZX-0.18,z:E[0]-3.7,ry:0});
   { const S=bk.werkSammler('schild'); S.box(0.1,2.6,0.1,ZX+0.3,1.3,E[1]+0.9,F('basaltgrau'),'stahl'); S.fertig(scene,{fest:true}); col(ZX+0.22,ZX+0.38,E[1]+0.82,E[1]+0.98);
     bk.schild(scene,{text:'WERK WEST',unter:'Einfahrt · Tor 6 Rohstoffe · Schrittgeschwindigkeit',b:1.8,h:0.6,x:ZX+0.36,y:2.0,z:E[1]+0.9,ry:Math.PI/2}); }
-  hofMast(Hf.x0+1.4,-46.5,Math.PI/2); hofMast(-88,Hf.z0+5.6,0);
+  hofMasten([[Hf.x0+1.4,-46.5,Math.PI/2],[-88,Hf.z0+5.6,0]]);
   /* Mischhaus: Betonzelle 5 x 5 m, Leichtdach, Tuer zur Erdwall-Luecke, Kupferplatte und Ampel; Erdwall rundum */
   { const S=bk.werkSammler('mischhaus'), Lm={rot:[],gruen:[]}, Mi=WK.misch;
     const r=bk.zelle({S,x0:Mi.x0,x1:Mi.x1,z0:Mi.z0,z1:Mi.z1,h:Mi.h,band:false,tueren:[{seite:-1,x:-114}],leuchten:Lm});

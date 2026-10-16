@@ -145,7 +145,7 @@ function halle(id,r,opt){
      faellt das nicht auf, bei zwoelf Metern flimmern die beiden
      Flaechen gegeneinander und die Decke wird streifig. Zehn
      Zentimeter Abstand reichen auf die ganze Hallenlaenge. */
-  if(!opt.keinDach) bbox(r.x1-r.x0+LW*3,0.25,r.z1-r.z0+LW*3,MAT.get('anthrazitMatt'),(r.x0+r.x1)/2,H+0.24,(r.z0+r.z1)/2,null,true);
+  if(!opt.keinDach) bk.dachrand({x0:r.x0-LW*1.5,x1:r.x1+LW*1.5,z0:r.z0-LW*1.5,z1:r.z1+LW*1.5,y:H+0.115,fallrohre:opt.fallrohre});
   /* Aussenwaende: stehen immer, auch solange der Bereich gesperrt ist.
      Von der Strasse aus sieht man sonst ein Loch im Gebaeude. */
   if(au.w) wall(r.x0-LW,r.x0,r.z0,r.z1,0,H,'+x',innen,ex);
@@ -320,7 +320,7 @@ function buildLagergang(){
   /* Dachrand in beiden Richtungen INNERHALB der angrenzenden Waende.
      Lag er mit -5,9 genau in der Ebene der Ladenrueckwand, flimmerte
      er von innen als dunkler Streifen ueber der Uhr. */
-  zAdd(Z,bbox(breite+LW,0.25,tiefe+LW,MAT.get('anthrazitMatt'),mitteX,G.h+0.13,mitteZ,null,true));
+  zAdd(Z,bk.dachrand({x0:mitteX-(breite+LW)/2,x1:mitteX+(breite+LW)/2,z0:mitteZ-(tiefe+LW)/2,z1:mitteZ+(tiefe+LW)/2,y:G.h+0.005}));
   /* Suedwand mit dem Durchgang aufs Testfeld. Der Sturz bleibt
      stehen, sonst steht das Dach in der Luft. */
   const zs=G.z0;
@@ -394,7 +394,7 @@ function buildSchleuse(){
      darum in ihrer Mitte (x1 - LW/2), nicht an ihrer Innenseite - sonst
      standen ihre Kanten als helle Streifen und dunkler Balken in der Halle. */
   const xo=S2.x1-LW/2;
-  bbox(xo-S2.x0,0.25,ti+LW*2,MAT.get('anthrazitMatt'),(S2.x0+xo)/2,H+0.24,mz,null,true);
+  bk.dachrand({x0:S2.x0,x1:xo,z0:mz-ti/2-LW,z1:mz+ti/2+LW,y:H+0.115});
   /* Laengswaende. Die Kopfenden sind die Gebaeudewaende selbst. */
   for(const [z0,z1] of [[S2.z0-LW,S2.z0],[S2.z1,S2.z1+LW]]){
     wall(S2.x0,xo,z0,z1,0,H,z0<mz?'+z':'-z',lagerWall);
@@ -505,7 +505,7 @@ function buildAusbau(){
      Ost I und Ost II von der Halle keine Nordwand. */
   halle('shop_gross',LAY.ost1,{aussen:{},ao:{n:true}});
   halle('shop_ost',  LAY.ost2,{aussen:{e:true},ao:{n:true,e:true}});
-  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true},ao:{s:true,e:true,w:true}});
+  halle('shop_sued', LAY.sued,{aussen:{s:true,e:true},ao:{s:true,e:true,w:true},fallrohre:[[7.8,-21.5,'-x'],[30.0,-22.1,'-z']]});
   /* Innenwaende zwischen zwei Verkaufsraeumen: auf beiden Seiten
      Ladentapete, sonst schaut man von drinnen auf Backstein. */
   durchbruchWand('shop_ost',false,LAY.ost1.x1,LAY.ost1.z0,LAY.ost1.z1,[[-4.2,4.2]],shopWall,shopWall,null,null,null,true);
@@ -1048,22 +1048,11 @@ function lagerFensterWand(){
     wand:{x0:r.x0-LW,x1:r.x1+LW,z0,z1,hoehe:LAGER_H,innen:'-z',flaechen:{innen:lagerWall,laibung:MAT.ober('lichtgrau','matt')}}});
   col(r.x0-LW,r.x1+LW,z0,z1);
 }
-/* Flutlichtmast fuer den Hof */
-function hofMast(x,z,ry){
-  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
-  g.userData.hof='mast';
-  const mast=MAT.get('zaunPfosten');
-  const dark=MAT.get('stahlAnthrazit');
-  const so=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.4,12),dark); so.position.y=0.2; g.add(so);
-  const m1=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,7.4,12),mast);
-  m1.position.y=4.1; if(HIQ) m1.castShadow=true; g.add(m1);
-  bbox(1.7,0.09,0.09,mast,0,7.7,0,g,false);
-  for(const s of [-1,1]){
-    const geh=rbox(0.62,0.3,0.34,0.04,dark,s*0.62,7.55,0,g); geh.rotation.x=0.42;
-    const lm=new THREE.MeshStandardMaterial({color:LIN(MAT.farbe('anthrazit')),emissive:LIN(0xfff2d6),emissiveIntensity:0}); lampMats.push(lm);
-    const fl=bbox(0.54,0.03,0.26,lm,s*0.62,7.4,0.06,g,false); fl.rotation.x=0.42;
-  }
-  col(x-0.3,x+0.3,z-0.3,z+0.3);
+/* Flutlichtmasten fuer die Hoefe: liste = [[x,z,ry]] - seit 16.10. bk.lampe mast mit zwei Koepfen (Fundament-Schritt 2; vorher
+   je Mast eine Gruppe aus 7 Teilen mit zwei eigenen Leuchtmaterialien) */
+function hofMasten(liste){
+  bk.lampe({art:'mast',h:7.8,koepfe:2,punkte:liste});
+  for(const [x,z] of liste) col(x-0.2,x+0.2,z-0.2,z+0.2);
 }
 /* Abgestellter Auflieger, von aussen. Kein Innenraum noetig. */
 function abstellAuflieger(x,z,ry,name,farbe,fahrend){
@@ -1174,8 +1163,11 @@ function logiGlas(len,rows){
 function buildLogistik(){
   const H=LOGI.hoehe, ha=LOGI.halle, bu=LOGI.buero;
   const blech=bk.flaeche('blech');
-  const sockel=MAT.get('graphitMatt');
-  const attika=MAT.get('lackAnthrazit');
+  /* 16.10.: Attika in Graphit wie das Attikablech aller eigenen Bauten (bk.dachrand), Sockel = Betonsockel der Aussenhaut */
+  const attika=MAT.get('lackGraphit');
+  const sockelRing=(x0,x1,z0,z1)=>{ const t=AUSSEN.vor;
+    for(const [laengs,fest,seite,a0,a1] of [[true,z0,-1,x0-t,x1+t],[true,z1,1,x0-t,x1+t],[false,x0,-1,z0,z1],[false,x1,1,z0,z1]])
+      bk.sockelleiste({art:'aussen',laengs,fest,seite,a0,a1,dicke:0}); };
   const steel=MAT.get('stahlVerzinkt');
   /* --- Halle --- */
   const hw=ha.x1-ha.x0, hd=ha.z1-ha.z0, hcx=(ha.x0+ha.x1)/2, hcz=(ha.z0+ha.z1)/2;
@@ -1183,7 +1175,7 @@ function buildLogistik(){
   halleM.position.set(hcx,H/2,hcz);
   if(HIQ){ halleM.castShadow=true; halleM.receiveShadow=true; }
   scene.add(halleM); occluders.push(halleM); meterUV(halleM);
-  bbox(hw+0.1,1.3,hd+0.1,sockel,hcx,0.65,hcz,null,false);
+  sockelRing(ha.x0,ha.x1,ha.z0,ha.z1);
   bbox(hw+0.5,0.7,hd+0.5,attika,hcx,H+0.3,hcz,null,false);
   bbox(hw+0.2,0.5,hd+0.2,MAT.ober('nachtblau','matt'),hcx,H-1.4,hcz,null,false);
   /* Dach mit Lichtband und Lueftern */
@@ -1202,7 +1194,7 @@ function buildLogistik(){
   if(HIQ){ bm.castShadow=true; bm.receiveShadow=true; }
   scene.add(bm); occluders.push(bm);
   bbox(bw+0.4,0.45,bd+0.4,attika,bcx,LOGI.bh+0.22,bcz,null,false);
-  bbox(bw+0.1,0.9,bd+0.1,sockel,bcx,0.45,bcz,null,false);
+  sockelRing(bu.x0,bu.x1,bu.z0,bu.z1);
   /* Eingangsvordach und Schriftzug */
   bbox(5.0,0.18,2.4,MAT.get('stahlHell'),bu.x0+3.2,3.35,bu.z1+1.0,null,false);
   for(const dx of [-2.0,2.0]) bbox(0.09,3.3,0.09,steel,bu.x0+3.2+dx,1.65,bu.z1+1.9,null,false);
@@ -1236,9 +1228,7 @@ function buildLogistik(){
   abstellAuflieger(43.6,-8.5,Math.PI/2,'Import',TRUCKCOL.import);
   abstellAuflieger(43.6, 5.0,Math.PI/2,'Premium',TRUCKCOL.premium);
   /* Masten und Deko, alles hinter dem Zaun */
-  hofMast(42.4,ha.z0+1.0,-Math.PI/2);
-  hofMast(42.4,ha.z1-2.0,-Math.PI/2);
-  hofMast(bu.x1+4.0,Z.z1-2.0,Math.PI);
+  hofMasten([[42.4,ha.z0+1.0,-Math.PI/2],[42.4,ha.z1-2.0,-Math.PI/2],[bu.x1+4.0,Z.z1-2.0,Math.PI]]);
   palettenStapel(45.4,ha.z1-1.2,8,0.2);
   palettenStapel(44.0,ha.z1-1.4,6,-0.3);
 }

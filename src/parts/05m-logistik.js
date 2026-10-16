@@ -50,10 +50,8 @@ function logiSuedwand(i,r,H,ex){
   const Z=LHALLE.z;
   const tore=WRAMPEN.map((x,k)=>({x,k})).filter(t=>TOR_STUFE[t.k]<=i&&t.x>r.x0&&t.x<r.x1).sort((a,b)=>a.x-b.x);
   const stueck=(a,b)=>{ if(b-a<0.01) return;
-    wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z);
-    /* Sockelband gegen Spritzwasser, nur an der vollen Wand - frueher
-       lief es auch quer vor den Toren her */
-    bk.sockelleiste({art:'aussen',laengs:true,a0:a,a1:b,fest:Z-LW/2,seite:-1}); };
+    /* Sockel gegen Spritzwasser baut die Wand selbst (bk.wand Aussenhaut, 16.10.) - nur an der vollen Wand, nicht vor den Toren */
+    wall(a,b,Z-LW,Z,0,H,'+z',lagerWall,ex,0,lagerWall); col(a,b,Z-LW,Z); };
   let x=r.x0-LW;
   for(const t of tore){
     const a=t.x-WTOR.w/2, b=t.x+WTOR.w/2;
@@ -136,8 +134,7 @@ function logiHofBauen(){
     abstellAuflieger(x,-52.0,ry,n,f);
   }
   /* Licht, Paletten, Container, Schnee - alles ausserhalb der Fahrspuren */
-  hofMast(r.x0+1.6,-43.5,Math.PI/2); hofMast(r.x1-1.2,-43.5,-Math.PI/2);
-  hofMast(-36,r.z0+5.6,0);
+  hofMasten([[r.x0+1.6,-43.5,Math.PI/2],[r.x1-1.2,-43.5,-Math.PI/2],[-36,r.z0+5.6,0]]);
   palettenStapel(r.x1-2.4,Z-4.0,7,0.1);
   palettenStapel(r.x1-2.4,Z-5.6,5,-0.2);
   palettenStapel(r.x0+2.4,Z-8.0,6,0.3);

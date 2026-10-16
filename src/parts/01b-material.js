@@ -121,12 +121,18 @@ const MAT=(function(){
        Metern, der Massstab steht im repeat der Textur - jede dieser Texturen gehoert genau einem Material).
        Vorher wallBrickMat()/lagerWall/blechMat()/trimMat in 05-world und 05h mit freien Werten. Ladenwand
        (shopWall) bleibt eigen: Tapete waehlt der Spieler (05o). */
-    wandFassade:      {f:0xffffff,tex:'fassade',k:'matt',     w:'Aussenwand: Faserzementtafeln 1,18 m mit dunklem Sockel (Kachel 2,4 x 8 m)'},
+    /* Fassade (Fundament-Schritt 2, 16.10., Toms Fotos fassade-0910-*.jpg): weisse Sandwichpaneele quer, Deckbreite 1,0 m, Stossprofil
+       alle 6 m, Befestigung an den Stuetzen (alle 3 m), Laufspuren. Der Sockel ist seit 16.10. ein eigenes Bauteil (bk.wand baut ihn
+       an jede Aussenwand am Boden: Betonsockel 0,5 m + Abschlussprofil), nicht mehr in die Textur gemalt. */
+    wandFassade:      {f:0xffffff,tex:'fassade',k:'matt',     w:'Aussenwand: Sandwichpaneele quer 1,0 m, Stossprofil alle 6 m, Schrauben an den Stuetzen, Laufspuren (Kachel 6 x 2 m)'},
     wandLager:        {f:0xffffff,tex:'lagerwand',k:'matt',   w:'Lagerwand innen: hell mit gelb-schwarzem Sockelband 35 cm (Kachel 2,6 x 3,6 m)'},
-    wandBlech:        {f:0xffffff,tex:'trapezblech',k:'lackMetall',w:'Hallenwand aussen: Trapezblech, Sicke 0,4 m (Kachel 3,2 m)'},
+    wandBlech:        {f:0xffffff,tex:'trapezblech',k:'lackMetall',w:'Hallenwand aussen: Trapezblech, Sicke 0,4 m, Schraubreihe je Riegel 1,6 m, Laufspuren (Kachel 3,2 x 1,6 m)'},
     wandLaibung:      {f:'aluminium',k:'matt',     w:'Laibung (Stirnseiten an Oeffnungen), wenn die Wand keine eigene vorgibt'},
     wandPutz:         {f:'lichtgrau',k:'matt',     w:'Fensterlaibung heller Putz'},
-    sockelAussen:     {f:'graphit',k:'matt',       w:'Spritzwassersockel aussen an Hallenwaenden'},
+    sockelAussen:     {f:0xffffff,tex:'sockelBeton',k:'matt',w:'Betonsockel/Spritzschutz 0,5 m vor jeder Aussenwand (Fassade, Trapezblech) - Struktur, Fuge alle 2 m, Spritzschmutz (Kachel 2 x 0,5 m)'},
+    /* Hof- und Wandleuchten (bk.lampe mast/wand, 16.10.): Leuchtflaeche opal, nachts warmweiss - veraenderlich, nur ueber MAT.neu
+       (bk.lampe holt EIN Material fuer alle Aussenleuchten und haengt es an lampMats). */
+    lampeAussen:      {f:'lichtgrau',k:'kunststoff',emissive:LIN(0xfff0d0),emissiveIntensity:0,w:'Leuchtflaeche der Hof-/Mast-/Wandleuchten (opal, nachts warmweiss) - nur MAT.neu'},
     /* Tore (Fundament Schritt "Tore", 13.10.): ein Material fuer jedes Torblatt (Atlas-Textur torBlatt, Zeile je
        Paneltyp, Kleinteile ueber Vertexfarben auf der weissen Zeile) und die drei Zustandsleuchten. Die Leuchten
        sind veraenderlich (emissiveIntensity) - nur ueber MAT.neu(...) holen, nie MAT.get. */
@@ -264,50 +270,107 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Faserzementtafeln (Fugen, Nieten, Sockel 62 cm) - Kachel 2,4 x 8 m ueber repeat, Wand-UV in Metern',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m - Kachel 3,2 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
-  /* Fassadentafeln (vorher fassadeTex() in 05-world.js): Kachel zwei Tafeln breit, Fuge auf dem Kachelrand -
-     wo sich die Textur wiederholt, sitzt eine Fuge; senkrecht ueber die volle Wandhoehe (Sockel unten bleibt) */
-  const FASS={b:2.4, h:8.0, sockel:0.62, tafel:1.18};
+  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',fussgaenger:'Fussgaenger-Piktogramm weiss auf Signalgruen (Gehweg-Markierung), 128 x 128',rasen:'Winterwiese 256 x 256 (Erdwall Werk West), Kachel 4 m ueber die UVs',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  /* Fassade (Fundament-Schritt 2, 16.10.; vorher Faserzementtafeln 1,18 m mit Punkten und gemaltem Sockel, Tom: "flache Platten
+     mit Punkten"): Sandwichpaneele quer wie an Gewerbebauten - Deckbreite 1,0 m (Nut-Feder-Fuge mit Schattenkante), feine
+     Mikrolinierung, Stossprofil (Alu) alle 6 m mit Schrauben, an der Zwischenstuetze (3 m) zwei Schrauben je Paneel, Laufspuren
+     unter den Schrauben, leichte Wolkigkeit. Kachel 6 x 2 m, wiederholt in beide Richtungen (der Sockel ist eigenes Bauteil). */
+  const FASS={b:6.0, h:2.0, paneel:1.0, stuetze:3.0};
+  /* zufaellig, aber fest (gleiches Bild bei jedem Laden) */
+  const zufall=s=>()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; };
+  /* auf einer kachelbaren Flaeche zeichnen: f(ox,oy) fuer die 9 Lagen, damit Ueberhaenge am Rand gegenueber wieder auftauchen */
+  const rund=(W,H,f)=>{ for(const ox of [-W,0,W]) for(const oy of [-H,0,H]) f(ox,oy); };
+  /* Laufspur: senkrechter Streifen nach unten, oben kraeftig, unten auslaufend */
+  const spur=(g,x,y,b,l,a,ton)=>{ const gr=g.createLinearGradient(0,y,0,y+l); gr.addColorStop(0,'rgba('+ton+','+a+')'); gr.addColorStop(1,'rgba('+ton+',0)'); g.fillStyle=gr; g.fillRect(x-b/2,y,b,l); };
   /* Layout des Paletten-Atlas (Pixel im 256er-Bild, y von oben): EPAL-Brand 0..128 x 0..64, IPPC-Stempel 128..256 x 0..64,
      Maserung 72..252 (Streifen). Texel-Rand 1 px gegen Filterung in die Nachbarzelle. UV = [u0,v0,u1,v1] (v nach oben). */
   const PAL_UV=(()=>{ const N=256, uv=(x0,y0,x1,y1)=>[(x0+1)/N,1-(y1-1)/N,(x1-1)/N,1-(y0+1)/N];
     return {epal:uv(0,0,128,64),ippc:uv(128,0,256,64),maser:uv(0,72,256,252),maserY0:72,maserY1:252,N}; })();
   const TEXTUR={
-    /* Malcode unveraendert aus 05-world.js (fassadeTex, 26.09.) */
-    fassade:()=>{ const t=tex(256,1024,(g,W,H)=>{
-        const mx=W/FASS.b, my=H/FASS.h, yv=m=>H-m*my;
-        g.fillStyle='#c9cbc7'; g.fillRect(0,0,W,H);
-        { let sd=7; const rnd=()=>{ sd=(sd*1103515245+12345)&0x7fffffff; return sd/0x7fffffff; };
-          for(let m=FASS.sockel;m<FASS.h;m+=FASS.tafel){ const y0=H-(m+FASS.tafel)*my, y1=H-m*my;
-            for(const [xa,xb] of [[0,W/2],[W/2,W]]){ const t2=(rnd()-0.5)*2; g.fillStyle=`rgba(${t2>0?'255,255,255':'96,100,106'},${Math.abs(t2)*0.085})`; g.fillRect(xa,y0,xb-xa,y1-y0); } } }
-        for(let i=0;i<70;i++){ const r=rand(40,150); g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'120,124,128'},${rand(0.012,0.045)})`; g.beginPath(); g.ellipse(rand(0,W),rand(0,H),r,r*rand(0.4,1.0),rand(0,3.14),0,Math.PI*2); g.fill(); }
-        for(let i=0;i<14000;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'90,94,98'},${rand(0.02,0.09)})`; g.fillRect(Math.random()*W,Math.random()*H,1,1); }
-        for(let i=0;i<90;i++){ const x=rand(0,W), y=rand(yv(FASS.h),yv(FASS.sockel)), l=rand(20,140); g.fillStyle=`rgba(96,99,104,${rand(0.02,0.06)})`; g.fillRect(x,y,rand(1,3),l); }
-        const fugeV=x=>{ const w2=Math.max(2,Math.round(0.022*mx)); g.fillStyle='rgba(58,60,64,.62)'; g.fillRect(x-w2/2,0,w2,H); g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(x+w2/2,0,1.5,H); g.fillStyle='rgba(30,32,36,.30)'; g.fillRect(x-w2/2-1.5,0,1.5,H); };
-        const fugeH=y=>{ const w2=Math.max(2,Math.round(0.022*my)); g.fillStyle='rgba(58,60,64,.58)'; g.fillRect(0,y-w2/2,W,w2); g.fillStyle='rgba(255,255,255,.20)'; g.fillRect(0,y+w2/2,W,1.5); };
-        for(let m=FASS.sockel;m<FASS.h+FASS.tafel;m+=FASS.tafel) fugeH(yv(m));
-        fugeV(0); fugeV(W/2); fugeV(W);
-        g.fillStyle='rgba(84,88,94,.5)';
-        for(let m=FASS.sockel+0.10;m<FASS.h;m+=FASS.tafel) for(const x of [0.12*mx,W/2-0.12*mx,W/2+0.12*mx,W-0.12*mx]){ g.beginPath(); g.arc(x,yv(m),Math.max(1,0.018*my),0,Math.PI*2); g.fill(); }
-        const sy=yv(FASS.sockel);
-        g.fillStyle='#3b4049'; g.fillRect(0,sy,W,H-sy);
-        for(let i=0;i<5000;i++){ g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'0,0,0'},${rand(0.02,0.08)})`; g.fillRect(Math.random()*W,sy+Math.random()*(H-sy),1,1); }
-        const sp=g.createLinearGradient(0,H-0.45*my,0,H); sp.addColorStop(0,'rgba(24,26,30,0)'); sp.addColorStop(1,'rgba(24,26,30,.55)'); g.fillStyle=sp; g.fillRect(0,H-0.45*my,W,0.45*my);
-        g.fillStyle='#9aa0a8'; g.fillRect(0,sy-Math.max(2,0.05*my),W,Math.max(2,0.05*my));
-        g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,sy-Math.max(2,0.05*my),W,1.5);
-        g.fillStyle='rgba(20,22,26,.45)'; g.fillRect(0,sy,W,2); });
-      t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8; return t; },
+    fassade:()=>{ const t=tex(1024,256,(g,W,H)=>{
+        const mx=W/FASS.b, my=H/FASS.h, rnd=zufall(7), np=Math.round(FASS.h/FASS.paneel), ph=H/np;
+        g.fillStyle='#cfd2cf'; g.fillRect(0,0,W,H);
+        /* Wolkigkeit (sehr schwach, kachelbar) */
+        for(let i=0;i<34;i++){ const x=rnd()*W, y=rnd()*H, r=40+rnd()*170, hell=rnd()<0.45, a=0.012+rnd()*0.022, q=0.35+rnd()*0.5, w=rnd()*3;
+          rund(W,H,(ox,oy)=>{ g.fillStyle=hell?'rgba(255,255,255,'+a+')':'rgba(112,114,110,'+a+')'; g.beginPath(); g.ellipse(x+ox,y+oy,r,r*q,w,0,Math.PI*2); g.fill(); }); }
+        /* je Paneel: Deckschale oben etwas heller, unten etwas dunkler (leicht gewoelbt), Ton je Paneel minimal anders */
+        for(let i=0;i<np;i++){ const y0=i*ph, d=(rnd()-0.5)*0.04, gr=g.createLinearGradient(0,y0,0,y0+ph);
+          gr.addColorStop(0,'rgba(255,255,255,'+(0.10+d).toFixed(3)+')'); gr.addColorStop(0.45,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(66,70,74,0.08)');
+          g.fillStyle=gr; g.fillRect(0,y0,W,ph); }
+        /* Mikrolinierung alle 10 cm (Licht von oben: helle Kante, darunter ein Hauch Schatten) */
+        for(let y=0.05*my;y<H;y+=0.1*my){ g.fillStyle='rgba(255,255,255,.07)'; g.fillRect(0,Math.round(y),W,1); g.fillStyle='rgba(40,44,48,.045)'; g.fillRect(0,Math.round(y)+1,W,1); }
+        /* Koernung */
+        for(let i=0;i<9000;i++){ g.fillStyle=rnd()<0.5?'rgba(255,255,255,'+(0.02+rnd()*0.05).toFixed(3)+')':'rgba(86,90,94,'+(0.02+rnd()*0.05).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,1,1); }
+        /* freie Laufspuren (lang, kachelbar) */
+        for(let i=0;i<46;i++){ const x=rnd()*W, y=rnd()*H, l=(0.4+rnd()*1.5)*my, b=1+rnd()*2.5, a=(0.02+rnd()*0.04).toFixed(3);
+          rund(W,H,(ox,oy)=>spur(g,x+ox,y+oy,b,l,a,'104,103,96')); }
+        /* Paneelfuge (Nut-Feder): Schattenlinie, darunter weicher Schatten, darueber helle Lippe; etwas Schmutz auf der Lippe */
+        const fuge=y=>{ g.fillStyle='rgba(255,255,255,.38)'; g.fillRect(0,y-3,W,1); g.fillStyle='rgba(98,96,88,.10)'; g.fillRect(0,y-2,W,1);
+          g.fillStyle='rgba(38,42,46,.62)'; g.fillRect(0,y-1,W,2); g.fillStyle='rgba(38,42,46,.16)'; g.fillRect(0,y+1,W,2); g.fillStyle='rgba(38,42,46,.06)'; g.fillRect(0,y+3,W,2); };
+        for(let i=0;i<=np;i++) fuge(Math.round(i*ph));
+        /* Schraube mit Dichtscheibe (klein, nicht als Punktmuster: Kopf 8 mm, Scheibe 16 mm) und Laufspur darunter */
+        const schraube=(x,y,spurL)=>{ if(spurL) spur(g,x,y+2,1.6,spurL,(0.05+rnd()*0.05).toFixed(3),'96,94,86');
+          g.fillStyle='rgba(120,124,128,.45)'; g.beginPath(); g.arc(x,y,0.008*mx,0,Math.PI*2); g.fill();
+          g.fillStyle='rgba(62,66,70,.8)'; g.beginPath(); g.arc(x,y,0.0045*mx,0,Math.PI*2); g.fill();
+          g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(x-1,y-1.5,1,1); };
+        /* Zwischenstuetze bei 3 m: zwei Schrauben je Paneel, 12 cm von den Fugen */
+        for(let i=0;i<np;i++) for(const dy of [0.12,FASS.paneel-0.12]) schraube(W/2,Math.round(i*ph+dy*my),(0.15+rnd()*0.6)*my);
+        /* Stossprofil (Alu, 6 cm) auf dem Kachelrand: helle Kante links, Schatten rechts und auf dem Paneel, Schrauben alle 50 cm */
+        const pw=0.06*mx;
+        rund(W,H,(ox,oy)=>{ if(oy) return; const x0=ox-pw/2;
+          g.fillStyle='rgba(30,34,38,.10)'; g.fillRect(x0+pw,0,4,H);
+          g.fillStyle='#bfc3c7'; g.fillRect(x0,0,pw,H);
+          g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(x0,0,1.5,H);
+          g.fillStyle='rgba(30,34,38,.35)'; g.fillRect(x0+pw-2,0,2,H);
+          g.fillStyle='rgba(30,34,38,.12)'; g.fillRect(x0+pw*0.5,0,1,H); });
+        for(let y=0.25*my;y<H;y+=0.5*my){ schraube(0,Math.round(y),(0.1+rnd()*0.4)*my); schraube(W,Math.round(y),0); }
+      });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/FASS.b,1/FASS.h); t.anisotropy=8; return t; },
+    /* Betonsockel (16.10.): Sichtbeton grau, Poren und Koernung, Fuge alle 2 m, unten Spritzschmutz (dunkler Verlauf + Spritzer bis
+       30 cm), oben der Schatten unter dem Abschlussprofil. UV in Metern ab Boden (v = Hoehe / 0,5 m), senkrecht nicht wiederholt. */
+    sockelBeton:()=>{ const t=tex(256,64,(g,W,H)=>{ const rnd=zufall(13), my=H/0.5, mx=W/2;
+        g.fillStyle='#a2a39f'; g.fillRect(0,0,W,H);
+        for(let i=0;i<26;i++){ const x=rnd()*W, y=rnd()*H, r=8+rnd()*40, a=(0.03+rnd()*0.05).toFixed(3), hell=rnd()<0.5;
+          rund(W,0,(ox,oy)=>{ if(oy) return; g.fillStyle=hell?'rgba(232,232,226,'+a+')':'rgba(70,70,66,'+a+')'; g.beginPath(); g.ellipse(x+ox,y,r,r*0.5,0,0,Math.PI*2); g.fill(); }); }
+        for(let i=0;i<2600;i++){ g.fillStyle=rnd()<0.5?'rgba(255,255,255,'+(0.03+rnd()*0.09).toFixed(3)+')':'rgba(40,40,38,'+(0.03+rnd()*0.1).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,1,1); }
+        /* Luftporen */
+        for(let i=0;i<170;i++){ const x=rnd()*W, y=rnd()*H, r=0.4+rnd()*1.0; g.fillStyle='rgba(44,44,42,'+(0.35+rnd()*0.35).toFixed(2)+')'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(x,y+r,1,1); }
+        /* Spritzschmutz: dunkler Verlauf unten, Spritzer nach oben duenner */
+        const sp=g.createLinearGradient(0,H-0.22*my,0,H); sp.addColorStop(0,'rgba(62,57,50,0)'); sp.addColorStop(0.7,'rgba(62,57,50,.22)'); sp.addColorStop(1,'rgba(52,48,42,.5)'); g.fillStyle=sp; g.fillRect(0,H-0.22*my,W,0.22*my);
+        for(let i=0;i<1100;i++){ const h=Math.pow(rnd(),2.2)*0.32*my; g.fillStyle='rgba(58,53,46,'+(0.08+rnd()*0.22).toFixed(3)+')'; g.fillRect(rnd()*W,H-h-1,1+(rnd()<0.2?1:0),1); }
+        /* Fuge alle 2 m (Kachelrand) */
+        rund(W,0,(ox,oy)=>{ if(oy) return; g.fillStyle='rgba(46,46,44,.6)'; g.fillRect(ox-1,0,2,H); g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(ox+1,0,1,H); });
+        /* Laufspuren unter dem Profil */
+        for(let i=0;i<14;i++) spur(g,rnd()*W,2,1+rnd()*2,(0.1+rnd()*0.3)*my,(0.04+rnd()*0.06).toFixed(3),'70,68,62');
+        /* oben: Schatten unter dem Abschlussprofil */
+        const so=g.createLinearGradient(0,0,0,5); so.addColorStop(0,'rgba(20,22,24,.5)'); so.addColorStop(1,'rgba(20,22,24,0)'); g.fillStyle=so; g.fillRect(0,0,W,5);
+        void mx; });
+      t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/2,1/0.5); t.anisotropy=8; return t; },
+    /* Hofleuchten nachts (16.10.): links Lichtfleck (rund, Mitte flach hell, weicher Rand), rechts Lichtkegel (oben hell, zum Boden
+       auslaufend). Additiv gezeichnet - Schwarz traegt nichts bei. */
+    lichtfleck:()=>tex(128,64,(g,W,H)=>{ g.fillStyle='#000'; g.fillRect(0,0,W,H);
+        const r=g.createRadialGradient(32,32,0,32,32,31); r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(0.3,'rgba(255,255,255,.82)'); r.addColorStop(0.65,'rgba(255,255,255,.3)'); r.addColorStop(1,'rgba(255,255,255,0)');
+        g.fillStyle=r; g.fillRect(0,0,64,64);
+        const k=g.createLinearGradient(0,0,0,H); k.addColorStop(0,'rgba(255,255,255,.5)'); k.addColorStop(0.35,'rgba(255,255,255,.2)'); k.addColorStop(1,'rgba(255,255,255,.03)');
+        g.fillStyle=k; g.fillRect(65,0,62,H); }),
     /* Lagerwand (vorher lagerWallTex in 05-world.js): hell, unten 35 cm Sockelband gelb/schwarz, Raumhoehe 3,6 m */
     lagerwand:()=>{ const WH=3.6, t=tex(32,512,(g,W,H)=>{ g.fillStyle='#a3a8b0'; g.fillRect(0,0,W,H); const b=Math.round(H*(1-0.35/WH)); for(let y=b;y<H;y+=16){ g.fillStyle=((y-b)/16)%2<1?css('signalgelb'):'#1f1f24'; g.fillRect(0,y,W,16);} });
       t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set(1/2.6,1/WH); return t; },
-    /* Trapezblech (vorher blechMat() in 05h): eine Sicke je 32 px = 0,4 m, Kachel 3,2 m */
-    trapezblech:()=>{ const t=tex(256,64,(g,W,H)=>{
+    /* Trapezblech (vorher blechMat() in 05h): eine Sicke je 32 px = 0,4 m; 16.10.: Schraubreihe am Riegel (alle 1,6 m) im Untergurt,
+       Laufspuren darunter, leichte Wolkigkeit. Kachel 3,2 x 1,6 m */
+    trapezblech:()=>{ const t=tex(256,128,(g,W,H)=>{ const rnd=zufall(5), my=H/1.6;
         g.fillStyle='#b9bec6'; g.fillRect(0,0,W,H);
         for(let x=0;x<W;x+=32){ const gr=g.createLinearGradient(x,0,x+32,0);
           gr.addColorStop(0.00,'#8f959e'); gr.addColorStop(0.16,'#cfd4da'); gr.addColorStop(0.42,'#e4e8ed'); gr.addColorStop(0.58,'#c4c9d1'); gr.addColorStop(0.84,'#9aa0a9'); gr.addColorStop(1.00,'#7d838c');
           g.fillStyle=gr; g.fillRect(x,0,32,H); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(x+12,0,2,H); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x+30,0,2,H); }
-        for(let i=0;i<900;i++){ g.fillStyle=`rgba(0,0,0,${Math.random()*0.05})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } });
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/3.2); t.anisotropy=8; return t; },
+        for(let i=0;i<12;i++){ const x=rnd()*W, y=rnd()*H, r=20+rnd()*60, a=(0.015+rnd()*0.03).toFixed(3), hell=rnd()<0.5;
+          rund(W,H,(ox,oy)=>{ g.fillStyle=hell?'rgba(255,255,255,'+a+')':'rgba(70,74,80,'+a+')'; g.beginPath(); g.ellipse(x+ox,y+oy,r,r*0.6,0,0,Math.PI*2); g.fill(); }); }
+        for(let i=0;i<1800;i++){ g.fillStyle='rgba(0,0,0,'+(rnd()*0.05).toFixed(3)+')'; g.fillRect(rnd()*W,rnd()*H,2,2); }
+        for(let i=0;i<20;i++){ const x=rnd()*W, y=rnd()*H, l=(0.3+rnd()*1.2)*my, a=(0.03+rnd()*0.05).toFixed(3); rund(W,H,(ox,oy)=>spur(g,x+ox,y+oy,1.5,l,a,'80,78,72')); }
+        const ys=Math.round(0.12*my);
+        for(let x=0;x<W;x+=32){ const sx=x+3; spur(g,sx,ys+2,1.4,(0.2+rnd()*0.5)*my,(0.05+rnd()*0.05).toFixed(3),'82,78,70');
+          g.fillStyle='rgba(150,155,162,.6)'; g.beginPath(); g.arc(sx,ys,2.2,0,Math.PI*2); g.fill(); g.fillStyle='rgba(54,58,64,.85)'; g.beginPath(); g.arc(sx,ys,1.2,0,Math.PI*2); g.fill(); } });
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/3.2,1/1.6); t.anisotropy=8; return t; },
     /* Beton (vorher concreteTex() in 05b-ao.js, 19 Aufrufe an 12 Stellen) - Malcode unveraendert */
     beton:()=>{ const t=tex(256,256,(g,W,H)=>{ g.fillStyle='#8a8e94'; g.fillRect(0,0,W,H); for(let i=0;i<2500;i++){ const v=Math.random(); g.fillStyle=`rgba(${v<0.5?0:255},${v<0.5?0:255},${v<0.5?0:255},${Math.random()*0.06})`; g.fillRect(Math.random()*W,Math.random()*H,2,2); } g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=2; g.strokeRect(0,0,W,H); });
       t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; },

@@ -92,4 +92,26 @@ Kartonwahl des Regals, `wbBox`.)
 - Einmalige Meldung beim Laden.
 
 ## 5. Tests und Messung
-_wird ergänzt_
+- `src/tests/werkbank.js` (neu, ganzer Ablauf: kaufen → Werkbank im Lager ansprechen → Bauprogramm → Vorschau mit echter
+  Engine → Name/Verpackung → Kalkulation → Entwickeln → Lieferung nach 2 Tagen → Regal → Verkauf → Nachbestellen →
+  Migration eines alten Spielstands → Handy-Ansicht): **ALLES OK** (835 s). Bezahlt = Soll 853,28 € (Entwicklung 540 €
+  + 4 Kartons Serie), Migration erstattet 13.500 €.
+- `gameplay` ALLES OK (Prüfung EIGENE_MARKE: Beispielbatterie „Nordlicht“ wird gezeigt und verkauft),
+  `abschussregel` ALLES OK (5 Werkbank-Vorschauen 25…500 Schuss: jeder Schuss aus einem Rohr, 500 Starts/500 Rohre),
+  `node tools/fundament/waechter.js` ALLES OK (Wirtschafts-Snapshot neu geschrieben, Ausnahmeliste 17-laptop CSS 517 → 484 Stellen).
+- **Leistung Monster 500** (`src/tests/werkbank-leistung.js`, schwerster Entwurf: Kometenkrone, Brokat, Zeitregen,
+  Kronleuchter, Kamuro-Finale, großes Kaliber; Vergleich Ragnarök 409 Schuss, gleiche Kamera, swiftshader):
+
+  | Stufe | Bild p95 Monster | Bild p95 Ragnarök | Logik p95 | Partikel max |
+  |---|---|---|---|---|
+  | hoch, ohne Budget | 3200 ms | 2455 ms (+30 %) | 2,0 / 3,8 ms | 9077 |
+  | hoch, mit Leuchtlast | 2863 ms | 2407 ms (+19 %) | 1,9 / 3,9 ms | 7789 |
+  | Ultra Low, ohne Budget | 592 ms | 361 ms (+64 %) | 1,5 / 2,6 ms | 2625 |
+  | Ultra Low, mit Leuchtlast | 459 ms | 371 ms (+24 %) | 1,4 / 2,5 ms | 2299 |
+
+  Grenze: höchstens 25 % über dem größten Kaufverbund. Die ms sind CPU-Zeichnen (swiftshader), kein PC-Wert; der
+  Vergleich zählt. **Leuchtlast** (`WB_LAST`, 02d): Takt × Effektklasse × Kaliber je Abschnitt; über dem Budget werden
+  die Sterne des Abschnitts kleiner (Faktor √(Budget/Last), mindestens 0,7). Das Bauprogramm zeigt das als Hinweis am
+  Abschnitt. Ultra Low liegt damit knapp unter der Grenze.
+- Bilder: `werkbank.jpg`, `werkbank-lager.jpg`, `bauprogramm.png`, `vorschau-tisch.jpg`, `vorschau.jpg`,
+  `vorschau2.jpg`, `produkt.png`, `regal.jpg`, `handy-bau.png`, `handy-produkt.png` (alle in diesem Ordner).

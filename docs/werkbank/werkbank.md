@@ -32,26 +32,43 @@ Die Werkbank **ersetzt das Entwicklungslabor** (02d-rezeptur, Laptop-Reiter „E
    Beim Fachhandel ist die eigene Marke nicht bestellbar.
 7. **Höchstens 5** eigene Batterien. Löschen nur ohne laufende Serie; was noch im Laden liegt, bleibt als Restbestand verkaufbar.
 
-## 2. Größen und Zahlen (alle in `WIRT.werkbank`, 01c)
-| Stufe | Schuss | Kaliber | ab Level | Ausbau | Entwicklung | Mindestmenge | Lieferung | Marktwert bei 3 ★ |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 Kompakt | 25 | 20 mm | 20 | 5.200 € (Werkbank) | 900 € | 10 Kartons à 6 | 2 Tage | 30 € |
-| 2 Fächer | 60 | 25 mm | 23 | 3.600 € | 1.500 € | 8 à 4 | 2 Tage | 68 € |
-| 3 Verbund | 110 | 30 mm | 26 | 5.800 € | 2.400 € | 12 à 2 | 3 Tage | 100 € |
-| 4 Großverbund | 200 | 30 mm | 29 | 8.200 € | 3.600 € | 15 à 1 | 3 Tage | 150 € |
-| 5 Monster | 500 | 25 mm | 32 | 12.500 € | 6.000 € | 6 à 1 | 3 Tage | 360 € |
+## 2. Größen und Zahlen (alle in `WIRT.werkbank` und `WIRT.ausbau.preis`, 01c)
+| Stufe | Schuss | Kaliber | ab Level | Ausbau | Entwicklung | Mindestmenge (Kartons × Stück) | Lieferung | Marktwert bei 3 ★ | Stückkosten | DB je Stück |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 Kompakt | 25 | 20 mm | 20 | 2.900 € (Werkbank) | 450 € | 4 × 8 | 2 Tage | 30 € | 11 € | 19 € |
+| 2 Fächer | 60 | 25 mm | 23 | 3.000 € | 900 € | 5 × 2 | 2 Tage | 68 € | 23 € | 45 € |
+| 3 Verbund | 110 | 30 mm | 26 | 3.600 € | 1.300 € | 8 × 1 | 3 Tage | 100 € | 39 € | 61 € |
+| 4 Großverbund | 200 | 30 mm | 29 | 4.800 € | 1.800 € | 10 × 1 | 3 Tage | 150 € | 63 € | 87 € |
+| 5 Monster | 500 | 25 mm | 32 | 8.500 € | 3.000 € | 5 × 1 | 3 Tage | 360 € | 140 € | 220 € |
+(Stückkosten/DB für einen Entwurf mit Klasse-2-Effekten und Finale; Entwicklung + 30 € je Abschnitt. Stück je Karton aus der
+Kartonwahl des Regals, `wbBox`.)
 
 - **Stückkosten** = Schuss × Grundpreis je Schuss (0,30 → 0,20 €) × Effektklasse (1 / 1,2 / 1,45 / 1,75) × Kaliber (0,85 / 1 / 1,2)
-  × Höhe (0,95 / 1 / 1,08) × Farbaufschlag + Verpackung + 0,15 € je Abschnitt. Entwicklung zusätzlich 40 € je Abschnitt.
+  × Höhe (0,95 / 1 / 1,08) × Farbaufschlag + Verpackung + 0,15 € je Abschnitt.
 - **Bewertung** 0–1 = 45 % Effektwert (Wow je Schuss, 1,0 Peonie … 1,86 Zeitregen) + 30 % Abwechslung (Effekte, Farbpaare,
   Muster; ein Abschnitt über 60 % ist eintönig) + 25 % Ablauf (Finale am Ende, Steigerung, Tempo-/Pausenwechsel, keine
   Mini-Abschnitte). Sterne = 1 + 4 × Bewertung.
 - **Marktwert** = Referenz × (0,7 + 0,6 × Bewertung), **Nachfrage** (P.weight) = Gewicht der Stufe × (0,6 + 0,8 × Bewertung),
-  **Hype** je Stück = Hype der Stufe × (0,8 + 0,4 × Bewertung). Kauf entscheidet wie bei jeder Ware Preis gegen Marktwert.
-- **Serie**: Mindestmenge, Vorkasse, ab 2× Mindestmenge −5 %, ab 4× −10 %.
+  **Hype** je Stück = Hype der Stufe × (0,8 + 0,4 × Bewertung). Ob gekauft wird, entscheidet wie bei jeder Ware der eigene
+  Preis gegen den Marktwert (Preis-Ampel an der Werkbank).
+- **Serie**: Mindestmenge, Vorkasse, ab 2× Mindestmenge −5 %, ab 4× −10 %, Lieferung nach 2–3 Spieltagen.
 
 ### Begründung (CLAUDE.md „Preise bestimme ich“, Finanzbildung)
-_wird nach der Messung ergänzt_
+- **Vergleich Kaufware** (Katalog gemessen): Einkauf = Ladenpreis / 2,2. Eigene Fertigung spart den Zwischenhändler:
+  Stückkosten rund 70–80 % des Einkaufs gleich großer Kaufware, Spanne 1 : 2,4–2,9 statt 1 : 2,2. Teure Effekte kosten mehr
+  und bringen über den Effektwert mehr Marktwert – der Deckungsbeitrag je Stück bleibt je Größe ähnlich, die Wahl ist Geschmack
+  und Risiko, kein Trick.
+- **Nachfrage gemessen** (16.10.): Gameplay-Vorführung (238 Sorten, ~78 Kunden am Tag): 109 Batterien in 3 Tagen über 47
+  Batteriesorten = **~0,8 Stück je Sorte und Tag**, die eigene Beispiel-Batterie war mit ihren 2 Stück ausverkauft. Kleiner
+  Laden (Werkbank-Test, wenige Sorten): 13 von 16 Stück an einem Tag. Planwert je eigene Batterie: **1–1,5 Stück am Tag**.
+- **Amortisation**: Werkbank 2.900 € ↔ drei kleine Batterien × 1,5 × 19 € = ~90 € am Tag → 32 Tage (mit fünf 20 Tage).
+  Stufen 2–5 ↔ zwei Batterien der Größe (1,3 / 1,1 / 0,9 / 0,7 Stück am Tag) → 25 / 27 / 27 / 25 Tage. Entwicklung ist nach
+  15–29 Tagen Verkauf einer Batterie wieder drin (Break-even an der Werkbank: 29 / 23 / 23 / 22 / 15 Tage bei 3 ★).
+- **Mindestmenge** = 2–3 Wochen Verkauf: genug, dass sich die Lieferung lohnt, wenig genug, dass kein Laden daran erstickt.
+  Der Mengenrabatt (−5/−10 %) ist die bewusste Versuchung: wer viermal so viel fertigen lässt, spart 10 % auf die Serie und hat
+  zwei Monate Ware (und Geld) im Lager – genau die Rechnung, die das Spiel zeigen will (Kapitalbindung gegen Stückpreis).
+- **Alte zweite Zündstufe**: 16.500 € bezahlt, heute 3.000 € Stufe 2 → 13.500 € Erstattung (einmalig beim Laden).
+- Snapshot: `node tools/fundament/wirtschaft-snapshot.js` mit `--schreiben` festgeschrieben (neue Ausbaupreise, WERKBANK-Probe).
 
 ## 3. Technik
 - `src/parts/02d-werkbank.js` – Effekt-Katalog (`BRUCH` 34 Bruchbilder, `WB_LICHT` 15 Lichter mit genau einem Start je Rohr),

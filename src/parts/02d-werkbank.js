@@ -223,11 +223,21 @@ function wbSerie(e,kartons){ const stk=kartons*wbBox(e.stufe), d=wbRabatt(e.stuf
 /* Break-even: so viele Stueck, bis die Entwicklung wieder drin ist */
 function wbBreakEven(e,preis){ const db=(preis||e.market)-e.cost; return db>0?Math.ceil(e.entw/db):Infinity; }
 
+/* ---------- Leuchtlast-Budget (Leistung, 16.10. gemessen, docs/werkbank/werkbank.md) ----------
+   Eine selbst gebaute Batterie kann dichter feuern als alles im Sortiment (500 Schuss Kamuro/Zeitregen mit grossem
+   Kaliber im 5er-Takt: Ultra Low p95 +64 % Zeichenzeit gegen Ragnaroek). Last je Abschnitt = Schuss je Sekunde x
+   Leuchtdauer der Effektklasse x Kaliber; ueber dem Budget (5/s mit Klasse 2, normales Kaliber) werden die Brueche
+   des Abschnitts kleiner (weniger Sterne, Wurzel des Ueberhangs, hoechstens -30 %). Gilt in Vorschau und Spiel gleich. */
+const WB_LAST={klasse:[1,1.35,1.8,2.5],max:6.75,min:0.7};
+const WB_KAL_SZ=[0.82,1,1.18];
+function wbLast(x){ const f=wbEffekt(x.e)||{klasse:1}, rate=x.muster==='finale'?WB_TAKT[0]:WB_TAKT[clamp(x.takt|0,0,WB_TAKT.length-1)];
+  return rate*WB_LAST.klasse[clamp(f.klasse-1,0,3)]*WB_KAL_SZ[clamp(x.kal|0,0,2)]; }
+function wbLastFaktor(x){ return clamp(Math.sqrt(WB_LAST.max/wbLast(x)),WB_LAST.min,1); }
 /* ---------- Drehbuch: die Abschnitte als Phasen der Batterie-Engine (14b) ---------- */
 function wbShow(e){
   const st=WB_STUFEN[e.stufe], ph=[];
   e.abschnitte.forEach(x=>{ const n=x.n|0; if(n<=0) return; const f=wbEffekt(x.e)||{art:'bruch'};
-    const p={n,gap:wbGapDreh(x),A:x.A,B:x.B,pw:[-3,0,3][clamp(x.hoehe|0,0,2)],sz:[0.82,1,1.18][clamp(x.kal|0,0,2)],pause:x.pause||0};
+    const p={n,gap:wbGapDreh(x),A:x.A,B:x.B,pw:[-3,0,3][clamp(x.hoehe|0,0,2)],sz:WB_KAL_SZ[clamp(x.kal|0,0,2)]*wbLastFaktor(x),pause:x.pause||0};
     if(f.art==='licht') p.licht=x.e.slice(6); else p.eff=x.e;
     ph.push(p); });
   return show({basis:{pw:st.show.pw,sz:st.show.sz,th:null},rampe:{kurve:'flach'},verzoegerung:true},ph);

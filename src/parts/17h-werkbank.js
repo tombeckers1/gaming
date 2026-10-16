@@ -89,7 +89,7 @@ function wbBauHtml(){
     (rest>0?`<i class="wbrest" style="flex:${rest} 1 0"></i>`:'')+'</div>';
   /* Abschnitte */
   h+='<div class="wbabschnitte">'+A.map((y,i)=>{ const f=wbEffekt(y.e)||{name:y.e};
-    return `<div class="wbab${i===wbSel?' on':''}" data-a="sel" data-i="${i}"><b>${i+1}</b>${wbFarbPunkt(y.A)}${wbFarbPunkt(y.B)}<span>${f.name} · ${y.n|0} Schuss · ${wbTaktText(y)} · ${WB_MUSTER[y.muster].name}${y.pause?` · Pause ${WF.zahlKurz(y.pause)} s`:''}</span>`+
+    return `<div class="wbab${i===wbSel?' on':''}" data-a="sel" data-i="${i}"><b>${i+1}</b>${wbFarbPunkt(y.A)}${wbFarbPunkt(y.B)}<span>${f.name} · ${y.n|0} Schuss · ${wbTaktText(y)} · ${WB_MUSTER[y.muster].name}${y.pause?` · Pause ${WF.zahlKurz(y.pause)} s`:''}${wbLastFaktor(y)<0.99?` · <span class="warn" title="Leuchtlast: so dicht und schwer, dass die Brüche etwas kleiner ausfallen (Leistung)">Brüche −${WF.prozent(1-wbLastFaktor(y))} %</span>`:''}</span>`+
       `<em>${wbKnopf('auf','▲',{i,aus:i===0,titel:'nach vorn'})}${wbKnopf('ab','▼',{i,aus:i===A.length-1,titel:'nach hinten'})}${wbKnopf('dup','⧉',{i,aus:A.length>=WB_MAX_ABSCHNITTE,titel:'kopieren'})}${wbKnopf('del','✕',{i,aus:A.length<=1,titel:'löschen'})}</em></div>`; }).join('')+
     `<div class="wbab neu">${wbKnopf('plus','+ Abschnitt',{aus:A.length>=WB_MAX_ABSCHNITTE})}</div></div>`;
   /* Editor des gewaehlten Abschnitts */

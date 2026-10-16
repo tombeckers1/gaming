@@ -194,7 +194,12 @@ const WIRT={
       /* Werkbank (Kapitel 5 Eigene Marke, 16.10.): labor = Werkbank im Lager samt Stufe 1 (25 Schuss), labor2-5 = die
          naechste Batteriegroesse (60 / 110 / 200 / 500 Schuss). Begruendung und Amortisation: WIRT.werkbank unten,
          docs/werkbank/werkbank.md. Alte labor2 (zweite Zuendstufe, 16.500) wird erstattet: historie.erstattung.labor2 */
-      labor:5200, labor2:3600, labor3:5800, labor4:8200, labor5:12500,
+      /* Amortisation (gemessen 16.10.: im Vollsortiment verkauft eine Batterie-Sorte ~0,8 Stueck am Tag - 109 Batterien in
+         3 Tagen ueber 47 Sorten, Gameplay-Vorfuehrung; im kleinen Laden um Level 20 deutlich mehr, Werkbank-Test bis 13 am Tag ->
+         Planwert 1-1,5 Stueck je eigene Batterie und Tag). Deckungsbeitrag je Stueck bei 3 Sternen: 20 / 46 / 61 / 98 / 245 EUR.
+         Werkbank (Stufe 1): drei Batterien x 1,5 x 20 EUR = 90 EUR am Tag -> 32 Tage, mit fuenf 20 Tage.
+         Stufe 2-5: je zwei Batterien der Groesse (1,3 / 1,1 / 0,9 / 0,7 am Tag) -> 25 / 27 / 27 / 25 Tage. */
+      labor:2900, labor2:3000, labor3:3600, labor4:4800, labor5:8500,
       /* Halle Etappe A (14.10.): Hochregal Gasse 1 + RBG + I/O + ③ + Schleuse. Amortisation in docs/halle/etappe-a.md:
          geschaetzt ~+520 €/Tag (Staffel 18 % statt 10 % auf den Grosshandels-Einkauf, Einraeumer-Wege gespart, Packer
          kuerzer) minus Betrieb fix.hochregal -> ~38 Spieltage; Ziel "grosse Stufen" 15-30 Tage + Puffer (Kapitel 7) */
@@ -295,14 +300,15 @@ const WIRT={
     slots:5,                 // hoechstens fuenf eigene Batterien gleichzeitig (Tom 16.10.)
     /* je Groesse: schuss, kal (mm), lvl (frei ab), up (Ausbau), jeSchuss (EUR je Schuss bei Effektklasse 1, Kaliber
        normal), verpackung (EUR je Stueck, bedruckter Karton), entwicklung (einmalig: Muster, Pruefung/Zulassung,
-       Druckvorlage), mindest (Kartons je Serie), liefertage, ref (Marktwert bei 3 Sternen), gewicht (Nachfrage wie
+       Druckvorlage; Break-even nach 15-25 Tagen Verkauf einer Batterie bei 3 Sternen), mindest (Kartons je Serie = rund
+       2-3 Wochen Verkauf: lieber zweimal fertigen als zu viel Geld im Lager), liefertage, ref (Marktwert bei 3 Sternen), gewicht (Nachfrage wie
        P.weight der Kaufware 2-10), hype (je Stueck bei 3 Sternen) */
     stufen:[
-      {schuss:25, kal:20,lvl:20,up:'labor', jeSchuss:0.30,verpackung:1.0,entwicklung:900, mindest:10,liefertage:2,ref:30, gewicht:6,  hype:40},
-      {schuss:60, kal:25,lvl:23,up:'labor2',jeSchuss:0.27,verpackung:1.8,entwicklung:1500,mindest:8, liefertage:2,ref:68, gewicht:5,  hype:55},
-      {schuss:110,kal:30,lvl:26,up:'labor3',jeSchuss:0.25,verpackung:3.0,entwicklung:2400,mindest:12,liefertage:3,ref:100,gewicht:4,  hype:70},
-      {schuss:200,kal:30,lvl:29,up:'labor4',jeSchuss:0.22,verpackung:5.0,entwicklung:3600,mindest:15,liefertage:3,ref:150,gewicht:3,  hype:85},
-      {schuss:500,kal:25,lvl:32,up:'labor5',jeSchuss:0.20,verpackung:9.0,entwicklung:6000,mindest:6, liefertage:3,ref:360,gewicht:2.5,hype:105}
+      {schuss:25, kal:20,lvl:20,up:'labor', jeSchuss:0.30,verpackung:1.0,entwicklung:450, mindest:4, liefertage:2,ref:30, gewicht:6,  hype:40},
+      {schuss:60, kal:25,lvl:23,up:'labor2',jeSchuss:0.27,verpackung:1.8,entwicklung:900, mindest:5, liefertage:2,ref:68, gewicht:5,  hype:55},
+      {schuss:110,kal:30,lvl:26,up:'labor3',jeSchuss:0.25,verpackung:3.0,entwicklung:1300,mindest:8, liefertage:3,ref:100,gewicht:4,  hype:70},
+      {schuss:200,kal:30,lvl:29,up:'labor4',jeSchuss:0.22,verpackung:5.0,entwicklung:1800,mindest:10,liefertage:3,ref:150,gewicht:3,  hype:85},
+      {schuss:500,kal:25,lvl:32,up:'labor5',jeSchuss:0.20,verpackung:9.0,entwicklung:3000,mindest:5, liefertage:3,ref:360,gewicht:2.5,hype:105}
     ],
     kosten:{
       klasse:[1,1.2,1.45,1.75],   // Effektklasse 1-4 (Peonie ... Kamuro): teure Sterne, Titan, Glitzer
@@ -310,7 +316,7 @@ const WIRT={
       hoehe:[0.95,1,1.08],        // tief / mittel / hoch (Ausstossladung)
       farbAuf:0.5,                // Aufschlag seltener Farben (Blau, Violett ...) x 0,5
       abschnitt:0.15,             // EUR je Abschnitt und Stueck (Verzoegerer in der Zuendschnur)
-      entwicklungJeAbschnitt:40   // EUR je Abschnitt (Zuendfolge einrichten)
+      entwicklungJeAbschnitt:30   // EUR je Abschnitt (Zuendfolge einrichten)
     },
     /* Bewertung 0..1 = effekt (Effektwert) + abwechslung + ablauf, gewichtet; Sterne = 1 + 4 x Bewertung */
     bewertung:{effekt:0.45,abwechslung:0.30,ablauf:0.25},

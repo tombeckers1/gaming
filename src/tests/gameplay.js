@@ -36,11 +36,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     /* 05.10.: Versand in der hoechsten Stufe, Packmaterial-Regale voll */
     o.pack=bb.packStufe(); o.packer=['packer','packer2','packer3'].filter(id=>bb.staff[id]).length;
     o.vmVoll=[0,1,2].every(i=>bb.VM_IDS.every(id=>S.vm[i][id]>=bb.VM[id].kap));
+    /* 16.10.: Werkbank - eine fertige eigene Batterie im Sortiment und im Regal, Sprungpunkt Werkbank */
+    const E=bb.eigeneListe()[0]; o.eigen=E?{name:E.name,stufe:E.stufe,regal:L.filter(l=>l.type===E.id).reduce((a,l)=>a+l.count,0),werkbank:!!bb.wbG,serien:(E.serien||[]).length}:null;
     return o; });
   console.log('START',JSON.stringify(Object.assign({},r,{vorher:undefined})));
   pruef('KNOPF',r.knopf,'kein Knopf im Laptop > Laden');
   pruef('SCHRITTWEISE',!r.sofort&&r.bauSchritte>(HANDY?10:20),'Aufbau nicht schrittweise (haengt den Browser): '+JSON.stringify({sofort:r.sofort,schritte:r.bauSchritte}));
   pruef('VERSAND',r.pack===3&&r.packer===3&&r.vmVoll,'Versand nicht in der hoechsten Stufe: '+JSON.stringify({stufe:r.pack,packer:r.packer,vm:r.vmVoll}));
+  pruef('EIGENE_MARKE',r.eigen&&r.eigen.regal>0&&r.eigen.werkbank&&r.eigen.serien===0,'keine eigene Beispiel-Batterie im Regal: '+JSON.stringify(r.eigen));
   pruef('AUFBAU',r.an&&r.lvl>=26&&!r.offen.length&&r.lic&&r.regale>=(HANDY?15:25)&&r.voll>=r.faecher*0.9&&r.sorten>=(HANDY?35:150)&&r.lagerKartons>=30&&r.panel,'Aufbau unvollstaendig: '+JSON.stringify(r));
   /* drei Spieltage laufen lassen */
   /* PACKMATERIAL deterministisch (16.10.): Die Vorfuehrung bestellt Versandmaterial nur, wenn ein Bestand unter die Haelfte faellt
@@ -49,10 +52,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
      Lieferung, Einlagern) laeuft unveraendert. GEGENPROBE=1: Bestellungen von Versandmaterial gehen verloren (aus pending gestrichen)
      -> PACKMATERIAL muss melden. */
   const tage=await p.evaluate((gegen)=>{ const bb=__bb, S=bb.S, out=[]; const d0=S.day; let n=0;
+    /* Nachfrage messen (Werkbank-Balancing): eigene Batterie gegen den Schnitt der Batterie-Sorten im Regal */
+    const v0={e:S.stat.v_eigene||0,b:S.stat.v_batterien||0}; const bSorten=new Set(bb.allLevels().filter(l=>l.type&&(bb.GRUPPE.batterien||[]).includes(l.type)).map(l=>l.type)).size;
     for(let i=0;i<3;i++) S.vm[i].band=Math.floor(bb.VM.band.kap*0.4);
     const unter=bb.vmGesamt('band')<bb.vmKapGesamt('band')*0.5;
     while(S.day<d0+3&&n++<4000){ bb.run(3,0.1); if(gegen){ const pl=bb.pendingListe(); for(let k=pl.length-1;k>=0;k--) if(pl[k].vm) pl.splice(k,1); } if(n%30===0) out.push({tag:S.day,geld:Math.round(S.money),kunden:bb.DS?bb.DS.customers:null,phase:bb.phase}); }
-    return {unter,ddl:{rufe:S.stat.ddlRuf||0,abgeholt:S.stat.ddl||0,log:(S.onlineLog||[]).length},vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; },process.env.GEGENPROBE==='1');
+    const absatz={eigene:(S.stat.v_eigene||0)-v0.e,batterien:(S.stat.v_batterien||0)-v0.b,batterieSorten:bSorten};
+    return {absatz,unter,ddl:{rufe:S.stat.ddlRuf||0,abgeholt:S.stat.ddl||0,log:(S.onlineLog||[]).length},vm:{verbraucht:S.stat.vmVerbraucht||0,eingelagert:S.stat.vmEingelagert||0,pakete:S.stat.pakete||0},out:out.slice(-12),verlauf:bb.gpVerlauf.map(v=>({t:v.tag,g:Math.round(v.geld)})),tag:S.day,d0,schritte:n,gespeichert:localStorage.getItem('boellerbude_v3')}; },process.env.GEGENPROBE==='1');
   console.log('TAGE',JSON.stringify(Object.assign({},tage,{gespeichert:undefined})).slice(0,1500));
   pruef('PACKMATERIAL',tage.unter&&tage.vm.verbraucht>20&&tage.vm.eingelagert>0,'Packmaterial wird nicht verbraucht oder nachgefuellt: '+JSON.stringify(tage.vm));
   /* 09.10.: DDL nur auf Anruf - der Versand-Disponent der Vorfuehrung ruft am Wandtelefon an */

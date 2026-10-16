@@ -35,7 +35,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 <!-- AUTO:KETTEN (erzeugt von tools/fundament/wirtschaft-uebersicht.js aus WIRT_KETTEN - nicht von Hand aendern) -->
 
 ### Zu viel auf einmal kaufen (Ware, Lizenz, Ausbau, Regale)
-- Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, Rezepte nur mit echtem Guthaben. → `16-day.js:170` (verfuegbar)
+- Ware, Regale, Packmaterial und Restposten gehen bis in den Dispo (Konto + Rahmen); Ausbau, Lizenz, Deko, Personal, eigene Batterien (Entwicklung und Serie) nur mit echtem Guthaben. → `16-day.js:170` (verfuegbar)
 - Dispo-Rahmen = 260 € + 70 € je Level (erst ab Level 4). → `16-day.js:169` (dispoLimit)
 - Im Minus kostet jeder Tag 0,6 % des Minusbetrags an Zinsen (rund 219 % im Jahr) und -3 Ruf. → `16-day.js:183` (endDay)
 - Weniger Ruf heisst weniger Kunden (x(0,55 + Ruf/100)) - und ohne Geld keine Ware, ohne Ware kein Umsatz: Abwaertsspirale, der Tagesabschluss warnt und nennt Auswege. → `16-day.js:124` (spawnInterval)
@@ -55,7 +55,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - Rahmen und Konditionen nach Level (Stufen 1.000 € ab Level 5 bis 60.000 € ab Level 26). → `16-day.js:39` (loanTier)
 - Tagesrate = Betrag/Laufzeit + Restschuld x Tageszins; wird jeden Tagesabschluss abgebucht (auch an Ruhetagen). → `16-day.js:40` (loanDaily)
 - Vorzeitig tilgen (250 €, 1.000 €, alles) spart Zinsen und bringt beim Ablösen 40 XP. → `16-day.js:46` (repayLoan)
-- Mit laufendem Kredit zaehlt man bei Restposten als knapper (Druck x0,5) - es gibt öfter und mehr Angebote. → `17-laptop.js:377` (restDruck)
+- Mit laufendem Kredit zaehlt man bei Restposten als knapper (Druck x0,5) - es gibt öfter und mehr Angebote. → `17-laptop.js:380` (restDruck)
 - **Warum:** Fremdkapital beschleunigt Investitionen, kostet aber Zins und bindet künftige Einnahmen (Rate). Gesamtzins über die Laufzeit je Stufe: 1.000 €: 6,6 % in 10 Tagen, 2.500 €: 8,4 % in 12 Tagen, 5.000 €: 10,5 % in 15 Tagen, 10.000 €: 12,8 % in 16 Tagen, 25.000 €: 16,8 % in 20 Tagen, 60.000 €: 21,3 % in 24 Tagen - lange Laufzeiten sind teurer.
 - **Lücke heute (fürs Balancing):** takeLoan nimmt Laufzeit/Zins der HÖCHSTEN freigeschalteten Stufe, der Laptop zeigt die gewählte (Level 8: Karte 10 Tage 1,2 %, tatsächlich 12 Tage 1,3 %). · Zinsen sind Tageszinsen - kein Jahreszins sichtbar, kein Vergleich mit echten Konditionen.
 
@@ -94,7 +94,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - **Lücke heute (fürs Balancing):** Löhne folgen weder Inflation noch Level noch Ergebnis.
 
 ### Saison und Silvester einplanen
-- Nachfrage je Datum (Tabelle saison.regeln, 31.12. = 1,5 + 5 x 0,34) mal Wochentag (Sa x1,35, So x0,55) bestimmt den Kundentakt. → `02-data.js:509` (dayMult)
+- Nachfrage je Datum (Tabelle saison.regeln, 31.12. = 1,5 + 5 x 0,34) mal Wochentag (Sa x1,35, So x0,55) bestimmt den Kundentakt. → `02-data.js:515` (dayMult)
 - Ab dem 26.12. wollen Kunden F2 x1,9 und öfter ein Stück mehr. → `10-customers.js:221` (makeWishes)
 - In der Nebensaison rufen Grosskunden oefter an (x bis 1,9). → `10b-pyro.js:23` (updatePhone)
 - **Warum:** Feuerwerk ist extrem saisonal (Deutschland: Verkauf 29.-31.12.). Vorrat, Personal und Liquidität müssen auf die Spitze hin geplant werden.
@@ -108,7 +108,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - **Lücke heute (fürs Balancing):** Inflation trifft keine Fixgrößen (Lohn, Fixkosten, Porto, DDL, Packmaterial, Ausbau, Regale). · SUPPLIERS.delay wird nirgends gelesen.
 
 ### Wachsen (Umsatz, Ausgaben -> Level)
-- XP je Kunde 0,5 je € + 4, je Tag 60 + 5 % vom Umsatz; Level-Kurve 50 x Level^1,55. → `02-data.js:765` (xpFor)
+- XP je Kunde 0,5 je € + 4, je Tag 60 + 5 % vom Umsatz; Level-Kurve 50 x Level^1,55. → `02-data.js:771` (xpFor)
 - Auch Geld ausgeben bringt XP (Ausbau/Deko Kosten/12, Lizenz Kosten/14 + 30). → `17-laptop.js:1657` (buyUp)
 - Jedes Level ab 4 kostet 4 € Fixkosten am Tag mehr, hebt Dispo/Kredit, Bekanntheit (+0,019 je Level) und das Diebstahlrisiko. → `16-day.js:172` (fixedCosts)
 - **Warum:** Level ist der Fortschrittsanzeiger (Freischaltungen). Er sollte der wirtschaftlichen Leistung folgen, nicht nur der Spielzeit.
@@ -116,7 +116,7 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 
 ### Laden sauber und schön halten
 - Jeder Kunde hinterlässt mit 8 % einen Fleck (mit Mülleimer 4 %); Sauberkeit = 100 - 7 je Fleck -> Kundentakt x(0,75 + Sauberkeit/300). → `16-day.js:124` (spawnInterval)
-- Ambiente (Deko, Musik, Licht, Wand/Boden) hebt Takt, Preistoleranz und Geduld. → `02-data.js:868` (ambienteScore)
+- Ambiente (Deko, Musik, Licht, Wand/Boden) hebt Takt, Preistoleranz und Geduld. → `02-data.js:874` (ambienteScore)
 - Pruefung (Ereignis): Sauberkeit >= 70 bringt 3 Ruf, sonst -5. → `16-day.js:183` (endDay)
 - **Warum:** Einkaufserlebnis beeinflusst Zahlungsbereitschaft und Wiederkehr.
 
@@ -157,16 +157,26 @@ Alle Zahlen einzeln: [`wirtschaft-werte.md`](wirtschaft-werte.md).
 - Rohstoffe je kg: Huelsen/Pappe 2,20 €, Oxidator 5,80 €, Metallpulver 13,50 €, Schwarzpulver 9,80 €; Premium x1,2; je Liefertag 95,00 € Gefahrgut-LKW, Lieferung am naechsten Tag an Tor 6. Bezahlt wird bei der Bestellung (bis in den Dispo). → `05s-produktion.js:97` (pdBestellen)
 - Lager begrenzt (Inertlager 2.000 kg, Chemie-Boxen 600 / 300 / 400 kg): wer zu wenig bestellt, steht - Rohstoffe aus heisst Straße steht, Werker und Fixkosten laufen weiter. → `05s-produktion.js:148` (pdStueck)
 - Rezept aus Klasse und Groesse (Satzgewicht NEM, Huelsen); variable Kosten im Band 45 %-60 % vom Einkauf - teure Ware mit kleinem Packmass spart am meisten je Stunde. → `05s-produktion.js:41` (pdRezept)
-- Qualitaet: Ausschuss 15 % (neuer Werker, Standard) bis 2 % (nach 20 Produktionstagen, Premium); Effektqualitaet wirkt wie Lieferantenware auf Kaufbereitschaft und Blindgaenger und ueber die taegliche QS-Stichprobe auf den Ruf ((q-1) x 6). → `05s-produktion.js:194` (pdQs)
-- Stoerungen (im Schnitt 0,7 je Tag und Straße): sofort freigeben (Station/Leitstand) oder der Werker braucht 110 s - verlorene Zeit traegt dieselben Fixkosten. → `05s-produktion.js:187` (pdBeheben)
-- Werksverkauf: die Spedition holt abends alles ueber 6 Kartons je Sorte fuer 85 % vom Einkaufspreis x Qualitaet. Ohne Grosshandel bleibt Ueberproduktion als gebundenes Kapital im Hochregal, bis es voll ist (dann steht die Straße). → `05s-produktion.js:291` (pdGrosshandel)
+- Qualitaet: Ausschuss 15 % (neuer Werker, Standard) bis 2 % (nach 20 Produktionstagen, Premium); Effektqualitaet wirkt wie Lieferantenware auf Kaufbereitschaft und Blindgaenger und ueber die taegliche QS-Stichprobe auf den Ruf ((q-1) x 6). → `05s-produktion.js:196` (pdQs)
+- Stoerungen (im Schnitt 0,7 je Tag und Straße): sofort freigeben (Station/Leitstand) oder der Werker braucht 110 s - verlorene Zeit traegt dieselben Fixkosten. → `05s-produktion.js:189` (pdBeheben)
+- Werksverkauf: die Spedition holt abends alles ueber 6 Kartons je Sorte fuer 85 % vom Einkaufspreis x Qualitaet. Ohne Grosshandel bleibt Ueberproduktion als gebundenes Kapital im Hochregal, bis es voll ist (dann steht die Straße). → `05s-produktion.js:293` (pdGrosshandel)
 - **Warum:** Deckungsbeitrag und Auslastung: die Straße kostet jeden Tag dasselbe (Werker, Strom, Werk, Mischer), jedes gute Stueck bringt (Einkauf bzw. Grosshandelspreis - Rohstoffe). Nur fuer den eigenen Laden (gemessen ~35 Stueck je Klasse am Tag) traegt sie ihre Fixkosten nicht - erst Menge (Grosshandel), die richtige Produktwahl und wenig Stillstand bringen die Amortisation in 30-60 Tage.
 - **Quelle:** Kalkulation nach Deckungsbeitragsrechnung (variable vs. fixe Kosten, Break-even = Fixkosten / Stueckdeckungsbeitrag); Rohstoffpreise in der Groessenordnung des Chemiehandels
 - **Lücke heute (fürs Balancing):** Rohstoffpreise folgen weder Markt noch Inflation (der Einkaufspreis der Ware schon) - mit der Zeit wird Produktion guenstiger im Verhaeltnis. · Der Grosshandel nimmt unbegrenzt ab (keine Nachfrage-Grenze) - die Kapazitaet der Straße ist die Grenze. · Eigenproduktion ist im Hochregal markiert; im Laden/Regal nicht mehr (Qualitaet geht mit).
 
+### Eigene Batterie entwerfen, entwickeln und in Serie fertigen lassen (Werkbank, Kapitel 5)
+- Werkbank 2.900,00 € (Batterien mit 25 Schuss), groessere Batterien je Stufe: 3.000,00 € (60), 3.600,00 € (110), 4.800,00 € (200), 8.500,00 € (500 Schuss). → `02-data.js:260` (UPGRADES)
+- Entwicklung einmalig (450,00 € bis 3.000,00 € + 30,00 € je Abschnitt): Muster, Pruefung, Druckvorlage - Fixkosten, die sich erst ueber verkaufte Stuecke zurueckholen. → `02d-werkbank.js:217` (wbEntwicklung)
+- Stueckkosten = Schuss x 0,25 € (Stufe 3) x Effektklasse (1 ... 1,75) x Kaliber x Hoehe x Farbaufschlag + Verpackung + Verzoegerer je Abschnitt. → `02d-werkbank.js:207` (wbStueckkosten)
+- Serie nur ab Mindestmenge (4 ... 5 Kartons) gegen Vorkasse, Lieferung nach 2-3 Tagen mit dem naechsten LKW; ab 2-facher Menge 5 %, ab 4-facher 10 % Rabatt. → `02d-werkbank.js:221` (wbSerie)
+- Bewertung (Effektwert 45 %, Abwechslung 30 %, Ablauf 25 %) setzt Marktwert (x0,7 bis x1,3), Nachfrage und Hype; der Verkaufspreis gegen den Marktwert entscheidet wie bei jeder Ware ueber die Kaufbereitschaft. → `02d-werkbank.js:181` (wbBewertung)
+- **Warum:** Handelsmarke: ohne Zwischenhaendler bleibt mehr Marge je Stueck, dafuer traegt man Entwicklung (Fixkosten), Mindestmenge (gebundenes Kapital, Vorkasse) und das Absatzrisiko selbst. Wer zu viel auf einmal fertigen laesst, spart ein paar Prozent und hat das Geld wochenlang im Regal liegen.
+- **Quelle:** Handelsmarken im Einzelhandel: hoehere Spanne gegen Entwicklung und Mindestabnahme (Lohnfertigung mit MOQ); Pruefpflicht fuer Feuerwerk der Kategorie F2 (Konformitaetsbewertung, BAM)
+- **Lücke heute (fürs Balancing):** Nachfrage der eigenen Marke folgt nur Bewertung und Preis, nicht Saison-Trends oder Werbung fuer die Marke. · Eine Serie kommt immer vollstaendig und ohne Ausschuss.
+
 ### Restposten und Wundertueten kaufen
-- Preis = mittlerer Karton-Einkauf x Kartons x Faktor (0,7 ... 0,52), gerundet auf 5 €. → `17-laptop.js:344` (packPreis)
-- Wer viel Geld hat (Konto/Tageskosten ueber 4 Tage), bekommt seltener und weniger Angebote; Qualität 86 %. → `17-laptop.js:377` (restDruck)
+- Preis = mittlerer Karton-Einkauf x Kartons x Faktor (0,7 ... 0,52), gerundet auf 5 €. → `17-laptop.js:347` (packPreis)
+- Wer viel Geld hat (Konto/Tageskosten ueber 4 Tage), bekommt seltener und weniger Angebote; Qualität 86 %. → `17-laptop.js:380` (restDruck)
 - **Warum:** Gelegenheitskauf gegen Risiko (Mischung, Qualität) und Lagerplatz.
 
 <!-- /AUTO:KETTEN -->

@@ -327,6 +327,25 @@ body.compact .kan span{display:none}
 .pmenu{display:flex;flex-direction:column;gap:10px;max-width:340px;margin:18px auto 10px}
 .pmenu button{font-size:20px;padding:13px 18px}
 .gfxwahl button.an{background:#ffd23f;color:#1a1204;border-color:#ffd23f}
+.lmtext{font-size:15px;line-height:1.4;margin:0 0 10px}
+.lmwahl{display:flex;gap:12px;align-items:center;font-size:17px;min-height:44px;max-width:340px;margin:6px auto}
+.lmwahl input{width:24px;height:24px;flex:none}
+#lmTab h4{margin:14px 0 4px;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--signal)}
+#lmTab h4 small{text-transform:none;letter-spacing:0;color:var(--muted)}
+.lmkopf{font-size:14px;line-height:1.4;margin-top:12px}
+.lmtab{overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.lmtab table{border-collapse:collapse;font-size:13px;white-space:nowrap;width:100%}
+.lmtab th,.lmtab td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}
+.lmtab th{color:var(--signal);font-weight:600}
+.lmtab th:first-child,.lmtab td:first-child{text-align:left;position:sticky;left:0;background:var(--panel-strong)}
+.lmtab td.lmrot{color:var(--fire);font-weight:700}
+.lmtab td.lmgelb{color:var(--signal);font-weight:700}
+#pLeistung .pmenu button{min-height:44px}
+#lmText{width:100%;height:150px;font:12px/1.3 monospace;-webkit-user-select:text;user-select:text;background:var(--ink);color:var(--snow);border:1px solid var(--line);border-radius:8px;margin-top:8px}
+#lmOv{position:fixed;inset:0;z-index:60;display:none;touch-action:none}
+#lmOv .lmbox{position:absolute;left:50%;top:10px;transform:translateX(-50%);max-width:min(560px,94vw);background:var(--panel-strong);border:2px solid var(--signal);border-radius:12px;padding:10px 14px;text-align:center;display:flex;flex-direction:column;gap:6px;font-size:15px}
+#lmOv .lmbox b{color:var(--signal);font-size:17px}
+#lmOv .lmbox button{font-size:15px;padding:10px 14px;min-height:44px}
 .phint{display:block;text-align:center;opacity:.6;font-size:13px}
 .pkopf{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;margin-bottom:10px}
 .pkopf h2{margin:0}
@@ -673,6 +692,7 @@ body.compact .pdahead2 b{font-size:16px}
       <button class="ghost" data-pseite="pSteuer">Steuerung</button>
       <button class="ghost" data-pseite="pMusikSeite">Audio</button>
       <button class="ghost" data-pseite="pGrafik">Grafik</button>
+      <button class="ghost" data-pseite="pLeistung">Leistung messen</button>
       <button class="ghost" id="pTut">Tutorial ausblenden</button>
       <button class="ghost" id="pHome">Zum Startbildschirm</button>
     </div>
@@ -695,6 +715,27 @@ body.compact .pdahead2 b{font-size:16px}
       <button class="ghost" data-gfx="ultralow">Ultra Low</button>
     </div>
     <small class="phint" id="gfxInfo"></small>
+  </div>
+  <div class="pseite" id="pLeistung">
+    <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Leistung</h2><span></span></div>
+    <div class="pscroll" id="lmSeite">
+      <p class="lmtext">Das Spiel fährt eine feste Route (Laden, Kasse, Halle, Lager, Hochregal, Werk, Straße, Hof, Feuerwerk) und misst an jedem Ort 10 Sekunden. Am Ende gibt es eine Tabelle zum Kopieren und Weiterschicken. Dein Spielstand wird währenddessen nicht gespeichert und danach unverändert neu geladen.</p>
+      <label class="lmwahl"><input type="checkbox" id="lmAlle"><span>Alle Grafikstufen nacheinander</span></label>
+      <div class="pmenu">
+        <button id="lmGo">Leistung messen (mein Spielstand)</button>
+        <button class="ghost" id="lmGoVoll">Leistung messen (Vollausbau)</button>
+      </div>
+      <small class="phint" id="lmDauer"></small>
+      <div id="lmErgebnis" hidden>
+        <div id="lmTab"></div>
+        <div class="pmenu">
+          <button id="lmKopie">Bericht kopieren</button>
+          <button class="ghost" id="lmZurueck">Zurück ins Spiel</button>
+        </div>
+        <small class="phint" id="lmKopieStatus"></small>
+        <textarea id="lmText" readonly hidden></textarea>
+      </div>
+    </div>
   </div>
   <div class="pseite" id="pMusikSeite">
     <div class="pkopf"><button class="ghost pzur">‹ Zurück</button><h2>Audio</h2><span></span></div>
@@ -54483,7 +54524,7 @@ function rezBauen(){
 const FW_DEV=true;
 let fwTestAn=false, fwTestBoxen=[], fwTestMarken=[], vfAn=false, vfGezuendet=0;
 /* Welche Uhrzeit das Licht sieht: im Testmodus immer 22 Uhr */
-function todUhr(){ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
+function todUhr(){ if(typeof LM!=='undefined'&&LM&&LM.uhr) return LM.uhr; /* Leistungsbericht: Feuerwerksort bei Nacht */ return FW_DEV&&(fwTestAn||vfAn)?Math.max(clock,1320):clock; }
 /* Stufen nach Level (Tom, 28.09.: "welches Level was ist ... die hat
    man am Anfang, die in der Mitte, das sind die wirklich krassen
    Sachen" - damit die Steigerung beim Testen sichtbar wird) */
@@ -55858,6 +55899,307 @@ function gpTaste(e){
   if(e.code==='KeyB'){ gpEnde(); return true; }
   return false;
 }
+/* =========================================================
+   LEISTUNGSBERICHT (Fundament Schritt 5, Tom 14.10.2026:
+   "Leistungsbericht im Spiel - Tom misst auf seinem PC").
+   Pausenmenü (Esc) -> Leistung messen: Das Spiel fährt eine feste Route
+   (Laden, Kasse, Halle Süd, Lager, Hochregal, Werk, Straße, Hof, Feuerwerk über dem Testfeld)
+   und misst je Ort 10 s (Feuerwerk 20 s): Bilder/s (Mittel und 1-%-Tief), Bildzeit, CPU-Zeit
+   je Bild, Zeichenaufrufe, Dreiecke, Geometrien/Texturen (renderer.info), JS-Heap (falls der
+   Browser ihn zeigt). Dazu GPU-Name, Grafikstufe, Auflösung, geschätzter Texturspeicher.
+   Optional alle Grafikstufen nacheinander. Ergebnis als Tabelle + Text zum Kopieren.
+   Spielstand: Während der Messung wird NICHT gespeichert (save() prüft LM.an); danach lädt das
+   Spiel neu und liest den unveränderten Stand. Messung im Vollausbau läuft in der Gameplay-
+   Vorführung (17e, eigene Sicherung), "mein Spielstand" nur an Orten, die schon gebaut sind.
+   Es kommt keine Wirtschaftszahl vor; die Kennzahlen sind reine Messwerte.
+   ========================================================= */
+var LM={an:false,ph:'',modus:'spiel',alle:false,dauer:10,feuer:20,einschwing:1,uhr:0,z:null,lauf:null,orte:[],laeufe:[],stufen:[],ri:0,oi:0,
+  sicher:null,bericht:null,abbruch:false,start:0,heap0:null,heap1:null};
+const LM_KEY='bb_leistung_bericht';
+const LM_MB=1048576;
+/* Route: Name, Voraussetzung (Ausbau), Pose. Posen aus der Gameplay-Vorführung (GP_ORTE), damit es nur eine Quelle gibt. */
+function lmOrte(){
+  const gp=n=>{ const o=GP_ORTE.find(x=>x[0]===n); return o?[o[1],o[2],o[3],o[4]]:null; };
+  const tf=testfeldMitte();
+  const L=[
+    ['Laden',null,gp('Verkauf'),LM.dauer],
+    ['Kasse',null,gp('Kassen'),LM.dauer],
+    ['Halle Süd','shop_sued',gp('Halle Süd'),LM.dauer],
+    ['Lager','lager',gp('Lager'),LM.dauer],
+    ['Hochregal','lagerlogistik',gp('Hochregal'),LM.dauer],
+    ['Werk','fabrik',GP_WERK[0],LM.dauer],
+    ['Straße',null,[0,12,Math.PI,0.05],LM.dauer],
+    ['Hof','lager',[-27,3,-Math.PI/2,0],LM.dauer],
+    ['Feuerwerk','testfeld',[tf.x,tf.z+9,0,0.55],LM.feuer]
+  ];
+  return L.filter(o=>o[2]).map(o=>({name:o[0],braucht:o[1],pose:o[2],dauer:o[3],feuer:o[0]==='Feuerwerk'}));
+}
+function lmOrtDa(o){ return !o.braucht||LM.modus==='voll'||(S&&S.up&&S.up[o.braucht]); }
+/* Gerät und Umgebung (nur lesen) */
+function lmGeraet(){
+  const g={gpu:'nicht verfügbar (Browser gibt ihn nicht frei)',webgl:'?',kerne:navigator.hardwareConcurrency||'?',ram:navigator.deviceMemory?('mind. '+navigator.deviceMemory+' GB (Browser-Angabe, gerundet)'):'nicht verfügbar',
+    browser:(navigator.userAgent.match(/(Firefox|Edg|Chrome|Safari)\/[\d.]+/)||['?'])[0],
+    fenster:innerWidth+'x'+innerHeight,dpr:+(window.devicePixelRatio||1).toFixed(2),touch:!!COARSE};
+  try{ const gl=renderer.getContext(); g.webgl=(typeof WebGL2RenderingContext!=='undefined'&&gl instanceof WebGL2RenderingContext)?'WebGL 2':'WebGL 1';
+    const e=gl.getExtension('WEBGL_debug_renderer_info'); if(e) g.gpu=gl.getParameter(e.UNMASKED_RENDERER_WEBGL); }catch(e){}
+  return g;
+}
+/* Speicher, soweit der Browser ihn zeigt */
+function lmHeap(){ try{ const m=performance.memory; return m?Math.round(m.usedJSHeapSize/LM_MB):null; }catch(e){ return null; } }
+/* Texturspeicher der Szene (Schätzung, nur Texturen die schon auf der Grafikkarte liegen; Breite x Höhe x 4 Byte, mit Mip-Stufen).
+   Zwischenpuffer der Bildnachbearbeitung und Treiber-Zuschläge sind nicht dabei - also eher eine Untergrenze. */
+function lmTexturen(){
+  const R=renderer, props=R.properties, TEXK=['map','emissiveMap','alphaMap','normalMap','roughnessMap','metalnessMap','bumpMap','aoMap','lightMap','envMap'];
+  const gesehen=new Set(); const r={n:0,mb:0,ohneMass:0,groesste:[]};
+  const zaehle=t=>{ if(!t||gesehen.has(t)) return; gesehen.add(t);
+    let auf=true; try{ const p=props&&props.get?props.get(t):null; auf=!!(p&&p.__webglTexture); }catch(e){}
+    if(!auf) return;
+    let im=t.image, w=0, h=0, f=1;
+    if(t.isCubeTexture&&im&&im[0]){ w=im[0].width||0; h=im[0].height||0; f=6; }
+    else if(im){ w=im.width||im.videoWidth||0; h=im.height||im.videoHeight||0; }
+    if(!w||!h){ r.ohneMass++; return; }
+    const mip=t.generateMipmaps&&t.minFilter!==THREE.LinearFilter&&t.minFilter!==THREE.NearestFilter?4/3:1;
+    const b=w*h*(t.type===THREE.FloatType?16:t.type===THREE.HalfFloatType?8:4)*f*mip;
+    r.n++; r.mb+=b/LM_MB; if(b>8*LM_MB) r.groesste.push([Math.round(b/LM_MB),w+'x'+h,(t.userData&&t.userData.mat)||t.name||'']); };
+  scene.traverse(o=>{ const ms=o.material; if(!ms) return; for(const m of (Array.isArray(ms)?ms:[ms])){ if(!m) continue; for(const k of TEXK) if(m[k]) zaehle(m[k]); } });
+  if(scene.background&&scene.background.isTexture) zaehle(scene.background);
+  r.mb=Math.round(r.mb); r.groesste.sort((a,b)=>b[0]-a[0]); r.groesste=r.groesste.slice(0,5);
+  let sch=0; try{ if(typeof sun!=='undefined'&&sun.shadow&&sun.shadow.map) sch=Math.round(sun.shadow.mapSize.x*sun.shadow.mapSize.y*4/LM_MB); }catch(e){}
+  r.schatten=sch; return r;
+}
+/* ---------- Ablauf ---------- */
+function lmStart(o){
+  if(LM.an||!S) return false;
+  o=o||{};
+  LM.modus=o.modus==='voll'?'voll':'spiel'; LM.alle=!!o.alle;
+  LM.dauer=o.dauer||10; LM.feuer=o.feuer||20; LM.einschwing=o.einschwing!=null?o.einschwing:1;
+  LM.halt=LM.halt||LM.modus==="spiel"; LM.abbruch=false; LM.bericht=null; LM.laeufe=[]; LM.uhr=0; LM.z=null; LM.ri=0; LM.oi=0; LM.start=Date.now();
+  LM.sicher={key:null,x:pl.x,z:pl.z,yaw,pitch,gfx:GFX,paused,autoRes:RES,postOn};
+  try{ LM.sicher.key=localStorage.getItem(KEY); }catch(e){}
+  /* Stufen: ohne Ultra Low-Wechsel (dort wird beim Laden alles anders gebaut - Wechsel braucht Neustart) */
+  const alle=GFX_STUFEN.filter(s=>s!=='ultralow');
+  LM.stufen=o.stufen&&o.stufen.length?o.stufen:(GFX==='ultralow'?['ultralow']:(LM.alle?alle:[GFX]));
+  LM.heap0=lmHeap();
+  if(pauseOpen){ pauseOpen=false; $('pause').classList.remove('show'); }
+  paused=false;
+  LM.an=true; LM.ph='warte';
+  renderer.info.autoReset=false;
+  if(LM.modus==='voll'&&!gpAn) gpStart();
+  lmSperre(true); lmAnzeige();
+  return true;
+}
+function lmSperre(an){
+  if(an){ if(!LM._tast){ LM._tast=e=>{ if(!LM.an) return; if(e.code==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); if(e.type==='keydown') lmAbbruch(); return; }
+        e.stopImmediatePropagation(); e.preventDefault(); };
+      window.addEventListener('keydown',LM._tast,true); window.addEventListener('keyup',LM._tast,true); } }
+  let ov=$('lmOv');
+  if(an&&!ov){ ov=document.createElement('div'); ov.id='lmOv';
+    ov.innerHTML='<div class="lmbox"><b id="lmKopf">Leistung wird gemessen</b><span id="lmZeile"></span><button class="ghost" id="lmStopp">Abbrechen (Esc)</button></div>';
+    document.body.appendChild(ov); $('lmStopp').addEventListener('click',lmAbbruch); }
+  if(ov) ov.style.display=an?'block':'none';
+}
+function lmAbbruch(){ if(!LM.an) return; LM.abbruch=true; lmEnde(); }
+function lmAnzeige(){
+  const k=$('lmKopf'), z=$('lmZeile'); if(!k||!z) return;
+  const st=LM.stufen[LM.ri]; const nO=LM.orte.length;
+  if(LM.ph==='warte'){ k.textContent='Leistung wird gemessen – Vorbereitung'; z.textContent=LM.modus==='voll'?'Die Vorführung wird aufgebaut …':'Start …'; return; }
+  const Z=LM.z; k.textContent='Leistung wird gemessen – Stufe '+GFX_NAME[st]+(LM.stufen.length>1?' ('+(LM.ri+1)+'/'+LM.stufen.length+')':'');
+  const rest=Z?Math.max(0,Math.ceil(Z.ort.dauer+LM.einschwing+(Z.extra||0)-Z.t)):0;
+  z.textContent=Z?('Ort '+(LM.oi+1)+'/'+nO+': '+Z.ort.name+' – noch '+rest+' s. Bitte nichts drücken.'):'';
+}
+/* nächster Ort bzw. nächste Stufe */
+function lmOrtStart(){
+  const o=LM.orte[LM.oi]; if(!o){ lmLaufEnde(); return; }
+  if(!lmOrtDa(o)){ LM.lauf.orte.push({name:o.name,fehlt:'nicht gebaut'}); LM.oi++; lmOrtStart(); return; }
+  LM.z={ort:o,t:0,extra:LM.oi===0?2:0,roh:[],cpu:[],calls:[],tris:[],nEin:0,erstes:0,heapMax:0,salve:0};
+  LM.uhr=o.feuer?1320:0;
+  lmAnzeige();
+}
+function lmLaufStart(){
+  const st=LM.stufen[LM.ri];
+  if(st!==GFX) gfxAnwenden(st);
+  LM.orte=lmOrte();
+  LM.lauf={stufe:st,name:GFX_NAME[st],px:+renderer.getPixelRatio().toFixed(2),res:+RES.toFixed(2),
+    post:!!postOn,w:renderer.domElement.width,h:renderer.domElement.height,orte:[],tex:null};
+  LM.oi=0; lmOrtStart();
+}
+function lmLaufEnde(){
+  LM.lauf.tex=lmTexturen(); LM.lauf.heapEnde=lmHeap();
+  LM.laeufe.push(LM.lauf); LM.lauf=null; LM.z=null;
+  LM.ri++;
+  if(LM.ri>=LM.stufen.length){ lmEnde(); return; }
+  lmLaufStart();
+}
+function lmOrtEnde(){
+  const Z=LM.z, a=Z.roh, n=a.length||1;
+  const sum=a.reduce((x,y)=>x+y,0)||1e-9;
+  const s=a.slice().sort((x,y)=>y-x); const k=Math.max(1,Math.ceil(n*0.01)); const tief=s.slice(0,k).reduce((x,y)=>x+y,0)/k;
+  const m=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:0;
+  const info=renderer.info;
+  LM.lauf.orte.push({name:Z.ort.name,n:a.length,sek:+sum.toFixed(1),fps:+(n/sum).toFixed(1),tief1:+(1/tief).toFixed(1),ms:+(1000*sum/n).toFixed(1),
+    msMax:+(1000*s[0]).toFixed(0),cpu:+m(Z.cpu).toFixed(1),calls:Math.round(m(Z.calls)),tris:Math.round(m(Z.tris)),
+    geo:info.memory.geometries,tex:info.memory.textures,prog:info.programs?info.programs.length:null,heap:lmHeap(),heapMax:Z.heapMax||null,
+    erstes:Math.round(Z.erstes)});
+  LM.oi++; lmOrtStart();
+}
+/* vor dem Zeichnen: Pose halten (langsamer Schwenk), Zähler der Zeichenaufrufe nullen */
+function lmVor(){
+  if(!LM.an) return;
+  renderer.info.reset();
+  const Z=LM.z; if(LM.ph==='warte'||!Z) return;
+  const p=Z.ort.pose, f=Z.t/(Z.ort.dauer+LM.einschwing);
+  pl.x=p[0]; pl.z=p[1]; yaw=p[2]+0.45*Math.sin(f*Math.PI*2); pitch=p[3]; aim=null;
+  camera.position.set(pl.x,1.65+bodenHoehe(pl.x,pl.z),pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld();
+}
+/* nach dem Zeichnen: roh = echter Bildabstand in s, cpu = Zeit in ms, die das Spiel (Rechnen + Zeichenbefehle) gebraucht hat */
+function lmNach(roh,cpu){
+  if(!LM.an) return;
+  if(LM.ph==='warte'){
+    if(LM.modus==='voll'&&!(gpAn&&gpFertig&&!gpBau)){ if((LM._a=(LM._a||0)+1)%20===0) lmAnzeige(); return; }
+    LM.heap1=lmHeap(); LM.ph='lauf'; lmLaufStart(); return; }
+  const Z=LM.z; if(!Z) return;
+  const ein=LM.einschwing+(Z.extra||0);
+  Z.t+=roh;
+  /* Ankunft: Der Ruckler beim ersten Blick (Shader, Texturen, Geometrie hochladen) steckt in der Rechenzeit des ersten Bildes am neuen
+     Ort und im Abstand zum zweiten (Bildabstand = Dauer des Vorgängers). Beides zählt, das größere wird gemeldet. */
+  Z.nEin++; if(Z.nEin===1) Z.erstes=cpu; else if(Z.nEin===2) Z.erstes=Math.max(Z.erstes,roh*1000);
+  if(Z.t<=ein) return;
+  if(Z.ort.feuer&&Z.t>=(Z.salve||0)){ Z.salve=Z.t+2.5; lmFeuer(); }
+  Z.roh.push(roh); Z.cpu.push(cpu); Z.calls.push(renderer.info.render.calls); Z.tris.push(renderer.info.render.triangles);
+  const h=lmHeap(); if(h&&h>Z.heapMax) Z.heapMax=h;
+  if((Z.roh.length&7)===0) lmAnzeige();
+  if(Z.t>=ein+Z.ort.dauer) lmOrtEnde();
+}
+/* Feuerwerk über dem Testfeld: alle 2,5 s eine Salve aus Kugelbomben (Kaliber 4-5) und einer Rakete. Reine Effektaufrufe der
+   Feuerwerks-Bibliothek (14) - es wird kein Produkt gezündet, also auch kein Hype, keine Erfahrung, keine Kosten. */
+function lmFeuer(){
+  try{
+    const m=testfeldMitte();
+    for(let i=0;i<3;i++) kugelbombe({x:m.x+rand(-7,7),y:1.7,z:m.z-rand(10,16)},i===0?5:4);
+    shot({x:m.x+rand(-3,3),y:0.95,z:m.z-6});
+  }catch(e){ console.warn('Leistung: Feuerwerk',e); }
+}
+/* Ende (normal oder Abbruch): Pose, Grafikstufe und Sperre zurück, Bericht bauen und zeigen */
+function lmEnde(){
+  if(!LM.an) return;
+  LM.an=false; LM.uhr=0;
+  if(LM.lauf&&LM.lauf.orte.length){ LM.lauf.tex=lmTexturen(); LM.laeufe.push(LM.lauf); }
+  LM.lauf=null; LM.z=null;
+  renderer.info.autoReset=true;
+  const s=LM.sicher; if(s){
+    if(s.gfx!==GFX) gfxAnwenden(s.gfx);
+    pl.x=s.x; pl.z=s.z; yaw=s.yaw; pitch=s.pitch; }
+  /* Sicherheitsnetz: save() ist während der Messung gesperrt; sollte trotzdem etwas geschrieben worden sein, zurückschreiben */
+  try{ if(s&&s.key!=null&&localStorage.getItem(KEY)!==s.key&&!gpAn) localStorage.setItem(KEY,s.key); }catch(e){}
+  lmSperre(false);
+  LM.bericht=lmBauBericht(); LM.bericht.abbruch=LM.abbruch;
+  try{ localStorage.setItem(LM_KEY,JSON.stringify(LM.bericht)); }catch(e){}
+  paused=true; pauseOpen=false; showPause(); pauseSeite('pLeistung'); lmSeite();
+  if(LM.halt&&$('pBtn')) $('pBtn').textContent='Neu laden und weiterspielen';
+}
+/* ---------- Bericht ---------- */
+function lmBauBericht(){
+  const g=lmGeraet();
+  const hinweise=[];
+  const v=LM.laeufe[0];
+  if(typeof performance==='undefined'||!performance.memory) hinweise.push('JS-Heap: nicht messbar (dieser Browser gibt ihn nicht frei; Chrome/Edge zeigen ihn).');
+  else hinweise.push('JS-Heap: Chrome rundet den Wert grob und aktualisiert ihn selten; er zeigt nur den JavaScript-Speicher, nicht Texturen oder Grafikkarte.');
+  hinweise.push('Prozess- und Grafikkartenspeicher insgesamt: nicht messbar aus der Seite. Der Texturspeicher ist eine Schätzung aus den Bildgrößen (Untergrenze).');
+  if(LM.stufen.length>1||LM.stufen[0]!==(LM.sicher&&LM.sicher.gfx)) hinweise.push('Stufenwechsel zur Laufzeit: Texturschärfe, Funkenmenge, Spiegelungen und Relief ab „Maximum“ gelten erst nach Neustart; Auflösung, Schatten, Kantenglättung und Bildeffekte wirken sofort.');
+  hinweise.push('Bildrate ist durch den Bildschirm gedeckelt (meist 60). „Bildzeit“ = Abstand der Bilder; liegt „CPU/Bild“ deutlich darunter, begrenzt die Grafikkarte (oder der Bildschirm), liegt sie nahe daran, begrenzt der Prozessor.');
+  if(LM.modus==='spiel') hinweise.push('Orte, die in deinem Spielstand noch nicht gebaut sind, werden übersprungen.');
+  const t=v&&v.tex;
+  let vf=null;
+  if(LM.modus==='voll'&&t) vf={mb:t.mb,urteil:t.mb>=1300?'über 1,3 GB':'unter 1,3 GB',n:t.n};
+  return {version:1,zeit:new Date().toISOString().slice(0,16).replace('T',' '),modus:LM.modus,dauer:LM.dauer,feuer:LM.feuer,geraet:g,
+    wahl:GFX_WAHL,wahlName:GFX_WAHL==='auto'?'Automatisch':GFX_NAME[GFX_WAHL],start:GFX_NAME[LM.sicher?LM.sicher.gfx:GFX],res:+RES.toFixed(2),
+    heapVor:LM.heap0,heapNachAufbau:LM.heap1,laeufe:LM.laeufe,hinweise,vorfuehrungTex:vf,dauerGesamt:Math.round((Date.now()-LM.start)/1000)};
+}
+const LM_SP=[['Ort','name'],['Bilder/s','fps'],['1 % tief','tief1'],['Bildzeit ms','ms'],['Spitze ms','msMax'],['CPU/Bild ms','cpu'],['Zeichenaufrufe','calls'],['Dreiecke','tris'],['Geometrien','geo'],['Texturen','tex'],['Heap MB','heap'],['Ankunft ms','erstes']];
+const lmZahl=v=>v==null?'–':(typeof v==='number'?v.toLocaleString('de-DE'):v);
+function lmText(b){
+  const g=b.geraet, T=[];
+  T.push('BÖLLERLADEN – LEISTUNGSBERICHT'+(b.abbruch?' (ABGEBROCHEN, nur Teilergebnis)':''));
+  T.push('Zeit: '+b.zeit+' | Dauer der Messung: '+b.dauerGesamt+' s | '+(b.modus==='voll'?'Vollausbau (Gameplay-Vorführung)':'mein Spielstand')+' | '+b.dauer+' s je Ort, Feuerwerk '+b.feuer+' s');
+  T.push('GPU: '+g.gpu+' | '+g.webgl);
+  T.push('Prozessor-Kerne: '+g.kerne+' | RAM: '+g.ram+' | Browser: '+g.browser+(g.touch?' | Touch-Gerät':''));
+  T.push('Fenster: '+g.fenster+' | Bildschirm-Skalierung: '+g.dpr+' | Grafik-Wahl: '+b.wahlName+' | Start-Stufe: '+b.start+' | Auflösungsfaktor (Auto): '+b.res);
+  if(b.heapVor!=null) T.push('JS-Heap vor der Messung: '+b.heapVor+' MB'+(b.heapNachAufbau!=null?', nach dem Aufbau: '+b.heapNachAufbau+' MB':''));
+  for(const l of b.laeufe){
+    T.push('');
+    T.push('== Stufe '+l.name+' | Rendergröße '+l.w+'x'+l.h+' (pixelRatio '+l.px+') | Bildeffekte '+(l.post?'an':'aus')+' ==');
+    const rows=[LM_SP.map(c=>c[0])].concat(l.orte.map(o=>o.fehlt?[o.name,o.fehlt]:LM_SP.map(c=>lmZahl(o[c[1]]))));
+    const w=rows[0].map((_,i)=>Math.max(...rows.map(r=>String(r[i]==null?'':r[i]).length)));
+    for(const r of rows) T.push(r.map((c,i)=>i?String(c).padStart(w[i]):String(c).padEnd(w[i])).join('  '));
+    if(l.tex) T.push('Texturen im Speicher (Schätzung): '+l.tex.mb+' MB in '+l.tex.n+' Texturen'+(l.tex.ohneMass?' (+'+l.tex.ohneMass+' ohne Größenangabe)':'')+', Schattenkarte '+l.tex.schatten+' MB'+(l.tex.groesste.length?' | größte: '+l.tex.groesste.map(x=>x[0]+' MB '+x[1]+' '+x[2]).join('; '):''));
+  }
+  if(b.vorfuehrungTex) T.push('','Prüfpunkt Vorführung ~1,3 GB Texturen: gemessen '+b.vorfuehrungTex.mb+' MB ('+b.vorfuehrungTex.urteil+', Schätzung).');
+  else if(b.modus==='spiel') T.push('','Prüfpunkt Vorführung ~1,3 GB Texturen: nur im Modus „Vollausbau“ prüfbar.');
+  T.push('Prüfpunkt Speicherspitze beim ersten Laden-Bild: Spalte „Ankunft ms“ = Ruckler beim ersten Blick an den Ort (größte Bildzeit der ersten zwei Bilder); JS-Heap (Maximum am Ort) in Spalte „Heap MB“ des Orts'+(b.heapVor==null?' – hier nicht messbar.':'.'));
+  for(const h of b.hinweise) T.push('Hinweis: '+h);
+  return T.join('\n');
+}
+function lmTabelle(b){
+  const g=b.geraet, e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  let h='<div class="lmkopf"><b>'+(b.abbruch?'Teilergebnis (abgebrochen)':'Ergebnis')+'</b> · '+e(b.zeit)+' · '+(b.modus==='voll'?'Vollausbau':'mein Spielstand')+'<br>'+e(g.gpu)+' · '+g.kerne+' Kerne · '+e(g.fenster)+' · Grafik '+e(b.wahlName)+'</div>';
+  for(const l of b.laeufe){
+    h+='<h4>Stufe '+e(l.name)+' <small>'+l.w+'×'+l.h+', Bildeffekte '+(l.post?'an':'aus')+'</small></h4><div class="lmtab"><table><thead><tr>'+LM_SP.map(c=>'<th>'+c[0]+'</th>').join('')+'</tr></thead><tbody>';
+    for(const o of l.orte){
+      if(o.fehlt){ h+='<tr><td>'+e(o.name)+'</td><td colspan="'+(LM_SP.length-1)+'" class="lmfehlt" style="text-align:left">'+e(o.fehlt)+'</td></tr>'; continue; }
+      const kl=o.fps<30?' class="lmrot"':o.fps<50?' class="lmgelb"':'';
+      h+='<tr>'+LM_SP.map((c,i)=>'<td'+(i===1?kl:'')+'>'+e(lmZahl(o[c[1]]))+'</td>').join('')+'</tr>'; }
+    h+='</tbody></table></div>';
+    if(l.tex) h+='<small class="phint" style="text-align:left">Texturen (Schätzung): '+l.tex.mb+' MB in '+l.tex.n+' Texturen, Schattenkarte '+l.tex.schatten+' MB</small>';
+  }
+  if(b.vorfuehrungTex) h+='<p class="lmtext">Vorführung, Texturen: ca. '+b.vorfuehrungTex.mb+' MB ('+b.vorfuehrungTex.urteil+').</p>';
+  h+=b.hinweise.map(x=>'<small class="phint" style="text-align:left">'+e(x)+'</small>').join('');
+  return h;
+}
+/* Seite im Pausenmenü */
+function lmSeite(){
+  let b=LM.bericht; if(!b){ try{ const s=localStorage.getItem(LM_KEY); if(s) b=JSON.parse(s); }catch(e){} }
+  const ez=$('lmErgebnis'), td=$('lmDauer'); if(!ez) return;
+  const st=(($('lmAlle')&&$('lmAlle').checked)?GFX_STUFEN.length-1:1);
+  const min=Math.ceil(st*(8*LM.dauer+LM.feuer+10+8)/60);
+  if(td) td.textContent='Dauer etwa '+min+' Min'+(st>1?' (alle Stufen, ohne Ultra Low)':'')+'. Mit Esc jederzeit abbrechen.';
+  if(!b){ ez.hidden=true; return; }
+  ez.hidden=false; $('lmTab').innerHTML=lmTabelle(b);
+  $('lmZurueck').textContent=LM.modus==='voll'&&gpAn?'Fertig – Vorführung beenden, Spiel neu laden':(LM.bericht?'Fertig – Spiel neu laden (Spielstand wie vorher)':'Zurück ins Spiel');
+}
+function lmKopieren(){
+  let b=LM.bericht; if(!b){ try{ b=JSON.parse(localStorage.getItem(LM_KEY)); }catch(e){} } if(!b) return;
+  const txt=lmText(b), ta=$('lmText'), st=$('lmKopieStatus');
+  const manuell=()=>{ ta.value=txt; ta.hidden=false; ta.focus(); ta.select(); try{ document.execCommand('copy'); }catch(e){} if(st) st.textContent='Text markiert – bitte mit Strg+C (Handy: lange tippen → Kopieren) kopieren.'; };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>{ ta.value=txt; if(st) st.textContent='Bericht kopiert. Jetzt einfügen und an Claude schicken.'; },manuell); return; } }catch(e){}
+  manuell();
+}
+function lmZurueck(){
+  if(LM.an) return;
+  const spiel=LM.bericht&&LM.modus==='spiel';
+  if(gpAn){ gpEnde(); return; }
+  if(spiel){ location.reload(); return; }
+  closePause();
+}
+function lmOeffnen(){ if(typeof laptopOpen!=='undefined'&&laptopOpen) closeLaptop(false); showPause(); pauseSeite('pLeistung'); lmSeite(); }
+/* Bedienung (Knöpfe der Seite) */
+(function(){
+  const go=m=>{ const a=$('lmAlle'); lmStart({modus:m,alle:!!(a&&a.checked)}); };
+  const b1=$('lmGo'), b2=$('lmGoVoll'), k=$('lmKopie'), z=$('lmZurueck'), a=$('lmAlle');
+  if(b1) b1.addEventListener('click',()=>go('spiel'));
+  if(b2) b2.addEventListener('click',()=>go('voll'));
+  if(k) k.addEventListener('click',lmKopieren);
+  if(z) z.addEventListener('click',lmZurueck);
+  if(a) a.addEventListener('change',lmSeite);
+})();
+/* Test: ein Bild wie frame() (Rechnen, Zeichnen, Zählen) ohne rAF. Ohne roh gilt die gemessene Gesamtzeit; ein readPixels wartet auf die
+   Grafikkarte (sonst läuft der Befehlsstau davon - in der Software-Grafik der Tests ein paar Sekunden je Bild). */
+function lmTakt(roh){
+  const t0=performance.now(); lmVor();
+  if(S&&!paused) step(Math.min(roh||0.05,0.05));
+  renderFrame(Math.min(roh||0.05,0.05));
+  try{ const gl=renderer.getContext(); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,LM._px||(LM._px=new Uint8Array(4))); }catch(e){}
+  const ms=performance.now()-t0; lmNach(roh||ms/1000,ms);
+}
 
 /* =========================================================
    Speichern & Laden
@@ -55915,6 +56257,8 @@ function save(){
   if(!S) return;
   /* Gameplay-Vorfuehrung (17e): der eigene Spielstand bleibt unangetastet */
   if(typeof gpAn!=='undefined'&&gpAn) return;
+  /* Leistungsbericht (17g): waehrend und nach der Messung im eigenen Spielstand nichts speichern - bis zum Neuladen */
+  if(typeof LM!=='undefined'&&LM&&(LM.an||LM.halt)) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:S.eigene||[],gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,rabatt:b.rabatt||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,aktion:S.aktion||null,onlineLog:(S.onlineLog||[]).slice(-30),ddlUnterwegs:!!S.ddlUnterwegs,boxVoll:!!S.boxVoll,paketeVortag:S.paketeVortag|0,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
@@ -56512,14 +56856,17 @@ let noLoop=location.hash.indexOf('test')>=0;
 function frame(now){
   requestAnimationFrame(frame);
   if(noLoop) return;
+  const lmT0=LM.an?performance.now():0;   /* Leistungsbericht (17g): CPU-Zeit je Bild */
   let dt=(now-last)/1000; last=now; const roh=dt; if(dt>0.05) dt=0.05;
-  if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen());
+  if(typeof gfxMessen==='function') gfxMessen(roh,!!S&&!paused&&!overlayOpen()&&!LM.an);
+  if(LM.an) lmVor();
   if(S&&!paused){ step(dt); if(typeof gpAn!=='undefined'&&gpAn) for(let i=1;i<gpTempo;i++) step(dt); }
   /* Tagesabschluss pausiert das Spiel - die Vorfuehrung schliesst ihn selbst */
   if(S&&paused&&typeof gpAn!=='undefined'&&gpAn&&(summaryOpen||levelOpen)) gpTick(0);
   regaleImBlick();
   if(vp2An) vp2Takt();
   renderFrame(dt);
+  if(LM.an) lmNach(roh,performance.now()-lmT0);
 }
 
 /* =========================================================
@@ -56661,6 +57008,7 @@ function pauseSeite(id){
   if(id==='pMusikSeite'){ musikAnzeige(); musikTitel(); sfxAnzeige(); }
   if(id==='pHaupt') tutKnopf();
   if(id==='pGrafik') gfxAnzeige();
+  if(id==='pLeistung'&&typeof lmSeite==='function') lmSeite();
 }
 /* Grafik-Seite: gewaehlter Knopf hervorgehoben, darunter was die Stufe tut */
 const GFX_TEXT={extrem:'Alles, was geht: Supersampling bis 3-fach, 16-fache Kantenglättung, Schattenkarte 8192, Spiegelungen am Boden in voller Auflösung, Umgebungsverschattung in hoher Auflösung, Oberflächenrelief in 2048 Pixeln je Kachel, Wände in doppelter Auflösung, fast doppelt so viele Funken. Nur für sehr starke Grafikkarten.',
@@ -56682,7 +57030,7 @@ function pauseSeiteAktiv(){ const el=document.querySelector('#pause .pseite.on')
 function showPause(){ if(overlayOpen()) return; pauseSeite('pHaupt'); musikAnzeige(); pauseOpen=true; paused=true;
   /* Maus freigeben - sonst gehen Klicks auf die Spielflaeche statt ins Menue */
   if(locked) document.exitPointerLock(); for(const k in keys) keys[k]=false; mouseDown=false; $('pause').classList.add('show'); }
-function closePause(){ if(!pauseOpen) return; pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
+function closePause(){ if(!pauseOpen) return; if(LM.halt){ location.reload(); return; } /* nach der Leistungsmessung: nur neu laden (17g) */ pauseOpen=false; paused=false; $('pause').classList.remove('show'); requestLock(); }
 $('pBtn').addEventListener('click',()=>closePause());
 $('pause').addEventListener('click',e=>{
   const b=e.target.closest('[data-pseite]'); if(b){ pauseSeite(b.dataset.pseite); return; }
@@ -57059,7 +57407,7 @@ fontsReady().then(()=>{
   setTimeout(()=>{ if(typeof shaderVorab==='function') shaderVorab(); },400);
   window.__bb={MAT,bk,LAMPEN,WK,WK_STR,WK_ALT,wkOffen,wkStrasseOffen,wkBoden,wkFixkosten,wkStrasseSetzen,wkTick,wkSichtTakt,wkWeltX0,pdDaten,pdRezept,pdKlasse,pdHerstellbar,pdProdukte,pdBestellen,pdEinbuchen,pdTick,pdNeuerTag,pdLaeuft,pdGrund,pdStrasseAn,pdKennzahlen,pdImLager,pdReichweite,pdTagesabschluss,pdLaptop,pdKlick,pdBeheben,pdHits,pdPrompt,pdAktion,pdAusschuss,pdQualitaet,pdFixStrasse,pdStueckJeTag,pdVorfuehrung,pdAutoBestellen,pdGrosshandel,pdProStunde,get pdLkw(){return pdLkw},PD_ROH,PD_WERKER,abStichprobe,wkMonitore,wkAmpeln,get lapGeraet(){return lapGeraet},bodenHoehe,get WK_T(){return WK_T},get WK_G(){return WK_G},get WK_H(){return WK_H},get WK_D(){return WK_D},get WK_V(){return WK_V},get WK_A(){return WK_A},get WK_COLS(){return WK_COLS},get plBoden(){return plBoden},collide,LL,LL_STELL,LL_GASSEN,get LL_T(){return LL_T},get LL_G(){return LL_G},LL_ALT,llOffen,llGasseAktiv,llSperrt,llSperrRechtecke,llRaeumen,HR,hrDaten,hrSync,hrStock,hrBelegt,hrKapazitaet,hrFreiPlatz,llStellSlot,llStellSicht,llStellBoxen,spawnFloorBox,hrTick,fixedCosts,get S(){return S},get phase(){return phase},set phase(v){phase=v},set clock(v){clock=v},get clock(){return clock},pickUp,floorBoxes,shelves,racks,dekos,stockOne,openShop,step,customers,queue,belt,scanBelt,buyUp,buyDeko,get DS(){return DS},endDay,pending,save,openLaptop,closeLaptop,pl,addXP,hireStaff,fireStaff,staff,dirts,addDirt,movables,toggleBuild,setWall,setFloor,
     stations,firePult,placeOnStation,igniteType,get order(){return order},get phone(){return phone},makeCall,answerPhone,haggle,acceptDeal,declineDeal,get truck(){return truck},spawnTruck,takeFromTruck,takeBox,dropBox,updateTruck,get door(){return door},get tuer(){return tuer},tuerSet,tuerNah,updateSchiebetuer,doorOpen,doorIsOpen,trailerOccupied,LR,lrFront,TOR,orderReady,orderLeft,shipOne,removeFloorBox,prioOf,setPrio,racks,updateCarry,spawnFloorBox,staff,SHELFKIND,layout,shelfCapOf,shelfAccepts,emptyLevel,dateInfo,dateStr,dateShort,seasonInfo,isSunday,dayMult,ruhetag,wageOf,setWage,friendliness,inPause,setPause,windowGrime,addGrime,cleanWindowTick,ambienteScore,bildBoost,fixedCosts,dailyWages,dispoLimit,verfuegbar,dispoZins,takeLoan,loanTier,loanDaily,EVENTS,GOALS,CUSTTYPES,UPGRADES,STAFF,stockOf,spawnInterval,pools,todayEvent,evv,rollEvent,rollMarket,newGoal,goalAdd,goalTick,ekFactor,marktText,xpFor,rollCustType,priceTol,buyChance,regCustomer,makeWishes,nachfrageFaktor,shelfStockOf,buildGravur,refillGrav,openGravInput,closeGravInput,get gravBlanks(){return gravBlanks},set gravBlanks(v){gravBlanks=v},orderBox,buyPack,cartAdd,cartAddPack,cartOrder,cartClear,cartDel,cartGoods,cartFee,cartTotal,cartBoxes,cartLines,LIEFERZEIT_SEK,VERSAND,VERSANDFREI,lieferSek,
-    regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,kartonBild,kartonAtlasInfo,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,RAUM,raumAn,raumTakt,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
+    regaleImBlick,vsPK,VS_OPT,vsRouteLaenge,vsStopsBauen,vsBedarf,vsPQ:vsPunkteVon,scene,camera,P,NEUWARE,NEU_SHOWS,NEU_FONT,NEU_KUGEL,neuZuenden,PARK,restWelle,restTick,restDruck,restDaten,buyAngebot,grossOffen,updatePark,parkWasser:()=>_wasserM,parkTannen:()=>PARK_TANNEN,parkLeben:()=>parkEnten.concat(parkLeute).map(e=>({x:e.g.position.x,z:e.g.position.z})),pendingListe:()=>pending,einbauPakete,spawnPaket,paketAblegen,paketAufheben,EINBAU,PAKET_MASS,vorDieTuer,sbZiel,makeAuto,AUTOFORM,ladenInnen,stadtInfo:()=>({warn:beacons.length,kronen:KRONEN.length,stufen:SKYLINE_INFO.stufen,skyStile:SKYLINE_INFO.stile.size,stile:Object.keys(STADT_MATS).length}),clearStations,fachHoehe,kindOf,packKartonWert,SUPPLIERS,supplierFor,supplierOf,tierPrice,isUnlocked,lizLevel,renderLaptop,get lsup(){return lsup},set lsup(v){lsup=v},get lkat(){return lkat},set lkat(v){lkat=v},SPARTE,SPARTE_NAME,sparteVon,HEADNAME,headArt,catPill,ekRoh,ekDelta,ekTag,ekNiveau,ekPill,get ltab(){return ltab},set ltab(v){ltab=v},EFF,EFF_ALL,EFF_KLEIN,EFF_GROSS,EFF_PRO,SHOWS,kugelbombe,shot,mine,FW,stations,stationOf,placedCount,togglePDA,openPDA,closePDA,setPost,get postOn(){return postOn},get pdaOn(){return pdaOn},showLength,psHuge,psBig,psMid,psSmall,rockets,emitters,timersLen:()=>timers.length,timersLeeren:()=>{timers.length=0;},setView:(x,z,y,p)=>{pl.x=x;pl.z=z;yaw=y;pitch=p;aim=null;},schiebe:(x,z)=>{pl.x=x;pl.z=z;collide(pl,0.32);return{x:pl.x,z:pl.z};},PLZ_MAX,camYaw:()=>yaw,camPitch:()=>pitch,playerPos:()=>({x:pl.x,z:pl.z}),pultYaw:()=>pultHit?pultHit.parent.rotation.y:null,get pultHit(){return pultHit},applyShopName,shopName,shopSlogan,signTexPx:()=>signTex&&signTex.image?texCanvas(signTex).getContext('2d').getImageData(0,0,signTex.image.width,40).data.join(''):null,lagerWall,fwShot:shot,KUGEL_R,ROHR_INNEN,MOERSER_R,moerserRohr,sfx,WOLKEN,get master(){return master},ac,SORTE_NEU,sortenUmstellen,get shakeWert(){return shake},get ckG(){return ckG},get ckNameTex(){return ckNameTex},get ckMovable(){return ckMov},CK_HOME,CK_ALT,spotPos,queueApproach,ckTexPx:()=>ckNameTex&&ckNameTex.image?texCanvas(ckNameTex).getContext('2d').getImageData(0,0,ckNameTex.image.width,60).data.join(''):null,testfeldMitte,STATION_POS,aimAt,UPGRADES,upPic,PLAN,planFlaechen,uhrZeiger:()=>({std:uhrStd?+uhrStd.rotation.z.toFixed(4):0,min:uhrMin?+uhrMin.rotation.z.toFixed(4):0}),drawRackSchild,get snowPts(){return snowPts},buildStadt,updateStadt,get stadtBoxen(){return stadtBoxen},get stadtBaeume(){return stadtBaeume},buildFernbaeume,schwaerme,beacons,silhouetten,get verkehrPts(){return verkehrPts},get rauchPts(){return rauchPts},get flieger(){return flieger},stadtFrei,STADT_FREI,WALLS,FLOORS,bodenMalen,wandMalen,oberflaechenMuster,oberflaechenAnwenden,BODEN_KACHEL,WAND_B,WAND_H,bodenPx,wandPx,innenUmgebung,sockelM,get wallTex(){return wallTex},get floorTexRef(){return floorTexRef},get floorMat(){return floorMat},get shopWall(){return shopWall},renderOnline,onlineHint,onlineStufe,onlineZahlen,onlineListe,updateOnline,SCHILDBG,SCHILDFG,setSchild,schildBg,schildFg,repaintSchilder,updateHead,allLevels,addToLevel,putInSlot,regCustomer,ZONEN,zoneOffen,oeffneZone,applyZonen,SLOTS,RACKS,slotsOffen,colliders,LAY,LOGI,WRAMPEN,WTORE,updateSnow,unterDach,dachBereiche,get lapHit2(){return lapHit2},buildLagerTerminal,toggleTest,testLevel,buyUp,get toastLast(){return toastLast},__floorBoxen:()=>floorBoxes.length,WBAY_UP,wbays,dockPlaetze,wbayFrei,wbayOffen,spawnWTruck,updateWBays,wbaysInit,wtorSet,GANG,GANGTUER,buildLagergang,flaeche,WTOR,RACKKIND,route,NAV,navFrei,navIdx,navBuild,shelfStand,shelves,sbLanes,buildSBKasse,sbFrei,sbOffen,sbNutzbar,EING2,eingaenge,naechsterEingang,setEingang2,TUEREN,tuerSetD,tuerNahD,packBereit,packOne,paketWert,bestellungenProTag,pakete,ddlAbholung,updateVersand,VS_GR,VS_FELD,WG_PARK,vsNeueBestellung,vsAbgleich,vsKlasse,vsQuellen,vsBestand,vsErfuellbar,vsPlan,vsStapelP,vsPalZiel,vsSpielerPacken,vsSpielerBestellung,vsTischFrei,vsStatus,vsAufraeumen,vsLaden,vsBahn,vsPaketOffen,vsKlappen,vsFuellung,vsPaketZu,get vsTisch(){return vsPlaetze[0]?vsPlaetze[0].tisch:null},get vsWagen(){return vsPlaetze[0]?vsPlaetze[0].wagen:null},vsPlaetze,vsPortal,vsStufeGeaendert,packStufe,packStufeAnwenden,packTeile,VS_PP,VS_PZ,VS_TOP,VS_TB,ppW,BAND,ZELLE,ZELLE_Z1,PALETTEN,PAL_H,VS_MUSTER,vsKapazitaet,vsGelandet,vsCfg,vsNachfrage,vsGebuehr,VS_PORTO,VS_CFG_STD,vsBuchen,vsHits,vsPlatzAus,VM,VM_IDS,vmStand,vmReicht,vmVerbrauchen,vmEinlagern,vmBestellen,vmAuffuellen,vmBestellbar,vmGesamt,vmKapGesamt,vmUnterwegs,vmRegale,vmRegalZeichnen,vmWarnung,vmPlatzMit,vmLkwJob,vmStandPunkt,pullFromTruck,dumpTruck,createShelf,createRack,regalStellen,testKauf,regalAufbauen,orderRegal,REGALWARE,regalOf,regalKind,regalPreis,regalPlatz,regalOffen,startGame,promptFor,ERFOLGE,erfOffen,erfStufe,erfStand,erfZiel,erfFertig,erfAnteil,erfGeschafft,erfGesamt,stat,statAdd,statRekord,statVerkauf,bruchGesehen,gruppeVon,GRUPPE,TRAEGER,BRUCH,BRUCH_IDS,REZ_FARBEN,ETIKETT,traegerVon,traegerOffen,bruchOffen,bruchListe,rezeptWow,rezeptKosten,rezeptMarkt,rezeptHype,rezeptDauer,rezeptEntwicklung,rezeptGueltig,eigeneListe,eigenesEintragen,rezepteTick,rezProto,rezBauen,renderRezeptur,get entwurf(){return entwurf},set entwurf(v){entwurf=v},entwurfInit,ORDER,LIZENZEN,lizenzOf,hatLizenz,lizenzDaten,naechsteLizenz,buyLizenz,VOLA,volaOf,REGIME,marketOf,costOf,marktZiel,marktLuecke,meOf,miOf,marktDelta,marktNiveau,marktPhase,marktSchock,marktLabel,marktSchnitt,marktExtrem,marktChance,sortimentBreite,sortimentZug,bekanntheit,spawnInterval,rollMarkt,marktInit,inflOf,inflText,setPreisAufMarkt,igniteType,get packHit(){return packHit},get packTisch(){return packTisch},get packMov(){return packMov},zuendeKanal,zuendeAlle,alleKanaele,get pultText(){return pultText},drawPult,kanalItem,openZuend,closeZuend,get zuendOpen(){return zuendOpen},overlayOpen,pultTaster,zuendTick,TISCH_X,RAMPE_X,KANAL_START,bereitCount,brennDauer,muendung,pultLamps,RAKETEN_LOOK,RAKETEN_KL,makePerson,applyTOD,updateHUD,renderer,renderFrame,get DEMO(){return DEMO},LHALLE,LOGI_STUFEN,TOR_STUFE,logiStufe,logiZeige,logiAnwenden,LOGI_G,TOR_G,WTORE,tuAktion:(kind,ref)=>{ const alt=target; target={kind,ref}; try{ doAction(); } finally { target=alt; } },promptFor,KARREN,karreArt,karreAn,karreStapel,karreLast,karreNimmt,toggleKarre,updateKarre,setTutorial,tutorialAn,zielFuer,get zielAktuell(){return zielAktuell},get tipKey(){return tipKey},updateZiel,set DEMO(v){DEMO=v},kapitelVon,kapitelVoll,openHandy,closeHandy,toggleHandy,get handyOpen(){return handyOpen},get happ(){return happ},HANDY_APPS,renderHandy,shaderVorab,SCHONER,schonerMalen,updateSchoner,makeWischer,stelleWischer,get wischer(){return wischer},updateWischen,wischerPersonal,cleanTick,updateFireworks,FLASH,spurEnden,LR_LAMPE,schweber,kundenSymbol,geldSchwebt,get serie(){return serie},serieZufrieden,serieBricht,KAPITEL,kapitel,kapitelNr,kapitelAufstieg,WA,WA_SLOTS,vorDieTuer,SB_KASSIERER,sbBesetzt,sbLaneVon,sbKassiererPlatz,sbBetreuer,sbHeimPlatz,sbHelferPlatz,sbGeholfen,sbFreiNah,SB_SELBST,sbPos,MUSIK,STUECKE,musikAn,musikWeiter,musikVol,musikTick,spielSchritt,get mStep(){return mStep},set mStep(v){mStep=v;mTakte=0;},get mBus(){return mBus},get postHalf(){return postHalf},EFF_SCHWEIF,mitSchweif,KOEPFE,KLEID,UNIFORM,STAFFKOPF,faceCache,animPerson,personTuete,personTraegt,personGreif,FIG_DATEN,FIG_PERSONEN,PACKS,packPreis,packPool,packOffen,packContents,syncPakete,rotateGrab,cancelGrab,moebelTaste,moebelEinpacken,paketAuspacken,moebelImBlick,removeShelf,removeRack,PACK_FL,PACK_HOME,spotFree,rectOf,grab,placeGrab,updateGrab,get grabbed(){return grabbed},showPause,closePause,pauseSeite,pauseSeiteAktiv,zumStartbildschirm,fortsetzen,musikWahl,musikTitel,get startOpen(){return startOpen},get pauseOpen(){return pauseOpen},get target(){return target},einrOf,einrAktiv,einrHoch,einrRunter,einrSchalten,AUFGABEN,einrJob,kartonMat,kartonBild,kartonAtlasInfo,pools,shelfStockOf,removeFromLevel,fwLog:(a)=>{FW_LOG=a;},moerserRohr,ROHR_KALIBER,effPassen,EFF_FAMILIE,basisBlick,fwTestSchalten,fwTestProdukte,fwTestStapeln,get fwTestAn(){return fwTestAn},get fwTestBoxen(){return fwTestBoxen},get fwTestMarken(){return fwTestMarken},fwStufe,sonne:()=>sun.intensity,get fwUhr(){return FW_UHR},THEMEN,SHOW_BASIS,EFF,emittersListe:()=>emitters,show,SIGNATUR,showZeiten,showDauer,phDauer,musterWinkel,feuertopf,playShow,KAL,get rohrStreu(){return ROHR_STREU},vorfuehrungAn,vorfuehrungAus,vfNaechstes,vfZuenden,vfStopp,get vfAufraeumen(){return vfAufraeumen},vfSpringen,vfNote,vfText,vfTaste,get vfAn(){return vfAn},get vfGezuendet(){return vfGezuendet},get vfIdx(){return vfIdx},get vfLetzt(){return vfLetzt},get vfListe(){return vfListe},get vfEl(){return vfEl},set rohrStreu(v){ROHR_STREU=v},BUENDEL,bSammeln,bWaechter,buendelJetzt:()=>{ bSammeln(); bSammeln(); return BUENDEL.n; },NEU_TEST,get vfSonder(){return vfSonder},vpSchalten,vpStart,vpAus,vpStellplaetze,vpVerteilen,vpProdukte,vpFuellung,get vpAn(){return vpAn},get vpRegale(){return vpRegale},get vpPlan(){return vpPlan},get vpFertig(){return vpFertig},get SPIEL_RAUM(){return SPIEL_RAUM},vpZeilenMass,VP_ZEILEN,sucheText,sucheRang,drawFront,drawTop,drawSide,WARE_MOTIV,wareFront,wareTop,wareMarke,KAPPE,kleinTakt,texCanvas,get RES(){return RES},resSetzen,resRegeln,gfxMess,schildTaste,schildFertig,schildZiel,get schildOpen(){return schildOpen},get vpNamenM(){return vpNamenM},kisteTaste,kannRaus,kisteRaus,kisteMat,KISTE_STUECK,poolDa,poolWeg,VP_FL,modRaster,slotLocal,gfxAnwenden,gfxWaehlen,gfxMessen,gfxMess,gfxAnzeige,get GFX(){return GFX},get GFX_WAHL(){return GFX_WAHL},QUAL,rohrBedarf,rohrLayout,rohrSatz,istBatterie,batterieModell,zuendPlan,buildProduct,capOf,zuendFolge,rohrMund,korpusTeile,rohrGeometrie,poolsAus,istVerbundKarton,regalFarben,regaleFaerben,get ROHR_LOG(){return ROHR_LOG},set ROHR_LOG(v){ROHR_LOG=v},schattenSichtbar:()=>renderer.shadowMap.enabled&&sun.shadow.bias>-1,sfxVol,get SFX_VOL(){return SFX_VOL},GFX_PROFIL,GFX_START,GFX_NAME,PR,PRACHT,prUmgebung,LI,RAUM,raumAn,raumTakt,ladenLichtTakt,liMoebelSchatten,prMaterialien,gfxPixel,gfxSamples,schattenGr:()=>sun.shadow.mapSize.x,get postDiv(){return postDiv},festImBlick,makeWishes,VP_FORM,gpStart,gpEnde,gpSpringe,LM,lmStart,lmTakt,lmText,lmBauBericht,lmTexturen,lmOeffnen,lmSeite,lmKopieren,lmOrte,lmAbbruch,gpBauSchritt,gpTick,gpBestellen,gpBauSchritt,get gpFertig(){return gpFertig},get gpAn(){return gpAn},get gpVerlauf(){return gpVerlauf},GP_ORTE,wandRechtecke,wandSchub,moebelRect,rackRect,rackKindOf,stellPlatz,rackStellPlatz,rackPlatzFrei,racksEntwirren,regalNein,kasseReserve,gpPlan,gpVerteilen,GP_ABT,gpAbtVon,
     vsWelt,vdOffen,vdSetzen,ddlAbfahrt,ddlTelPrompt,boxBelegt,ddlStand,vsBoxVoll,vsAnnahme,vsQuote,vsQuoteStd,vsAktion,vsRabatt,vsPreis,vsListe,vsSaleFaktor,vsBesucheProTag,vsGratisHeute,onlineTag,onlineTagSchliessen,onlineErgebnis,onlineStatHtml,versandBereich,versandBereichRaeumen,placeMovable,LADEZONE,ladezoneRechtecke,PORTAL_Z0,DDL_PAUSCHALE,LAGERPC,get tabHit(){return tabHit},get lapGeraet(){return lapGeraet},GERAETE,vmKostenJe,openLaptop,lapKlick,ddlTelZeichnen,VS_PORTO,hubAufbauPark,V1,VT,VD,LD,HUB,DDL,vf,vfRueck,ddlSlot,ldBoden,vsStapelLage,vsPalZelle,vsPalZahl,ddlRufen,ddlAbholung,ddlLaeuft,updatePaletten,vsPalAbgleich,vsPalById,palZentrumWelt,vsPalObj,vsPalHits,vdIstOffen,vtBesetzt,vsPalGleitet,roboterBusy,hubKollision,DDL_SLOTS,rackR1Pack,vsHeim,vsKapazitaet,PACK_HOME,V1_HOF,PAL_N,ZELLE,PALETTEN,palPlaetze,vsPalNeu,
     kameraSetzen:()=>{ camera.position.set(pl.x,1.65+bodenHoehe(pl.x,pl.z),pl.z); camera.rotation.set(pitch,yaw,0); camera.updateMatrixWorld(); updateTarget(); applyTOD(); },
     vp2:{get an(){return vp2An},get fertig(){return vp2Fertig},get liste(){return vp2Liste},get reihen(){return vp2Reihen},get atlas(){return vp2Atlas},get tische(){return vp2Tische},get FL(){return vp2FL},get mess(){return vp2Mess},get stat(){return vp2Stat},get gruppe(){return vp2G},get neu(){return vp2Neu},start:vp2Start,aus:vp2Aus,weiter:vp2Weiter,listeText:vp2ListeText,listeAuf:vp2ListeAuf,listeZu:vp2ListeZu,sicht:vp2Sicht,KATS:VP2_KATS,get listeOffen(){return vp2ListeOffen},get paused(){return paused},get flags(){return {schild:schildOpen,start:startOpen,laptop:laptopOpen,handy:handyOpen,summary:summaryOpen,pause:pauseOpen,cash:cashOpen,level:levelOpen,deal:dealOpen,grav:gravOpen,pda:pdaOpen,liste:vp2ListeOffen}}},

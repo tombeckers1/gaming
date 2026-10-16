@@ -1091,23 +1091,23 @@ function _bkLampeMat(){ if(_bkLA) return _bkLA;
 function _bkLampeGeo(o){
   const L=bk.lod(), art=o.art, h=o.h||(art==='wand'?LAMPE_AUSSEN.hWand:LAMPE_AUSSEN.h), n=o.koepfe||1, nei=o.neigung===undefined?(art==='wand'?0.45:(n===2?0.38:0.08)):o.neigung;
   return _bkHRGeo('aussenlampe:'+[art,h,n,nei,L].join('|'),()=>{
-    const S=bk.sammler({form:{fase:0.012,faseMin:0.03,lod0Kasten:true}}), A=MAT.farbe('anthrazit'), G=MAT.farbe('silbergrau'), sg=L===0?6:(L===2?16:12);
+    const S=bk.sammler({form:{fase:0.012,faseMin:0.03,lod0Kasten:true}}), A=MAT.farbe('anthrazit'), G=MAT.farbe('silbergrau'), sg=L===0?6:(L===2?16:10);
     const koepfe=[];                           /* [Matrix des Kopfs] - Leuchtflaeche und Licht haengen daran */
     const kopf=(m,b,t)=>{ S.pivot(); const K=m;
-      S.geo(bk.kasten(b,0.07,t,{fase:0.02,lod0Kasten:true}),K.clone().multiply(tm(0,0.035,0)),A,'lackMetall');
-      if(L>0) for(let i=-2;i<=2;i++) S.geo(new THREE.BoxGeometry(b*0.8,0.025,0.008),K.clone().multiply(tm(0,0.08,i*t*0.17)),A,'lackMetall');
+      S.geo(L>1?bk.kasten(b,0.07,t,{fase:0.02}):new THREE.BoxGeometry(b,0.07,t),K.clone().multiply(tm(0,0.035,0)),A,'lackMetall');
+      if(L>1) for(let i=-2;i<=2;i++) S.geo(new THREE.BoxGeometry(b*0.8,0.025,0.008),K.clone().multiply(tm(0,0.08,i*t*0.17)),A,'lackMetall');
       S.geo(new THREE.BoxGeometry(b*0.84,0.012,t*0.82),K.clone().multiply(tm(0,-0.002,0)),0xffffff,'leucht');
       koepfe.push(K); };
     if(art==='wand'){
       S.box(0.14,0.2,0.02,0,h,0.01,A,'lackMetall');
-      if(L>0) for(const [x,y] of [[-0.045,0.07],[0.045,0.07],[-0.045,-0.07],[0.045,-0.07]]) S.zyl(0.008,0.008,0.012,6,x,h+y,0.024,G,'lackMetall',Math.PI/2,0,0);
+      if(L>0) for(const [x,y] of [[-0.045,0.07],[0.045,0.07],[-0.045,-0.07],[0.045,-0.07]]) S.box(0.014,0.014,0.01,x,h+y,0.024,G,'lackMetall');
       S.zyl(0.022,0.022,0.3,sg,0,h,0.17,A,'lackMetall',Math.PI/2,0,0);
       kopf(tm(0,h-0.02,0.42,-nei,0,0),0.32,0.26);
     } else {
       S.box(0.34,0.025,0.34,0,0.0125,0,A,'lackMetall');
-      for(const x of [-0.12,0.12]) for(const z of [-0.12,0.12]){ S.zyl(0.012,0.012,0.07,6,x,0.05,z,G,'lackMetall'); if(L>0) S.box(0.032,0.018,0.032,x,0.034,z,G,'lackMetall'); }
+      for(const x of [-0.12,0.12]) for(const z of [-0.12,0.12]){ S.box(0.022,0.07,0.022,x,0.05,z,G,'lackMetall'); if(L>0) S.box(0.034,0.018,0.034,x,0.034,z,G,'lackMetall'); }
       S.zyl(0.1,0.115,0.16,sg,0,0.105,0,A,'lackMetall');
-      if(L>0) for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; S.box(0.012,0.12,0.07,Math.cos(a)*0.1,0.085,Math.sin(a)*0.1,A,'lackMetall',0,-a,0); }
+      if(L>1) for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; S.box(0.012,0.12,0.07,Math.cos(a)*0.1,0.085,Math.sin(a)*0.1,A,'lackMetall',0,-a,0); }
       S.zyl(0.055,0.085,h-0.18,sg,0,0.18+(h-0.18)/2,0,A,'lackMetall');
       S.box(0.07,0.3,0.014,0,0.7,0.081,A,'lackMetall');
       S.zyl(0.062,0.062,0.04,sg,0,h+0.02,0,A,'lackMetall');

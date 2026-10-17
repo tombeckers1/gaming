@@ -66,8 +66,21 @@ Häuserfenster und Parkteich). Lack/Glas/Chrom über `MAT.neu`, weil nachts die 
 Licht), Testzugang `__bb.makeAuto(farbe,form)` = `bk.auto`. Fahrender Verkehr ist weiterhin nur Lichtpunkte in der
 Ferne (`05j-stadt.js`, nachts) – kein Fahrzeugmodell.
 
-## 5. Messung
-(siehe Abschnitt 6 – wird mit den Messwerten gefüllt)
+## 5. Messung (17.10., swiftshader 1280 × 720, `tools/fundament/autos-bilder.js … zaehlen`)
+Straßenansicht `strasse` (vom Gehweg auf die geparkte Reihe, 10:00), inklusive Schattenkarte und Bildeffekte; „ohne Autos“
+= gleiche Ansicht mit ausgeblendeten Autos (356 Aufrufe / 546 589 Dreiecke Hoch, 121 / 116 133 Ultra Low).
+
+| Stufe | Zeichenaufrufe vorher → nachher | davon Autos | Dreiecke vorher → nachher | davon Autos |
+|---|---|---|---|---|
+| Hoch | 400 → 362 | 44 → 6 | 827 497 → 677 363 | 280 908 → 130 774 |
+| Ultra Low | 137 → 127 | 16 → 6 | 185 927 → 170 779 | 69 794 → 54 646 |
+
+Je Auto (Cache, `bk.autoInfo()`): fein 17 000–21 600 Dreiecke (Kleinwagen 17 200 … Transporter 21 600), einfach
+(Ultra Low) ~7 300, grob ~410. Vorher 23 166 je Auto und jedes Auto neu gerechnet. Die Reihe: fein 6 Meshes (Lack, Glas,
+Chrom, Gummi/Kunststoff, Kennzeichen, Licht), fern 2, Schattenwerfer 2 (grobe Form, nur in der Schattenkarte).
+Laufzeit-Wächter: Straße 120 Aufrufe (Ausgangswert vorher 125), Szene 1 444 statt 1 469 Meshes.
+Test `src/tests/autos.js` (grün, Gegenprobe rot): Maße auf 1 cm, Reifen auf y = 0, Spur, Normalen, Grundriss/Tumblehome,
+Scheinwerfer auf dem Lack (Strahltest), Aufrufe/Dreiecke, Reihe mit LOD und Cache, Farbverteilung.
 
 ## 6. Bilder
 `docs/fundament/autos/vorher/` und `docs/fundament/autos/nachher/`: je Form `seite`, `vorn34`, `heck34` (Hoch), Straße
@@ -75,3 +88,12 @@ Ferne (`05j-stadt.js`, nachts) – kein Fahrzeugmodell.
 Werkzeug: `tools/fundament/autos-bilder.js <real.html> <ordner> <gfx> [bilder,zaehlen,modell]`.
 
 ## 7. Grenzen (ehrlich)
+- Formen sind Typen (Golf-, Polo-, Passat-, Tiguan-, T6-Klasse), keine Nachbauten – ohne Marken und Logos. Aus der Nähe
+  bleibt es ein Spielmodell: keine Innenausstattung (Scheiben dunkel getönt), Felgen als Speichen ohne Bohrungen,
+  Sicke nur als Lichtkante.
+- Spiegelungen im Lack zeigen im Software-Renderer (swiftshader) am Dach leichte Grün-/Violett-Töne aus dem Klarlack auf
+  dem vorgefilterten Umgebungsbild – auf echter Grafikkarte prüfen.
+- Fahrender Verkehr bleibt Lichtpunkte in der Ferne (nachts). Fahrende Autos wären ein eigener Schritt (Wege, Ampel,
+  Fußgänger am Zebrastreifen) – `bk.autos` ist dafür vorbereitet (Lichter, LOD, grobe Form).
+- Geparkte Autos haben das Licht aus; ein Wagen in der Reihe wartet mit Licht (nachts sichtbar).
+

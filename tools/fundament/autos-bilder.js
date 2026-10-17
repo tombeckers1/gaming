@@ -19,7 +19,8 @@ const STUDIO={
 };
 const STRASSE={
   strasse:{p:[-3,1.65,9.6],t:[-16,0.8,16]},
-  strasseNah:{p:[-9.5,1.4,12.6],t:[-14,0.7,16]}
+  strasseNah:{p:[-9.5,1.4,12.6],t:[-14,0.7,16]},
+  strasseOst:{p:[-5,1.65,9.8],t:[6,0.8,16]}       /* Richtung Osten: dort steht der Wagen mit Licht (5. der Reihe) */
 };
 (async()=>{
   const html=process.argv[2], out=process.argv[3], gfx=process.argv[4]||'hoch', modus=(process.argv[5]||'bilder,zaehlen').split(','), tag=process.argv[6]||'';
@@ -81,7 +82,7 @@ const STRASSE={
     const farben={klein:0x1f4a8a,kompakt:0x7e1418,limo:0x17191d,kombi:0xc9ccd2,suv:0x5b6068,van:0xeeeeec};
     for(const f of FORMEN){ if(NUR&&!NUR.includes(f)) continue;
       await p.evaluate(({f,c,AX,AZ})=>{ const bb=window.__bb; if(window.__studio){ bb.scene.remove(window.__studio); }
-        const g=bb.makeAuto(c,f); g.position.set(AX,0,AZ); g.rotation.y=Math.PI/2; bb.scene.add(g); window.__studio=g; },{f,c:farben[f],AX,AZ});
+        const g=bb.bk&&bb.bk.auto?bb.bk.auto({form:f,farbe:c,licht:true}):bb.makeAuto(c,f); g.position.set(AX,0,AZ); g.rotation.y=Math.PI/2; bb.scene.add(g); window.__studio=g; },{f,c:farben[f],AX,AZ});
       for(const k in STUDIO){ const r=await ansicht(STUDIO[k],600,{bild:true}); speichern(f+'-'+k,r.u); }
       if(f==='limo'||f==='suv'){ const r=await ansicht(STUDIO.vorn34,1320,{bild:true}); speichern(f+'-vorn34-nacht',r.u); const r2=await ansicht(STUDIO.heck34,1320,{bild:true}); speichern(f+'-heck34-nacht',r2.u); }
     }

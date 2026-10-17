@@ -1852,7 +1852,7 @@ function _akKlasse(){ const P=[], N=[], C=[], U=[];
 /* Stufe: fein (Niedrig..Hoch), fein2 (ab Maximum), einfach (Ultra Low), grob (Ferne) */
 function _akStufe(detail){ const D={
   grob:   {w:32,seg:9,bev:0,steps:1,fein:0,rad:10,details:0},
-  einfach:{w:18,seg:0.2,bev:2,steps:4,fein:0.25,rad:16,details:1},
+  einfach:{w:20,seg:0.22,bev:2,steps:3,fein:0.3,rad:12,details:1},
   fein:   {w:12,seg:0.12,bev:3,steps:4,fein:0.11,rad:20,details:2},
   fein2:  {w:7,seg:0.07,bev:5,steps:10,fein:0.07,rad:32,details:2}}; return D[detail]; }
 /* ---------- Karosserie: Profile und Verformung ---------- */
@@ -2050,7 +2050,9 @@ function _akBau(form,detail){
   const scheibe=(x,y,o)=>{ const R=RC.vorn(y); return defC(x,y,R?R.z:zD(F.dW),o); };
   const dachC=(x,z,o)=>{ const t=RC.oben(z); return defC(x,t===null?F.H:t,z,o); };
   const AUS=sg=>[sg,0,0], VOR=[0,0,1], RUE=[0,0,-1], HOCH=[0,1,0];
-  const fl=(kl,poly,map,off,hint,f,maxL)=>_akFlaeche(T[kl],poly,map,off,hint,f,maxL), band=(kl,pts,b,map,off,hint,f,maxL)=>_akFlaeche(T[kl],pts,map,off,hint,f,maxL||0.08,b);
+  /* einfache Stufe (Ultra Low): Auflagen grober teilen */
+  const gL=m=>D<2?Math.max(m||0.06,0.1):m;
+  const fl=(kl,poly,map,off,hint,f,maxL)=>_akFlaeche(T[kl],poly,map,off,hint,f,gL(maxL)), band=(kl,pts,b,map,off,hint,f,maxL)=>_akFlaeche(T[kl],pts,map,off,hint,f,gL(maxL||0.08),b);
   const fs=D>=2?0.04:0.08;
   /* --- Seitenfenster: Ausschnitt der Kabinenkontur, Rahmen und B-Saeule Klavierlack, Scheiben eingesetzt --- */
   const dlo=(()=>{ let P=_akInnen(K.KC,0.072); const zA=zD(F.dW), zE=-L2, gA=F.gurt[0]+0.028, gE=F.gurt[1]+0.028, s=(gE-gA)/(zE-zA);
@@ -2192,9 +2194,9 @@ function _akAufM(map,a,b,off,hint,sg){ const o=[0,0,0,0,0,0]; _akAuf(map,a,b,off
 const _AK_FELGE=[{n:5,w:0.05},{n:10,w:0.022},{n:6,w:0.034},{n:7,w:0.03},{n:5,w:0.07}];
 function _akRaeder(T,F,K,St,form){
   const R=F.r, w=F.rb, rr=F.zoll*0.0127, sh=R-rr, seg=St.rad, s2=Math.max(10,Math.round(seg*0.6)), aF=0.41*w, rO=rr-0.02;
-  const fl=[[rr+0.004,0.42],[rr+0.3*sh,0.475],[rr+0.55*sh,0.5],[rr+0.75*sh,0.497],[R-0.016,0.48],[R-0.006,0.455],[R-0.0015,0.42],[R,0.375]];
+  const fl=St.details>=2?[[rr+0.004,0.42],[rr+0.3*sh,0.475],[rr+0.55*sh,0.5],[rr+0.75*sh,0.497],[R-0.016,0.48],[R-0.006,0.455],[R-0.0015,0.42],[R,0.375]]:[[rr+0.004,0.42],[rr+0.5*sh,0.5],[R-0.012,0.47],[R,0.375]];
   const prof=fl.map(p=>[p[0],-p[1]*w]).concat(fl.slice().reverse().map(p=>[p[0],p[1]*w]));
-  const reifen=_akDreh(prof,seg,(j)=>j<=6?0.25*j/6:j===7?0.3:j===8?0.7:0.75+0.25*(j-9)/6);
+  const nf=fl.length, reifen=_akDreh(prof,seg,(j)=>j<nf-1?0.25*j/(nf-2):j===nf-1?0.3:j===nf?0.7:0.75+0.25*(j-nf-1)/(nf-2));
   const teile=[];   /* [geo, klasse, farbe, dreht] */
   teile.push([reifen,'dunkel','gummischwarz',true]);
   const fi=[...form].reduce((s,c)=>s+c.charCodeAt(0),0)%_AK_FELGE.length, stil=_AK_FELGE[fi];

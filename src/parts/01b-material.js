@@ -231,8 +231,9 @@ const MAT=(function(){
     for(const k in R) if(!NICHT_OPT[k]) o[k]=R[k];
     if(R.tex) o.map=texGet(R.tex);
     /* env = Umgebungsbild aus TEXTUR (Spiegelung), bump = Reliefkarte aus TEXTUR (Autos 17.10.) */
-    if(R.env){ try{ o.envMap=texGet(R.env); }catch(e){} }
-    if(R.bump) o.bumpMap=texGet(R.bump);
+    /* Ultra Low (Lambert): ohne Umgebung und Relief - ein vorgefiltertes Umgebungsbild (PMREM) gibt dort Falschfarben */
+    if(R.env&&!stufe().lambert){ try{ o.envMap=texGet(R.env); }catch(e){} }
+    if(R.bump&&!stufe().lambert) o.bumpMap=texGet(R.bump);
     /* physical: Klarlack (phys) nur ab Niedrig - Ultra Low tauscht Standard gegen Lambert (reuse-helpers) */
     const P=R.physical&&!stufe().lambert&&THREE.MeshPhysicalMaterial;
     if(P&&R.phys) Object.assign(o,R.phys);

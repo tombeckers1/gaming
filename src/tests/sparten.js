@@ -50,13 +50,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       fil[k]={n:K.length,etiketten:[...new Set(K.map(x=>{ const pl=x.querySelector('.pill'); return pl?pl.textContent:''; }))]}; }
     bb.lkat='alle'; o.filter=fil;
     o.sollEssen=bb.ORDER.filter(t=>!P[t].noOrder&&bb.sparteVon(t)==='essen').length;
-    /* Regalschild: Kuehlschrank voller Getraenke */
+    /* Kuehlschrank voller Getraenke, Regal voller Snacks: kein Kopfschild mehr (Tom 17.10.) */
     bb.testKauf('REGAL:kuehl'); const kuehl=bb.shelves[bb.shelves.length-1];
     kuehl.levels.forEach((lv,i)=>{ const t=['bier','cola','sekt','champagner'][i%4]; while(bb.addToLevel(lv,t,1)); });
-    o.schildKuehl=bb.headArt(kuehl);
+    o.kopfKuehl=!!(kuehl.headTex||kuehl.kopfG);
     bb.testKauf('REGAL:standard'); const std=bb.shelves[bb.shelves.length-1];
     std.levels.forEach((lv,i)=>{ const t=['popcorn','salzstangen','chips','erdnuesse'][i%4]; while(bb.addToLevel(lv,t,1)); });
-    o.schildEssen=bb.headArt(std);
+    o.kopfEssen=!!(std.headTex||std.kopfG);
     /* Gruppen */
     o.gruppeFalsch=SP.essen.filter(t=>bb.gruppeVon(t)!=='essen').concat(SP.getraenke.filter(t=>bb.gruppeVon(t)!=='sekt'));
     o.imZubehoer=(bb.GRUPPE.zubehoer||[]).filter(t=>SP.essen.includes(t)||SP.getraenke.includes(t));
@@ -67,14 +67,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   console.log('ANZAHL  ',JSON.stringify(r.anzahl),'RACLETTE',JSON.stringify(r.raclette));
   console.log('ETIKETT ',JSON.stringify(r.etikett));
   console.log('FILTER  ',JSON.stringify(r.filter),'soll Essen',r.sollEssen);
-  console.log('SCHILD  kuehl',r.schildKuehl,'essen',r.schildEssen,'| GRUPPE falsch',JSON.stringify(r.gruppeFalsch),'im Zubehoer',JSON.stringify(r.imZubehoer),'Kiste',r.essenInKiste,'| Erfolg',r.erfolg);
+  console.log('KOPF kuehl',r.kopfKuehl,'essen',r.kopfEssen,'| GRUPPE falsch',JSON.stringify(r.gruppeFalsch),'im Zubehoer',JSON.stringify(r.imZubehoer),'Kiste',r.essenInKiste,'| Erfolg',r.erfolg);
   pruef('ZUORDNUNG',!r.fehlt.length&&!r.doppelt.length&&!r.falsch.length&&!r.ohne.length,JSON.stringify({fehlt:r.fehlt,doppelt:r.doppelt,falsch:r.falsch,ohne:r.ohne}));
   pruef('ZUORDNUNG',r.anzahl.essen>=35&&r.anzahl.getraenke>=28,'zu wenig: '+JSON.stringify(r.anzahl));
   pruef('KEIN_FEUERWERK',!r.pyro.length,'Essen/Getraenke als Feuerwerk: '+r.pyro);
   pruef('ZUORDNUNG',r.raclette.paket==='essen'&&r.raclette.geraet==='zubehoer'&&r.raclette.sekt==='getraenke'&&r.raclette.boeller==='f2'&&r.raclette.wunder==='f1',JSON.stringify(r.raclette));
   pruef('ETIKETT',r.etikett.essen==='Essen'&&r.etikett.getraenke==='Getränke'&&r.etikett.f2==='F2'&&r.etikett.zub==='Zubehör',JSON.stringify(r.etikett));
   pruef('FILTER',r.filter.essen.n===r.sollEssen&&JSON.stringify(r.filter.essen.etiketten)==='["Essen"]'&&JSON.stringify(r.filter.getraenke.etiketten)==='["Getränke"]'&&JSON.stringify(r.filter.f1.etiketten)==='["F1"]'&&r.filter.alle.n>r.filter.essen.n+r.filter.getraenke.n,JSON.stringify(r.filter));
-  pruef('REGAL',r.schildKuehl==='getraenke'&&r.schildEssen==='essen','Schilder: '+r.schildKuehl+' / '+r.schildEssen);
+  pruef('REGAL',!r.kopfKuehl&&!r.kopfEssen,'Kopfschild-Reste: '+r.kopfKuehl+' / '+r.kopfEssen);
   pruef('GRUPPE',!r.gruppeFalsch.length&&!r.imZubehoer.length&&r.essenInKiste===0,JSON.stringify({falsch:r.gruppeFalsch,zub:r.imZubehoer,kiste:r.essenInKiste}));
   pruef('ERFOLG',r.erfolg,'kein Erfolg fuer Essen');
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');

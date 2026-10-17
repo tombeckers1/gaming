@@ -14,7 +14,7 @@ function requestLock(){
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
-function overlayOpen(){ return schildOpen||startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen||wbOpen||!!wbVs; }
+function overlayOpen(){ return startOpen||laptopOpen||handyOpen||summaryOpen||pauseOpen||cashOpen||levelOpen||dealOpen||gravOpen||pdaOpen||vp2ListeOffen||wbOpen||!!wbVs; }
 /* =========================================================
    Zuendmodus am Pult (Tom, 25.09.): E am Pult schaltet ihn ein.
    Kein Fenster, keine Kamerafahrt - man schaut sich weiter frei um
@@ -86,7 +86,6 @@ const STEUER_PC=[
     [['R'],'Packung aus dem Fach zurück in den offenen Karton'],
     [['K'],'Sackkarre / Wagen holen, wegstellen (nach Kauf)'],
     [['X'],'Mehrwegkiste: leere nehmen / wegstellen, volle aus- oder einräumen'],
-    [['L'],'Regalschild beschriften (vor dem Regal)'],
     [['Tab'],'Handy: Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['H'],'Anruf annehmen, wenn es klingelt']]],
   ['Werkzeuge',[
@@ -121,7 +120,6 @@ const STEUER_TOUCH=[
     [['Handy'],'Onlineshop, Team, Werbung, Bank, Bericht, Ziele'],
     [['Karre'],'Sackkarre / Wagen (erscheint nach dem Kauf)'],
     [['Kiste'],'Leere Kiste nehmen / wegstellen, volle: aus- oder einräumen (nach dem Kauf)'],
-    [['Schild'],'Regalschild beschriften (erscheint vor einem Regal)'],
     [['Menü'],'Pausenmenü: Steuerung, Musik, Tutorial, Startbildschirm'],
     [['Preis'],'Preisgerät (ab Level 2)'],
     [['Spray'],'Pfefferspray (ab Level 4)']]]
@@ -247,7 +245,6 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyT'&&!e.repeat) togglePDA();
   if(e.code==='KeyK'&&!e.repeat) toggleKarre();
   if(e.code==='KeyX'&&!e.repeat) kisteTaste();
-  if(e.code==='KeyL'&&!e.repeat) schildTaste();
   if(e.code==='KeyP'&&!e.repeat) setPost(!postOn);
   if(e.code==='KeyM'&&!e.repeat) musikAn();
   if(e.code==='KeyN'&&!e.repeat){ ac(); if(!MUSIK.an) musikAn(true); else musikWeiter(false); }
@@ -291,10 +288,6 @@ $('btnPda').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overla
 $('pTut').addEventListener('click',()=>{ setTutorial(!tutorialAn()); tutKnopf(); });
 $('btnKarre').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); toggleKarre(); },{passive:false});
 $('btnKarre').addEventListener('click',e=>{ if(COARSE) return; ac(); toggleKarre(); });
-$('btnSchild').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); schildTaste(); },{passive:false});
-$('btnSchild').addEventListener('click',e=>{ if(COARSE) return; ac(); schildTaste(); });
-$('schildIn').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') schildFertig('ok'); if(e.key==='Escape') schildFertig(null); });
-$('schildOk').onclick=()=>schildFertig('ok'); $('schildAuto').onclick=()=>schildFertig('auto'); $('schildAbbr').onclick=()=>schildFertig(null);
 $('btnKarton').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kartonTaste(); },{passive:false});
 $('btnKarton').addEventListener('click',e=>{ if(COARSE) return; ac(); kartonTaste(); });
 $('btnKiste').addEventListener('touchstart',e=>{ e.preventDefault(); if(!S||overlayOpen()) return; ac(); kisteTaste(); },{passive:false});

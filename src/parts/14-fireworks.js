@@ -184,7 +184,13 @@ const FW={
   mint:[.36,1,.70], tuerkis:[.18,.96,1], himmel:[.36,.72,1], blau:[.20,.36,1],
   indigo:[.44,.32,1], violett:[.70,.30,1], magenta:[1,.20,.92], rose:[1,.46,.74],
   weiss:[1,1,1], silber:[.82,.90,1], pfirsich:[1,.72,.55], aqua:[.25,1,.88],
-  braun:[.46,.28,.11], kot:[.33,.19,.07], senf:[.62,.48,.13], sumpf:[.40,.52,.16]
+  braun:[.46,.28,.11], kot:[.33,.19,.07], senf:[.62,.48,.13], sumpf:[.40,.52,.16],
+  /* Pastelltoene der Werkbank (Tom, 17.10.: "mehr Richtung Pastellfarben, nicht so kraeftig"). Eigene, im ganzen Code einmalige Namen (koralle/lavendel
+     gibt es schon in 14v/14y mit kraeftigem Ton und duerfen nicht ueberschrieben werden). Hell gemischt (Saettigung ~0,3-0,45, Helligkeit 1): Sterne leuchten additiv, ein
+     Pastellton bleibt am Nachthimmel erkennbar, wo er genug Farbabstand zum Weiss hat. */
+  rosee:[1,.52,.70], pastellkoralle:[1,.52,.46], pfirsichcreme:[1,.68,.47], champagner:[1,.84,.60], zitronencreme:[.96,1,.55],
+  salbei:[.60,.88,.56], minze:[.56,1,.76], aquamarin:[.48,.94,.98], himmelblau:[.48,.68,1],
+  pastelllavendel:[.62,.60,1], flieder:[.88,.64,.96]
 };
 const K=n=>FW[n];
 /* Farbpaare, die zusammen gut aussehen */

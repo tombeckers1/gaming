@@ -31,6 +31,14 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 > alte Reihenfolge → WARE rot), werkbank, werkbank-leistung, ausbau, stufen, lager, versand, versandtor, verpackung, ausstellung,
 > abschussregel, leistungsbericht, Laufzeit-waechter (Budget eingehalten, keine neuen Ausgangswerte), Node-Wächter.
 
+> **PASTELL + REGALKÖPFE (Tom 17.10., Branch `claude/werkbank-farben`, noch NICHT veröffentlicht):** (1) Werkbank-Farbwahl pastellig: 14 Töne
+> (Rosé, Koralle, Pfirsich, Champagner, Zitronencreme, Salbei, Minze, Aquamarin, Himmelblau, Lavendel, Flieder + Gold, Silber, Weiß), Tonwerte nur in
+> `FW` (14-fireworks, eigene Namen: `koralle`/`lavendel` gibt es dort schon kräftig), Anzeige aus `FW` abgeleitet, alte Farb-IDs werden beim Laden
+> auf den nächsten Pastellton abgebildet (`WB_FARB_ALT`, 02d). (2) **Alle Kopf-/Kategorieschilder an Verkaufsmöbeln entfernt** (bk.regal; samt Taste L
+> „Regalschild beschriften“, Laptop-Farbwahl der Regalschilder, `08f-schild.js`, `HEADNAME/headArt/updateHead`). Bilder `docs/bilder/pastell-1710/`.
+> Tests 17.10. grün: werkbank (mit Farbcheck), moebelneu, regalsicht, einraeumer, verpackung, gameplay, Laufzeit-Wächter, Node-Wächter. `sparten` rot **vorbestehend**
+> (eiswuerfel ohne Gruppe, Laptop-Filter zeigt alle 238 – auch auf V142 identisch, offen).
+
 > **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
 > mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und
 > Produktion sind **VERWORFEN und aus dem Code gelöscht** (−3 200 Zeilen in src/parts, 6 Dateien, 10 Bauteile, 8 MAT-Rezepte). Westwand von

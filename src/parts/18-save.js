@@ -5,7 +5,7 @@
 function freshState(){ const prices={}; ORDER.forEach(t=>prices[t]=P[t].market);
   return {v:3,money:WIRT.start.geld,rep:WIRT.start.ruf,level:WIRT.start.level,xp:0,season:1,day:0,loan:null,prices,grime:0,
     up:{lager:false,plakat:false,terminal:false,tag4:false,heizung:false,musik:false,radio:false,cams:false,regallicht:false,alarm:false,shop_halb:false,testfeld:false,shop_gross:false,lager_nord:false,lager_gross:false,packstation:false,kasse2:false,labor:false,labor2:false,labor3:false,labor4:false,labor5:false},
-    staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',schildBg:'auto',schildFg:'weiss',paint:[],test:null,stamm:{},
+    staff:{},prio:{},wage:{},pause:{},ev:null,goal:null,mkt:1,comp:1,deko:[],wall:'creme',floor:'grau',paint:[],test:null,stamm:{},
     /* Der Laden startet leer: kein Verkaufsregal, kein Lagerregal.
        Beides bestellt man bei Regalbau Stegemann, und der LKW
        bringt es an die Rampe. */
@@ -59,10 +59,10 @@ function save(){
   if(typeof LM!=='undefined'&&LM&&(LM.an||LM.halt)) return;
   try{
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:(S.eigene||[]).map(e=>{ const q=Object.assign({},e); delete q._neig; return q; }),eigeneAlt:S.eigeneAlt||[],wbv:1,werkbank:wbG?mpos(wbG):null,gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
-      wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,rabatt:b.rabatt||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,aktion:S.aktion||null,onlineLog:(S.onlineLog||[]).slice(-30),ddlUnterwegs:!!S.ddlUnterwegs,boxVoll:!!S.boxVoll,paketeVortag:S.paketeVortag|0,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
+      wall:S.wall,floor:S.floor,paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,rabatt:b.rabatt||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,aktion:S.aktion||null,onlineLog:(S.onlineLog||[]).slice(-30),ddlUnterwegs:!!S.ddlUnterwegs,boxVoll:!!S.boxVoll,paketeVortag:S.paketeVortag|0,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
       ck:mpos(ckG),desk:mpos(deskG),pack:mpos(packTisch),sb2weg:1,
-      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,schild:s.schild||undefined,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
+      shelves:shelves.map(s=>Object.assign(mpos(s.g),{kind:s.kind,levels:s.levels.map(l=>({type:l.type,count:l.count,q:l.q||1}))})),
       racks:racks.map(r=>Object.assign(mpos(r.g),{kind:r.kind,slots:r.slots.map(s=>s.box?{type:s.box.type,count:s.box.count,q:s.box.q||1,kiste:s.box.kiste?1:0}:null)})),
       /* Unterwegs bestellte Regale gehen beim Speichern nicht
          verloren: sie stehen als eigene Liste im Spielstand. */
@@ -227,7 +227,8 @@ function startGame(fresh){
   if(S.up.labor&&!S.up.lager_nord) S.up.lager_nord=true;   /* die Werkbank steht in Lager Nord */
   const wbm=wbMigration();
   S.eigene=(Array.isArray(S.eigene)?S.eigene:[]).filter(e=>e&&e.id&&Array.isArray(e.abschnitte)&&WIRT.werkbank.stufen[e.stufe]).slice(0,WIRT.werkbank.slots);
-  S.eigene.forEach(e=>{ e.serien=Array.isArray(e.serien)?e.serien.filter(x=>x&&x.kartons>0):[]; });
+  S.eigene.forEach(e=>{ e.serien=Array.isArray(e.serien)?e.serien.filter(x=>x&&x.kartons>0):[];
+    e.abschnitte.forEach(x=>{ x.A=wbFarbId(x.A); x.B=wbFarbId(x.B); }); });   /* alte Knallfarben (V142) -> Pastell, 17.10. */
   S.eigeneAlt=(Array.isArray(S.eigeneAlt)?S.eigeneAlt:[]).filter(a=>a&&a.id&&a.dims);
   eigeneAlleEintragen();
   if(wbm) later(3,()=>toast(wbMigrationText(wbm),'money'));

@@ -87,17 +87,28 @@ function bruchOffen(id){ return !!(S&&S.gesehen&&S.gesehen.indexOf(id)>=0&&wbEff
 /* alles Gesehene, was sich verbauen laesst: erst die Bruchbilder, dann die Lichter */
 function bruchListe(){ return BRUCH_IDS.filter(bruchOffen).concat(Object.keys(WB_LICHT).map(k=>'licht:'+k).filter(bruchOffen)); }
 
-/* Farben aus der Effekt-Palette (FW in 14-fireworks), mit Aufschlag fuer die seltenen */
+/* Farben der Werkbank (Tom, 17.10.: "mehr Richtung Pastellfarben, auch Gold und Silber, nicht so kraeftige Farben"):
+   10 Pastelltoene + Gold, Silber, Weiss. Die Tonwerte stehen nur in FW (14-fireworks) - die Anzeige (hex) wird daraus abgeleitet,
+   Anzeige = Effekt. Aufschlag (auf, x WIRT.werkbank.kosten.farbAuf auf die Stueckkosten) nach dem Farbmittel hinter dem Ton:
+   0 Gold/Weiss/Silber/Champagner (Eisen, Aluminium, Titan: billigste Sterne), 0,04 warme Toene Rose/Koralle/Pfirsich (Strontium
+   hell gemischt) und Zitronencreme (Natrium), 0,06-0,08 Gruentoene (Barium, hell gemischt), 0,12-0,16 Blau-/Violetttoene
+   (Kupfer: das schwierigste Farbmittel, hell gemischt noch schwerer zu halten). Mittel 0,06 (vorher 0,07 bei den Knallfarben):
+   Die teuersten Toene sind etwas billiger, weil Pastell den reinen Kupfer-/Mangan-Ton nicht mehr braucht. */
 const WB_FARBEN=[
-  {id:'rot',name:'Rot',hex:'#ff2119',auf:0},        {id:'orange',name:'Orange',hex:'#ff7a10',auf:0},
-  {id:'gold',name:'Gold',hex:'#ffcc38',auf:0},      {id:'zitrone',name:'Zitrone',hex:'#fff857',auf:0.04},
-  {id:'limette',name:'Limette',hex:'#9eff33',auf:0.06},{id:'gruen',name:'Grün',hex:'#24ff47',auf:0.06},
-  {id:'mint',name:'Mint',hex:'#5cffb3',auf:0.10},   {id:'tuerkis',name:'Türkis',hex:'#2ef5ff',auf:0.10},
-  {id:'himmel',name:'Himmelblau',hex:'#5cb8ff',auf:0.12},{id:'blau',name:'Blau',hex:'#335cff',auf:0.16},
-  {id:'violett',name:'Violett',hex:'#b34dff',auf:0.18},{id:'magenta',name:'Magenta',hex:'#ff33eb',auf:0.16},
-  {id:'weiss',name:'Weiß',hex:'#ffffff',auf:0},     {id:'silber',name:'Silber',hex:'#d1e5ff',auf:0.06}
+  {id:'rosee',name:'Rosé',auf:0.04},          {id:'pastellkoralle',name:'Koralle',auf:0.04},
+  {id:'pfirsichcreme',name:'Pfirsich',auf:0.04},   {id:'champagner',name:'Champagner',auf:0},
+  {id:'zitronencreme',name:'Zitronencreme',auf:0.04},{id:'salbei',name:'Salbei',auf:0.06},
+  {id:'minze',name:'Minze',auf:0.08},         {id:'aquamarin',name:'Aquamarin',auf:0.10},
+  {id:'himmelblau',name:'Himmelblau',auf:0.12},{id:'pastelllavendel',name:'Lavendel',auf:0.16},
+  {id:'flieder',name:'Flieder',auf:0.14},     {id:'gold',name:'Gold',auf:0},
+  {id:'silber',name:'Silber',auf:0},          {id:'weiss',name:'Weiß',auf:0}
 ];
-function farbVon(id){ return WB_FARBEN.find(f=>f.id===id)||WB_FARBEN[2]; }
+WB_FARBEN.forEach(f=>{ Object.defineProperty(f,'hex',{enumerable:true,get(){ return '#'+FW[f.id].map(c=>Math.round(c*255).toString(16).padStart(2,'0')).join(''); }}); });
+/* Alte Farb-IDs (bis V142, Knallfarben) -> naechste Pastellfarbe; alte Entwuerfe und Spielstaende bleiben so gueltig */
+const WB_FARB_ALT={rot:'pastellkoralle',orange:'pfirsichcreme',zitrone:'zitronencreme',limette:'zitronencreme',gruen:'salbei',mint:'minze',
+  tuerkis:'aquamarin',himmel:'himmelblau',blau:'pastelllavendel',violett:'flieder',magenta:'rosee'};
+function wbFarbId(id){ return WB_FARBEN.some(f=>f.id===id)?id:(WB_FARB_ALT[id]||'gold'); }
+function farbVon(id){ id=wbFarbId(id); return WB_FARBEN.find(f=>f.id===id); }
 
 /* Groessen: Masse und Kartonfuellung (Katalog wie bei jeder Batterie);
    Schuss, Kaliber, Level, Preise stehen in WIRT.werkbank.stufen (01c) */
@@ -140,14 +151,14 @@ const WB_HOEHE=['tief','mittel','hoch'], WB_KAL=['klein','normal','groß'], WB_P
 const WB_NEIG=0.32;   /* groesste Rohrneigung (rad), wie die Faecher im Sortiment (04c: Batterie 0,1-0,3, Faecher 0,3-0,6) */
 
 /* ---------- Entwurf ---------- */
-function wbAbschnitt(o){ return Object.assign({e:'kugel',A:'gold',B:'weiss',n:5,takt:2,muster:'lr',hoehe:1,kal:1,pause:0},o||{}); }
+function wbAbschnitt(o){ const x=Object.assign({e:'kugel',A:'gold',B:'weiss',n:5,takt:2,muster:'lr',hoehe:1,kal:1,pause:0},o||{}); x.A=wbFarbId(x.A); x.B=wbFarbId(x.B); return x; }
 function wbEntwurfNeu(stufe){
   const W=WIRT.werkbank.stufen[stufe], N=W.schuss, eff=bruchListe(), e0=eff[0]||'kugel', e1=eff[1]||e0, e2=eff[2]||e1;
   const a=Math.round(N*0.4), b=Math.round(N*0.4);
   return {stufe,name:'',abschnitte:[
     wbAbschnitt({e:e0,A:'gold',B:'weiss',n:a,takt:3,muster:'lr',hoehe:1,kal:1,pause:1.5}),
-    wbAbschnitt({e:e1,A:'rot',B:'gold',n:b,takt:2,muster:'z',hoehe:2,kal:1}),
-    wbAbschnitt({e:e2,A:'gold',B:'blau',n:N-a-b,takt:0,muster:'finale',hoehe:2,kal:2})]};
+    wbAbschnitt({e:e1,A:'pastellkoralle',B:'gold',n:b,takt:2,muster:'z',hoehe:2,kal:1}),
+    wbAbschnitt({e:e2,A:'gold',B:'himmelblau',n:N-a-b,takt:0,muster:'finale',hoehe:2,kal:2})]};
 }
 function wbKopie(e){ return JSON.parse(JSON.stringify({stufe:e.stufe,name:e.name||'',abschnitte:e.abschnitte})); }
 function wbSchuss(e){ return e.abschnitte.reduce((a,x)=>a+Math.max(0,x.n|0),0); }

@@ -1252,7 +1252,8 @@ bk.schildAtlas=function(o){
      art 'laden'       Verkaufsmoebel nach SHELFKIND (klein, standard, hoch, kuehl, gondel, eck, gross, kasse = Wandregal/Gondel;
                        tisch, tischgross = Verkaufstisch; gitter, gitter2, gitter3 = Gitterbox). Gestell je Warenseite EIN Mesh
                        (Vertexfarben nach Rolle, Material MAT.vc('kunststoff'), Farben aus regalFarben - folgt der Wand),
-                       Rueckwand Lochblech (UV 0,4 m), Preisschild je Fach + Kopfschild (Bild, veraenderlich), Trefferflaeche je Fach.
+                       Rueckwand Lochblech (UV 0,4 m), Preisschild je Fach (Bild, veraenderlich), Trefferflaeche je Fach. KEIN Kopf-/Kategorieschild
+                       (Tom 17.10., wie im Supermarket Simulator: nur Ware und Preisschild an der Regalkante).
      art 'lager'       Lagerregal nach RACKKIND (standard, hoch, schwer): Stuetzen Lochprofil Signalblau (ein Mesh fuer alle 4),
                        Rahmen/Traversen Signalblau/Signalorange (ein Mesh), Boeden verzinkt (ein Mesh), Inhaltsschild.
      art 'fachboden'   kleines Fachbodenregal in einen fremden Sammler (Packmaterial an jedem Packplatz): Stuetzen Signalblau,
@@ -1262,7 +1263,7 @@ bk.schildAtlas=function(o){
    vmRegalBauen - bk.regal baut und gibt die Haken zurueck.
    o = {art, K (Art-Daten SHELFKIND/RACKKIND), g (Gruppe, steht schon am Platz), farben (laden: Rollenfarben regalFarben(K)),
         px (laden: Schildaufloesung, REGAL_TEX)}  |  fachboden: {box(w,h,d,farbe,x,y,z,rx,ry,rz), breite, tiefe, hoehe, boeden:[y], rueckwand}
-   -> laden: {gestelle:[Mesh], faecher:[{li,face,tex (Preisbild des Moebels),zelle:{y,h} (Pixelzeile),hit}], preisTex, headTex, kopfG, headY,
+   -> laden: {gestelle:[Mesh], faecher:[{li,face,tex (Preisbild des Moebels),zelle:{y,h} (Pixelzeile),hit}], preisTex,
              gitterM, leiste (Material Lichtleiste), top}
       lager: {faecher:[{li,si,x,y,hit}], schildTex, meshes}
       fachboden: {} (Teile im Sammler)
@@ -1281,7 +1282,7 @@ bk.regal.leiste=function(){ return _bkLeiste||(_bkLeiste=MAT.neu('lichtleiste'))
 function _bkRegalLaden(o){
   const K=o.K, g=o.g, RF=o.farben, PX=o.px||1, box=_bkBoxen();
   const W=K.w, D=K.d, top=K.lv[K.lv.length-1]+fachHoehe(K,K.lv.length-1)+0.04, hw=W/2, iw=W-0.1;
-  const R={gestelle:[],faecher:[],headTex:null,kopfG:null,headY:0,gitterM:null,leiste:null,top,preisTex:null};
+  const R={gestelle:[],faecher:[],gitterM:null,leiste:null,top,preisTex:null};
   /* Preisschilder: EIN Bild je Moebel (Zeile je Fach, 4 px Rand gegen Ueberblenden) und EIN Mesh je Warenseite - vorher je Fach
      eigene Textur, eigenes Material, eigener Zeichenaufruf. Die Zeile malt updateLabel (06) ueber lv.zelle. */
   const nF=K.bau?K.lv.length:seitenVon(K).length*K.lv.length, ZW=Math.round(700*PX), ZB=Math.round(80*PX), ZH=ZB+4;
@@ -1299,14 +1300,11 @@ function _bkRegalLaden(o){
     m.userData.bauteil='regal'; m.userData.bauteilArt=K.id; if(HIQ&&schatten!==false){ m.castShadow=true; m.receiveShadow=true; }
     parent.add(m); R.gestelle.push(m); return m; };
   if(K.bau){
-    const nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, st=[], kopf=[]; let preisY, headY;
+    const nL=K.lv.length, y=K.lv[nL-1], fh=K.oben, st=[]; let preisY;
     const fg=new THREE.Group(); g.add(fg);
     if(K.bau==='tisch'){
       /* Ladenbau-Tisch: dieselben Teile wie die Verkaufstische der Ausstellung 2.0 (bk.verkaufstischTeile) */
       st.push(...bk.verkaufstischTeile(K,box)); preisY=[y-0.1];
-      /* Aktionsschild auf einem Steckpfosten hinten in der Mitte - es verschwindet, solange der Tisch leer ist */
-      kopf.push({geo:box(0.03,0.62,0.03),m:tm(0,y+fh+0.05,-D/2+0.08),rolle:'rahmen'});
-      headY=y+fh+0.42; kopf.push({geo:box(1.0,0.2,0.03),m:tm(0,headY,-D/2+0.08),rolle:'kopf'});
     } else {
       /* Gitterbox: Unterbau mit offenen Faechern (Seitenwangen, Rueckwand, Boeden mit Preisleiste), darueber die Wanne
          (Bodenblech, Eckpfosten, Drahtgitter rundum, Rohrrahmen; vorn niedriger). Sockel 25 mm zurueckgesetzt, Wannenplatte
@@ -1330,20 +1328,13 @@ function _bkRegalLaden(o){
       const wg=[wand(W-0.04,hw2,0,y+hw2/2,-D/2+0.012,0),wand(W-0.04,hv,0,y+hv/2,D/2-0.012,0)];
       for(const sx of [-1,1]) wg.push(wand(D-0.04,hw2,sx*(W/2-0.012),y+hw2/2,0,Math.PI/2));
       const gw=new THREE.Mesh(merge(wg),gm); gw.userData.bauteil='regal'; gw.userData.bauteilArt='gitter'; fg.add(gw); wg.forEach(x=>x.geo.dispose());
-      preisY.push(y+hv-0.04); headY=y+hv+0.13;
-      /* Klappschild vorn am Rohrrahmen */
-      kopf.push({geo:box(0.9,0.2,0.02),m:tm(0,headY,D/2-0.004),rolle:'kopf'});
+      preisY.push(y+hv-0.04);
     }
     gestell(fg,st);
-    const kg=new THREE.Group(); fg.add(kg); R.kopfG=kg;
-    gestell(kg,kopf,false);
     /* je Ebene Preisschild und Trefferflaeche (Unterbau-Faecher, Wanne bzw. Platte) */
     K.lv.forEach((yl,li)=>{ const z=preis(fg,preisY[li],D/2+(K.bau==='tisch'?-0.032:0.003)); fach(fg,li,0,z); });
     preisFertig();
-    R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{});
-    const hz=K.bau==='tisch'?-D/2+0.08+0.016:D/2+0.008, hwid=K.bau==='tisch'?0.96:0.86;
-    plane(hwid,0.17,MAT.bild(R.headTex,{side:THREE.DoubleSide}),0,headY,hz,0,kg).userData.bauteil='regal';
-    R.headY=headY; box.weg(); return R;
+    box.weg(); return R;
   }
   seitenVon(K).forEach((f,fi)=>{
     const fg=new THREE.Group(); fg.position.set(f.ox,0,f.oz); fg.rotation.y=f.ry; g.add(fg);
@@ -1374,15 +1365,10 @@ function _bkRegalLaden(o){
       const z=preis(fg,y-0.02,D/2-0.004); fach(fg,li,fi,z);
     });
     preisFertig();
-    /* Kopfschild ueber jeder Warenseite (eine Textur fuer alle Seiten) */
-    if(fi===0){ R.headTex=tex(Math.round(1024*PX),Math.round(160*PX),()=>{}); R.headM=MAT.bild(R.headTex); }
-    const hy=top+(K.cold?0.34:0.18);
-    st.push({geo:box(W-0.04,0.28,0.05),m:tm(0,hy,0.02),rolle:'kopf'});
-    plane(W-0.1,0.24,R.headM,0,hy,0.051,0,fg).userData.bauteil='regal';
     gestell(fg,st);
     if(li0.length){ const m=new THREE.Mesh(merge(li0),K.cold?MAT.get('lichtleisteKuehl'):(R.leiste=bk.regal.leiste())); m.userData.bauteil='regal'; m.userData.bauteilArt='lichtleiste'; fg.add(m); }
     if(K.cold){
-      /* Glastueren (ein Mesh), Rahmen, Griffe und Kopfblende Alu (ein Mesh), Schild "GEKUEHLT" */
+      /* Glastueren (ein Mesh), Rahmen, Griffe und Kopfblende Alu (ein Mesh) */
       const S=bk.sammler({bauteil:'regal'}), AL=MAT.farbe('aluminium'), GR=MAT.farbe('lichtgrau'), gl=[];
       for(const sx of [-1,1]){
         gl.push({geo:box(W/2-0.02,top-0.14,0.03),m:tm(sx*W/4,top/2,D/2-0.002)});
@@ -1391,14 +1377,12 @@ function _bkRegalLaden(o){
       S.box(W,0.16,D,0,top+0.12,0,AL,'stahl');
       S.fertig(fg);
       const gm=new THREE.Mesh(merge(gl),MAT.get('glasScheibe')); gm.userData.bauteil='regal'; gm.userData.bauteilArt='glastuer'; fg.add(gm);
-      bk.schild(fg,{text:'GEKÜHLT  4 °C',stil:'info',b:W*0.8,h:0.11,y:top+0.12,z:D/2+0.005,leucht:true});
     }
   });
   /* Eckregal: zwischen den Schenkeln ein Blindfeld (sonst schaut man durch den Spalt auf die Wand) - Teil des Gestells,
      faerbt mit (vorher zwei eigene Materialien je Regal) */
   if(K.art==='ecke'){ const r=(w,h,d)=>roundedBoxGeo(w,h,d,Math.min(0.02,Math.min(w,h,d)*0.17));
     gestell(g,[{geo:r(0.52,top,0.52),m:tm(-0.6,top/2,-0.6),rolle:'seite'},{geo:r(0.56,0.06,0.56),m:tm(-0.6,top+0.03,-0.6),rolle:'rahmen'}]); }
-  R.headY=top+(K.cold?0.34:0.18);
   box.weg(); return R;
 }
 function _bkRegalLager(o){

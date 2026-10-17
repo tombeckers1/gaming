@@ -74,7 +74,7 @@ Wareneingang (05c), WARENANNAHME auf dem Gehweg (05h), Versandbereich `reserveTe
 - **Ein Glas** für alles (`glasScheibe`, Deckkraft 0,24): Schaufenster, Schiebetüren, Lagerfenster (vorher dunkel 0,38), Kühlregal.
 - Sohlbank der Erweiterungen Anthrazit wie am Basisladen (vorher hellgrau); Lagerfensterbank außen Anthrazit.
 - Schilder nach Bedeutung: Stationsschilder Testfeld alle Hausstil; Durchgangsschilder (LAGER, TESTFELD) Hausstil statt gelb;
-  Kühlregal-Schild und Packmittel-Kopf `info` (Signalblau); Warentrenner Hausstil.
+  Kühlregal-Schild (entfällt seit 17.10., Regalköpfe weg) und Packmittel-Kopf `info` (Signalblau); Warentrenner Hausstil.
 - Bodenmarkierung: Linien 0,12 m (vorher teils 0,14), Bodenschrift überall Signalgelb auf dunklem Feld (WARENEINGANG/WARENANNAHME/
   PACKPLATZ vorher ohne Feld), Ladezone/Palettierstation Warnrand aus der geteilten Schraffur, Versandbereich gelbe Freihalte-Schraffur.
 

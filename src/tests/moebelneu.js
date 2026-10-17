@@ -31,16 +31,12 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.cap={};
     for(const k of kinds){ const n0=bb.shelves.length; bb.regalStellen(k); const sh=bb.shelves[bb.shelves.length-1]; if(bb.shelves.length===n0) continue;
       const lv=sh.levels[sh.levels.length-1]; let n=0; while(n<400&&bb.addToLevel(lv,'knatter',1)) n++; o.cap[k]=n;
-      /* wieder leeren: Kopfschild muss verschwinden */
-      while(lv.count>0) bb.removeFromLevel(lv);
-      o['kopf_'+k]=sh.kopfG?sh.kopfG.visible:'kein kopfG'; }
+      while(lv.count>0) bb.removeFromLevel(lv); }
     /* Tischfarbe */
     const RF=bb.regalFarben(K.tisch||{}), c=RF.platte, lum=((c>>16&255)*0.2126+(c>>8&255)*0.7152+(c&255)*0.0722)/255;
     o.platte='#'+c.toString(16).padStart(6,'0'); o.platteHell=+lum.toFixed(2); o.platteGelb=((c>>16&255)-(c&255));
-    /* leeres normales Regal: Kopf ohne Schrift (wenige Farben im Schild) */
-    bb.regalStellen('standard'); const sh=bb.shelves[bb.shelves.length-1]; bb.updateHead(sh);
-    const cv=sh.headTex.image, d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data, farben=new Set();
-    for(let i=0;i<d.length;i+=16) farben.add(d[i]+','+d[i+1]+','+d[i+2]); o.kopfFarben=farben.size;
+    /* Kein Kopf-/Kategorieschild an Regal, Tisch, Gitterbox (Tom 17.10.): nichts davon darf im Moebel stecken */
+    bb.regalStellen('standard'); const shk=bb.shelves[bb.shelves.length-1]; o.kopfReste=[shk].concat(bb.shelves.filter(s=>['tisch','gitter'].includes(bb.kindOf(s).id))).filter(s=>s.headTex||s.kopfG||s.headY!==undefined).length;
     /* Ueberlappung aller aufgebauten Moebel */
     const R=s=>{ const k=bb.kindOf(s), w=(k.fw||k.w)/2, dd=(k.fd||k.d)/2, q=Math.abs(Math.round(Math.sin(s.g.rotation.y))); const x=s.g.position.x, z=s.g.position.z;
       return q?[x-dd,x+dd,z-w,z+w]:[x-w,x+w,z-dd,z+dd]; };
@@ -56,8 +52,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   if(!(r.cap.gitter>=8)) m.push('GROESSEN kleine Gitterbox fasst weniger als vorher: '+r.cap.gitter);
   if(!(r.cap.tisch<r.cap.tischgross)) m.push('GROESSEN Tisch: '+JSON.stringify(r.cap));
   if(r.platteHell<0.85||r.platteGelb>20) m.push('WEISS: Tischplatte '+r.platte);
-  ['gitter','gitter2','gitter3','tisch','tischgross'].forEach(k=>{ if(r['kopf_'+k]!==false) m.push(`SCHILD ${k}: leer mit Schild (${r['kopf_'+k]})`); });
-  if(r.kopfFarben>8) m.push('SCHILD Regal: leerer Kopf mit Schrift ('+r.kopfFarben+' Farben)');
+  if(r.kopfReste) m.push('KOPFSCHILD: '+r.kopfReste+' Moebel mit Kopfschild-Resten');
   if(r.ueberlapp.length) m.push('PLATZ: '+r.ueberlapp.join(' '));
   console.log('ERRORS:',m.concat(errs).join(' | ')||'keine'); await b.close();
 })();

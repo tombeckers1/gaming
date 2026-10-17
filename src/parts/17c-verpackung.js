@@ -228,7 +228,7 @@ function vpAbbauen(){
   vpRegale.forEach(sh=>{ sh.levels.forEach(leereFach); dropFootprint(sh.mov); scene.remove(sh.g);
     /* eigene Texturen und Geometrien freigeben - geteilte Materialien bleiben */
     sh.g.traverse(o=>{ if(!o.isMesh) return; const m=o.material;
-      if(m&&m.map&&(sh.levels.some(lv=>lv.tex===m.map)||m.map===sh.headTex)){ m.map.dispose(); m.dispose(); }
+      if(m&&m.map&&sh.levels.some(lv=>lv.tex===m.map)){ m.map.dispose(); m.dispose(); }
       if((sh.gestelle||[]).includes(o)) o.geometry.dispose(); }); });
   vpNamenWeg();
   vpRegale=[]; vpPlan=[];

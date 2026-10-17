@@ -87,8 +87,9 @@ Geländer 1,1 m). Abweichung nur mit Grund (z. B. Spielbarkeit) im Bericht. Fehl
   helle Schrift (Raum-/Durchgangsschilder, Tore, Gassen, Stationen, Kassen) · **info** = Signalblau/Weiß (Geräte, Lager-PC, Kühlregal,
   Packmittel) · **warn** = Signalgelb/Gummischwarz (Gefahr, Zutritt) · **tafel** = Weiß/Nachtblau (Hausnummer, Hinweistafeln) ·
   **brand** = Feuerrot/Weiß (Brandschutz) · **flucht** = Signalgrün/Weiß (Rettungswege). Sonderschilder mit eigenem Malcode (`malen`:
-  Ladenlogo, Carrier-Schild DDL, Kategorie-Marke) und veränderliche Anzeigen (Preis-, Kopf-, Türschild, Versandstatus) bauen ihr Mesh
+  Ladenlogo, Carrier-Schild DDL, Kategorie-Marke) und veränderliche Anzeigen (Preis-, Türschild, Versandstatus) bauen ihr Mesh
   ebenfalls über `bk.schild`/`bk.regal`. Keine freien `bg/fg` mehr.
+- **Keine Kopf-/Kategorieschilder an Verkaufsmöbeln** (Tom 17.10.): Regal, Gondel, Kühlregal, Tisch, Eck-, Kassenregal und Gitterbox tragen nur Ware und das Preisschild an der Kante.
 - **Hausstil** = Nachtblau-Fläche, Schildgold-Schrift: nur über `bk.schild(parent,{text,unter,b,h,…})` (Textur-Cache je Text+Größe).
   Ziffern auf Tornummern weiß. Titel in **Bungee** (`BUN(px)`), Unterzeilen in **Barlow Condensed** (`BAR(px)`), Text an die Fläche
   anpassen mit `fitFont`. ☑ (BAUTEIL schild: Funktion, die ein Schild selbst malt und baut, ohne `bk.schild`)

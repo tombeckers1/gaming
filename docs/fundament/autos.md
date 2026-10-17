@@ -86,6 +86,8 @@ Scheinwerfer auf dem Lack (Strahltest), Aufrufe/Dreiecke, Reihe mit LOD und Cach
 `docs/fundament/autos/vorher/` und `docs/fundament/autos/nachher/`: je Form `seite`, `vorn34`, `heck34` (Hoch), Straße
 `strasse`/`strasseNah` bei Tag und Nacht, Limousine und SUV nachts; Ultra Low mit Endung `-ultralow`.
 Werkzeug: `tools/fundament/autos-bilder.js <real.html> <ordner> <gfx> [bilder,zaehlen,modell]`.
+Hinweis: `vorher/kompakt-*` zeigt eine zufällige alte Form (die Form „kompakt“ gab es vorher nicht). Nachts mit Licht:
+`nachher/limo-heck34-nacht-hoch.jpg`, `nachher/suv-vorn34-nacht-hoch.jpg`.
 
 ## 7. Grenzen (ehrlich)
 - Formen sind Typen (Golf-, Polo-, Passat-, Tiguan-, T6-Klasse), keine Nachbauten – ohne Marken und Logos. Aus der Nähe

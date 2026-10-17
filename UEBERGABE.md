@@ -28,6 +28,8 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 > `FW` (14-fireworks, eigene Namen: `koralle`/`lavendel` gibt es dort schon kräftig), Anzeige aus `FW` abgeleitet, alte Farb-IDs werden beim Laden
 > auf den nächsten Pastellton abgebildet (`WB_FARB_ALT`, 02d). (2) **Alle Kopf-/Kategorieschilder an Verkaufsmöbeln entfernt** (bk.regal; samt Taste L
 > „Regalschild beschriften“, Laptop-Farbwahl der Regalschilder, `08f-schild.js`, `HEADNAME/headArt/updateHead`). Bilder `docs/bilder/pastell-1710/`.
+> Tests 17.10. grün: werkbank (mit Farbcheck), moebelneu, regalsicht, einraeumer, verpackung, gameplay, Laufzeit-Wächter, Node-Wächter. `sparten` rot **vorbestehend**
+> (eiswuerfel ohne Gruppe, Laptop-Filter zeigt alle 238 – auch auf V142 identisch, offen).
 
 > **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
 > mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und

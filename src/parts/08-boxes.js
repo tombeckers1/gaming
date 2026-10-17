@@ -10,7 +10,7 @@ function freeSlot(){ const L=(typeof zoneOffen==='function'&&!zoneOffen('lager')
   return {x:best.x,y:0.2+gy+bn*0.41,z:best.z,ry:rand(-0.08,0.08)}; }
 function spawnFloorBox(type,count,pos,q,kiste){
   pos=pos||freeSlot();
-  const m=bk.karton(type,{kiste}); m.position.set(pos.x,pos.y,pos.z); m.rotation.y=pos.ry||0; scene.add(m);
+  const m=bk.karton(type,{kiste}); m.position.set(pos.x,Number.isFinite(pos.y)?pos.y:0.2,pos.z);   /* ohne y (Bot, alte Staende) auf den Boden - sonst scheiterte save() mit toFixed von undefined (17.10.) */ m.rotation.y=pos.ry||0; scene.add(m);
   const b={type,count,q:q||1,mesh:m}; if(kiste) b.kiste=true; Object.assign(m.userData,{kind:'box',ref:b}); floorBoxes.push(b); return b;
 }
 function removeFloorBox(b){ const i=floorBoxes.indexOf(b); if(i<0) return false; floorBoxes.splice(i,1); scene.remove(b.mesh);

@@ -239,7 +239,7 @@ const T0=Date.now();
                (bal.js warf den Rest weg) */
             let n=c.count;
             while(n>0){ const lv=emptyLevel(c.type); if(!lv||!addToLevel(lv,c.type,c.q)) break; n--; }
-            if(n>0) spawnFloorBox(c.type,n,{x:-12+Math.random()*3,z:-3+Math.random()*3},c.q);
+            if(n>0) spawnFloorBox(c.type,n,{x:-12+Math.random()*3,y:0.2,z:-3+Math.random()*3},c.q);
             S.carrying=null; }
         }
         /* Kartons am Boden ins Regal; der Karton wird dabei leerer

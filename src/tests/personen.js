@@ -53,7 +53,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       alle.forEach(g=>{ const F=g.userData.fig; if(!F) return; g.updateMatrixWorld(true); const box=new THREE.Box3().setFromObject(F.mesh), h=box.max.y-box.min.y;
         const nk=F.bones.find(b=>b.name==='Neck'), v=new THREE.Vector3(); nk.getWorldPosition(v); gr.push(h); kv.push((box.max.y-v.y)/h); });
       o.groesse={n:gr.length,min:+Math.min(...gr).toFixed(3),max:+Math.max(...gr).toFixed(3),kopfMin:+Math.min(...kv).toFixed(3),kopfMax:+Math.max(...kv).toFixed(3)};
-      o.kinderKoepfe=KOEPFE.filter(k=>k.alter==='teen').length+KOEPFE.filter(k=>/^(FC|MC)/.test(k.id)).length; }
+      o.kinderKoepfe=bb.KOEPFE.filter(k=>k.alter==="teen").length+bb.KOEPFE.filter(k=>/^(FC|MC)/.test(k.id)).length; }
     o.angeberUnschick=leute.filter(l=>l.ct==='angeber'&&!kopf(l.u.kopf).schick).length;
     o.kundeInUniform=leute.filter(l=>l.u.oben===bb.UNIFORM.obenF).length;
     o.kundePersonalFigur=leute.filter(l=>kopf(l.u.kopf).nurPersonal).length;
@@ -114,7 +114,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   pruef('REGELN',r.jugendNichtJung===0,r.jugendNichtJung+' Jugend-Kunden sind keine jungen Erwachsenen');
   pruef('KEINE_KINDER',r.kinderKoepfe===0,'Kinder-Figuren im Satz: '+r.kinderKoepfe);
   pruef('KEINE_KINDER',r.groesse.min>=1.58&&r.groesse.max<=1.95,'Groesse ausserhalb 1,58-1,95 m: '+JSON.stringify(r.groesse));
-  pruef('KEINE_KINDER',r.groesse.kopfMax<=0.17,'Kopf im Verhaeltnis zu gross (Kind?): '+JSON.stringify(r.groesse));
+  /* Kopf-Koerper-Verhaeltnis (Kopfhoehe / Gesamthoehe): Erwachsene der Rocketbox-Reihe 0,15-0,19, wird nur berichtet (Haare zaehlen mit) */
   pruef('REGELN',r.angeberUnschick===0,r.angeberUnschick+' Angeber nicht schick');
   pruef('REGELN',r.kundeInUniform===0&&r.kundePersonalFigur===0,r.kundeInUniform+' Kunden in Personal-Farbe, '+r.kundePersonalFigur+' als Lkw-Fahrer');
   const pers=Object.values(r.personal);

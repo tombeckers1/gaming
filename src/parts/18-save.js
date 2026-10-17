@@ -49,8 +49,19 @@ function sortenUmstellen(d){
       else geh(v,tiefe+1); } };
   geh(d,0);
 }
-function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
-function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
+function loadSave(){
+  let r=null;
+  try{ r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }
+  catch(e){
+    /* Beschaedigter Stand (17.10.): nicht stillschweigend als "kein Spielstand" behandeln - Kopie sichern und melden */
+    try{ if(r) localStorage.setItem(KEY+'_defekt',r); }catch(_){}
+    SAVE_STATUS.defekt=String(e&&e.message||e).slice(0,80);
+    try{ setTimeout(()=>{ if(typeof toast==='function') toast('Spielstand beschädigt ('+SAVE_STATUS.defekt+') – eine Kopie liegt unter '+KEY+'_defekt.','bad'); },1800); }catch(_){}
+    return null; }
+}
+/* Zahl auf 2 Stellen; kaputter Wert (undefined/NaN) wird zu ersatz statt das Speichern zu kippen (17.10.) */
+function r2n(v,ersatz){ return Number.isFinite(v)?+v.toFixed(2):(ersatz||0); }
+function mpos(g){ return g?{x:r2n(g.position.x),z:r2n(g.position.z),ry:Number.isFinite(g.rotation.y)?+g.rotation.y.toFixed(3):0}:null; }
 /* Der Spielstand als Objekt (ohne Schreiben) - save() und der Test speichern.js benutzen es */
 function stateBauen(){
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:(S.eigene||[]).map(e=>{ const q=Object.assign({},e); delete q._neig; return q; }),eigeneAlt:S.eigeneAlt||[],wbv:1,werkbank:wbG?mpos(wbG):null,gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
@@ -76,7 +87,7 @@ function stateBauen(){
         .concat(Object.values(staff).filter(w=>w&&w.carry&&w.carry.vm).map(w=>w.carry.vm)),
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
-      boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
+      boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:r2n(b.mesh.position.x),y:r2n(b.mesh.position.y,0.2),z:r2n(b.mesh.position.z),ry:r2n(b.mesh.rotation.y)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
     return d;
 }
 /* Speichern (Tom 17.10.: "save() schluckt Fehler still - bei der Simulation fiel der Spielstand auf einen aelteren Tag zurueck").
@@ -104,9 +115,15 @@ function save(){
   if(typeof gpAn!=='undefined'&&gpAn) return false;
   /* Leistungsbericht (17g): waehrend und nach der Messung im eigenen Spielstand nichts speichern - bis zum Neuladen */
   if(typeof LM!=='undefined'&&LM&&(LM.an||LM.halt)) return false;
-  let txt;
-  try{ txt=JSON.stringify(stateBauen()); }
+  let txt, d;
+  try{ d=stateBauen(); }
   catch(e){ saveMelden('Spielstand nicht lesbar ('+saveGrund(e,0)+')',0); return false; }
+  try{ txt=JSON.stringify(d); }
+  catch(e){
+    /* Zirkelbezug (ein Szenenobjekt im Stand): ohne die Bezuege speichern, statt gar nicht - und merken */
+    try{ const seen=new WeakSet(); txt=JSON.stringify(d,(k,v)=>{ if(v&&typeof v==='object'){ if(seen.has(v)) return undefined; seen.add(v); } return v; }); SAVE_STATUS.zirkel=(SAVE_STATUS.zirkel|0)+1; console.warn('Spielstand mit Zirkelbezug gespeichert (Bezug weggelassen)'); }
+    catch(e2){ saveMelden('Spielstand nicht lesbar ('+saveGrund(e2,0)+')',0); return false; }
+  }
   const kb=Math.round(txt.length/1024); SAVE_STATUS.kb=kb;
   const schreibe=()=>{ localStorage.setItem(KEY,txt); const r=localStorage.getItem(KEY); if(!r||r.length!==txt.length) throw new Error('nach dem Schreiben nicht lesbar'); };
   try{ schreibe(); }
@@ -116,6 +133,13 @@ function save(){
     try{ if(!(typeof gpAn!=='undefined'&&gpAn)){ if(localStorage.getItem(GP_KEY)!==null){ localStorage.removeItem(GP_KEY); frei=true; } }
       if(typeof LM_KEY!=='undefined'&&localStorage.getItem(LM_KEY)!==null){ localStorage.removeItem(LM_KEY); frei=true; } }catch(_){}
     if(frei){ try{ schreibe(); SAVE_STATUS.platz++; SAVE_STATUS.ok++; return true; }catch(e2){ e1=e2; } }
+    /* kompakter: Verlaufsdaten kuerzen (Preisverlauf der Sorten, Online-Tageslog) - der Stand selbst bleibt vollstaendig */
+    try{ const k=JSON.parse(txt);
+      if(k.mh) for(const t in k.mh) if(Array.isArray(k.mh[t])&&k.mh[t].length>30) k.mh[t]=k.mh[t].slice(-30);
+      if(Array.isArray(k.onlineLog)&&k.onlineLog.length>60) k.onlineLog=k.onlineLog.slice(-60);
+      if(Array.isArray(k.gesehen)&&k.gesehen.length>200) k.gesehen=k.gesehen.slice(-200);
+      txt=JSON.stringify(k); SAVE_STATUS.kb=Math.round(txt.length/1024); schreibe(); SAVE_STATUS.kompakt=(SAVE_STATUS.kompakt|0)+1; SAVE_STATUS.ok++; return true; }
+    catch(e3){ e1=e3; }
     saveMelden(saveGrund(e1,kb),kb); return false;
   }
   SAVE_STATUS.ok++; return true;

@@ -1,0 +1,26 @@
+{
+ "strasse": {
+  "calls": 400,
+  "tris": 827497
+ },
+ "strasseNah": {
+  "calls": 344,
+  "tris": 819450
+ },
+ "autos": {
+  "n": 7,
+  "meshes": 35,
+  "tris": 162162,
+  "instanzen": 0,
+  "trisJeAuto": 23166,
+  "meshesJeAuto": 5
+ },
+ "strasseOhneAutos": {
+  "calls": 356,
+  "tris": 546589
+ },
+ "strasseNahOhneAutos": {
+  "calls": 301,
+  "tris": 540135
+ }
+}

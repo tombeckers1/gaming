@@ -68,7 +68,7 @@ function buildPark(){
   { const sh=new THREE.Shape();
     for(let k=0;k<=72;k++){ const a=k/72*Math.PI*2, f=seeRand(a), x=Math.cos(a)*SEE.rx*f, z=Math.sin(a)*SEE.rz*f;
       k?sh.lineTo(x,-z):sh.moveTo(x,-z); }
-    const env=typeof autoUmgebung==='function'?autoUmgebung():null;
+    let env=null; try{ env=MAT.tex('umgebungStrasse'); }catch(e){}
     _wasserM=new THREE.MeshStandardMaterial({color:LIN(0x2c4650),roughness:0.06,metalness:0.55,envMap:env,envMapIntensity:0.9});
     const w=new THREE.Mesh(new THREE.ShapeGeometry(sh,48),_wasserM);
     w.rotation.x=-Math.PI/2; w.position.set(SEE.x,0.06,SEE.z); w.userData.park=true; scene.add(w);

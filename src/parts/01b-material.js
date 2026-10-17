@@ -68,7 +68,18 @@ const MAT=(function(){
     laserRot:         [0xd8262a,'Laser rot','Scannerlaser, rote Anzeige an Kassen','–'],
     anzeigeBlau:      [0x3b7fd0,'Anzeige blau','Display Kartenterminal, Bildschirm-Grundton','–'],
     /* Licht (nur emissive, nicht angeglichen - Licht-Paket 05p) */
-    lampeWarm:        [0xfff0d0,'Lampenlicht warm','Leuchtflaechen warmweiss','–']
+    lampeWarm:        [0xfff0d0,'Lampenlicht warm','Leuchtflaechen warmweiss','–'],
+    /* Fahrzeuglack (Autos 17.10., bk.auto): eigene Bedeutung - Pkw-Lacke wie auf deutschen Strassen (VDA/KBA 2024:
+       Grau/Silber 33 %, Schwarz 26,6 %, Weiss 19,9 %, danach Blau, Rot, Gruen). Gewichte in bk.AUTOFARBEN. */
+    autoSilber:       [0xa9adb2,'Lack Silber metallic','Pkw-Lack (Reflexsilber, Gewicht siehe bk.AUTOFARBEN)','–'],
+    autoGrau:         [0x5a5f66,'Lack Grau metallic','Pkw-Lack (Mondstein-/Dunkelgrau, haeufigste Farbe)','–'],
+    autoHellgrau:     [0x8e9399,'Lack Hellgrau','Pkw-Lack (Nardograu, uni)','–'],
+    autoSchwarz:      [0x0f1114,'Lack Schwarz','Pkw-Lack (Deep Black Perleffekt)','–'],
+    autoWeiss:        [0xe4e5e1,'Lack Weiss','Pkw-Lack (Reinweiss/Perlmutt)','–'],
+    autoBlau:         [0x1c355c,'Lack Blau metallic','Pkw-Lack (Dunkelblau)','–'],
+    autoRot:          [0x7e1418,'Lack Rot','Pkw-Lack (Kings Red)','–'],
+    autoGruen:        [0x2c3f35,'Lack Gruen','Pkw-Lack (Dunkelgruen)','–'],
+    autoBeige:        [0x8a7c66,'Lack Bronze','Pkw-Lack (Bronze/Beige metallic)','–']
   };
   const FARBE={}; for(const k in PALETTE) FARBE[k]=PALETTE[k][0];
   /* ---------- Oberflaechenklassen (statt freier roughness/metalness je Stelle) ---------- */
@@ -157,7 +168,15 @@ const MAT=(function(){
     scannerGlas:      {f:'gummischwarz',tex:'scannerGlas',k:'blank',w:'Scannerscheibe in der Kassenplatte (Glas mit Kratzern)'},
     kassenTastatur:   {f:0xffffff,tex:'kassenTastatur',k:'kunststoff',w:'Kassentastatur (Tasten beschriftet, Summentaste gruen)'},
     kassenband:       {f:0xffffff,tex:'kassenband',k:'matt',w:'Laufband der Kasse (Gummi mit Rillen; eigene Kopie der Textur, weil sie laeuft - offset)'},
-    fensterSchmutz:   {f:0xffffff,tex:'fensterSchmutz',transparent:true,opacity:0,depthWrite:false,k:'matt',w:'Schmutzschicht auf den Schaufenstern (Spielzustand S.grime, Deckkraft je Fenster) - nur MAT.neu'}
+    fensterSchmutz:   {f:0xffffff,tex:'fensterSchmutz',transparent:true,opacity:0,depthWrite:false,k:'matt',w:'Schmutzschicht auf den Schaufenstern (Spielzustand S.grime, Deckkraft je Fenster) - nur MAT.neu'},
+    /* Autos (17.10., bk.auto): vier Materialien fuer alle Pkw, Farbe je Ecke (Lack eingebacken). Lack/Glas/Chrom spiegeln die
+       Strasse (Umgebung umgebungStrasse) und haben Klarlack (nur ab Niedrig, Ultra Low: Lambert). Nachts wird die Spiegelung
+       gedimmt (bk.autoNacht) - deshalb nur MAT.neu. */
+    autoLack:         {f:0xffffff,vertexColors:true,k:'lackMetall',physical:true,phys:{clearcoat:1,clearcoatRoughness:0.06},env:'umgebungStrasse',w:'Fahrzeuglack: lackiertes Blech mit Klarlack, Farbe je Ecke (Toene auto*) - nur MAT.neu (bk.autoNacht dimmt die Spiegelung)'},
+    autoGlas:         {f:0xffffff,vertexColors:true,k:'blank',physical:true,phys:{clearcoat:1,clearcoatRoughness:0.02},env:'umgebungStrasse',w:'Autoscheiben, Leuchtenglaeser, Klavierlack-Blenden (B-Saeule, Fensterrahmen): spiegelnd, Toenung je Ecke - nur MAT.neu'},
+    autoChrom:        {f:0xffffff,vertexColors:true,k:'blank',env:'umgebungStrasse',w:'Felgen, Zierleisten, Reflektoren der Scheinwerfer, Dachreling - nur MAT.neu'},
+    autoGummi:        {f:0xffffff,vertexColors:true,k:'matt',bump:'reifenProfil',bumpScale:0.9,w:'Reifen (Profil als Relief, UV nur am Reifen), Kunststoff matt (Stossfaenger unten, Schweller, Radhaus), Fugen'},
+    kennzeichen:      {f:0xffffff,tex:'kennzeichen',k:'kunststoff',w:'Kfz-Kennzeichen EU-Format 520 x 110 mm (16 Fantasie-Schilder als Atlas, Zelle per UV)'}
   };
   /* Vertexfarben-Klassen (Sammler, bk.sammler): Farbe je Ecke, Oberflaeche je Klasse */
   const VC_KLASSE={
@@ -205,14 +224,20 @@ const MAT=(function(){
   /* ---------- Materialien ---------- */
   const RM=(R)=>{ const K=R.k?KLASSE[R.k]:null; if(R.k&&!K) throw new Error('MAT: Klasse unbekannt: '+R.k);
     return {roughness:R.r!==undefined?R.r:(K?K.r:0.85),metalness:R.m!==undefined?R.m:(K?K.m:0)}; };
-  const NICHT_OPT={f:1,r:1,m:1,k:1,tex:1,w:1};
+  const NICHT_OPT={f:1,r:1,m:1,k:1,tex:1,w:1,physical:1,phys:1,env:1,bump:1};
   function ausRezept(name,extra){
     const R=REZEPT[name]; if(!R) throw new Error('MAT: Material unbekannt: '+name);
     const o=RM(R);
     for(const k in R) if(!NICHT_OPT[k]) o[k]=R[k];
     if(R.tex) o.map=texGet(R.tex);
+    /* env = Umgebungsbild aus TEXTUR (Spiegelung), bump = Reliefkarte aus TEXTUR (Autos 17.10.) */
+    if(R.env){ try{ o.envMap=texGet(R.env); }catch(e){} }
+    if(R.bump) o.bumpMap=texGet(R.bump);
+    /* physical: Klarlack (phys) nur ab Niedrig - Ultra Low tauscht Standard gegen Lambert (reuse-helpers) */
+    const P=R.physical&&!stufe().lambert&&THREE.MeshPhysicalMaterial;
+    if(P&&R.phys) Object.assign(o,R.phys);
     if(extra) Object.assign(o,extra);
-    const m=new THREE.MeshStandardMaterial(o); m.color=LIN(hexVon(R.f)); return m;
+    const m=P?new THREE.MeshPhysicalMaterial(o):new THREE.MeshStandardMaterial(o); m.color=LIN(hexVon(R.f)); return m;
   }
   /* Rezept nur aus Farbe + Klasse? Dann ist es dasselbe Objekt wie MAT.ober(f,k) */
   const reinesRezept=R=>{ for(const k in R) if(k!=='f'&&k!=='k'&&k!=='w') return false; return typeof R.f==='string'&&!!R.k; };
@@ -258,7 +283,7 @@ const MAT=(function(){
   function css(name,a){ const h=hexVon(name); if(a===undefined) return '#'+(h>>>0).toString(16).padStart(6,'0'); return 'rgba('+(h>>16&255)+','+(h>>8&255)+','+(h&255)+','+a+')'; }
 
   /* ---------- geteilte prozedurale Texturen (lazy, einmal gemalt) ---------- */
-  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
+  const TEXTUR_W={fassade:'Aussenwand Sandwichpaneele quer (Deckbreite 1,0 m, Mikrolinierung, Stossprofil alle 6 m, Schrauben an den Stuetzen alle 3 m, Laufspuren) - Kachel 6 x 2 m ueber repeat, Wand-UV in Metern',sockelBeton:'Betonsockel aussen 0,5 m (Poren, Fuge alle 2 m, Spritzschmutz unten, Schatten unter dem Abschlussprofil) - Kachel 2 x 0,5 m, Wand-UV in Metern',lichtfleck:'Hofleuchten nachts: links Lichtfleck am Boden (rund), rechts Lichtkegel (senkrechter Verlauf) - 128 x 64, additiv',lagerwand:'Lagerwand hell mit gelb-schwarzem Sockelband - Kachel 2,6 x 3,6 m ueber repeat',trapezblech:'Trapezblech Hallenwand, Sicke 0,4 m, Schraubreihe je Riegel, Laufspuren - Kachel 3,2 x 1,6 m ueber repeat',beton:'Beton (innen Lagerboden, aussen Hof) - eine Textur, Massstab ueber die UVs',doppelstab:'Doppelstabmatte (Zaeune, Absperrungen)',drahtgitter:'Drahtgitter/Schweissgitter (Gitterbox, Ladezonen-Absperrung) - Masche 5 cm, Farbe ueber das Material',warnschraffur:'Warnschraffur gelb/schwarz (Torkanten, Sperrflaechen, Bodenrahmen)',palettenMarke:'Paletten-Atlas 256 x 256: oben links Brand EPAL im Oval (Eck-Kloetze), oben rechts IPPC/HT-Stempel (Mittelkloetze), darunter Kiefern-Maserung (Streifen je Brett); Layout MAT.PALETTE_UV. Holzton kommt ueber Vertexfarben, Alterung ueber Instanzfarben',lochblech:'Lochblech hell (Rueckwand Verkaufs-/Kassenregal), Kachel 0,4 m = 8 x 8 Loecher',lochprofil:'Lochprofil der Lagerregal-Stuetzen, Kachel 2,34 m hoch (23 Loecher), neutral (Farbe ueber das Material)',stahlboden:'Stahlblechauflage Lagerregal mit Kantung',regalPaket:'Flachpaket eines Regals in Folie mit Etikett',fensterSchmutz:'Schmutz auf Schaufenstern (Regenschlieren, Fingerabdruecke), Deckkraft je Fenster',freihalteschraffur:'Freihalteflaeche gelbe Schraffur 45° (transparent), Kachel 0,4 m',scannerGlas:'Scannerscheibe der Kasse',kassenTastatur:'Kassentastatur 768 x 384',kassenband:'Kassen-Laufband (Rillen); die Kasse nimmt eine eigene Kopie, weil das Band laeuft',umgebungStrasse:'Spiegelungs-Panorama Strasse (Himmel, Horizont, Haeuserkante, Asphalt) als PMREM - Autolack/-glas/-chrom, Haeuserfenster, Parkteich',reifenProfil:'Reliefkarte Reifen (Flanke, Laufflaeche mit Rillen und Lamellen) 512 x 128, UV nur am Reifen',kennzeichen:'Kfz-Kennzeichen-Atlas 512 x 512: 16 Fantasie-Schilder EU-Format, Zelle 256 x 64',torBlatt:'Torblatt-Atlas aller Ladetore (Optik alter R1, Tom 14.10.): Zeile 0 glatte Sektion lichtgrau, 1 Lichtband (4 Scheiben), 2 unterstes Panel aussen (Griffmulde), 3 weiss (Kleinteile ueber Vertexfarben)'};
   /* Fassade (Fundament-Schritt 2, 16.10.; vorher Faserzementtafeln 1,18 m mit Punkten und gemaltem Sockel, Tom: "flache Platten
      mit Punkten"): Sandwichpaneele quer wie an Gewerbebauten - Deckbreite 1,0 m (Nut-Feder-Fuge mit Schattenkante), feine
      Mikrolinierung, Stossprofil (Alu) alle 6 m mit Schrauben, an der Zwischenstuetze (3 m) zwei Schrauben je Paneel, Laufspuren
@@ -512,7 +537,47 @@ const MAT=(function(){
           c.fillStyle=css('basaltgrau'); c.fillRect(W/2-0.25*M,y0+RH/2-0.06*MV-0.045*MV,0.5*M,0.09*MV);
           /* Warnstreifen darunter: eigenes Teil mit MAT.get('warnschraffur') (eine Schraffur fuer alles) */ }
         c.fillStyle='#ffffff'; c.fillRect(0,3*RH,W,RH); });
-      t.anisotropy=8; return t; }
+      t.anisotropy=8; return t; },
+    /* Autos (17.10., bk.auto; vorher autoUmgebung/autoReifenRelief/autoSchildMat in 05e) */
+    umgebungStrasse:()=>{
+      /* Panorama Himmel - heller Horizont - Haeuserkante - Strasse; als PMREM vorgefiltert. Ohne Umgebung spiegelt Lack nichts
+         und Lack und Scheiben verschwimmen zu einer dunklen Masse (Tom 26.09.). Auch Haeuserfenster und Parkteich nutzen es. */
+      const rnd=zufall(17);
+      const t=tex(512,256,(g,W,H)=>{
+        const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#7f9cbc'); gr.addColorStop(0.44,'#dfe8f1'); gr.addColorStop(0.5,'#f6f8fa');
+        gr.addColorStop(0.52,'#4a4e55'); gr.addColorStop(1,'#1c1e22'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+        for(let x=0;x<W;){ const w=8+rnd()*30, h=10+rnd()*48; g.fillStyle='rgb('+(60+rnd()*50|0)+','+(64+rnd()*50|0)+','+(72+rnd()*50|0)+')';
+          g.fillRect(x,H*0.5-h,w,h); x+=w+rnd()*6; }
+        g.fillStyle='rgba(255,255,255,.9)'; for(let i=0;i<5;i++) g.fillRect(rnd()*W,H*0.08+rnd()*H*0.2,40,6); });
+      t.mapping=THREE.EquirectangularReflectionMapping;
+      try{ if(THREE.PMREMGenerator&&typeof renderer!=='undefined'&&renderer){ const pm=new THREE.PMREMGenerator(renderer), e=pm.fromEquirectangular(t).texture; pm.dispose(); if(e) return e; } }catch(e){}
+      return t; },
+    reifenProfil:()=>tex(512,128,(g,W,H)=>{
+      /* Relief fuer den Reifen: v 0..0.25 innere Flanke, 0.25..0.75 Laufflaeche (Laengsrillen, Querrillen an den Schultern,
+         Lamellen), 0.75..1 aeussere Flanke mit Ring an der Felgenschulter */
+      const Y=v=>(1-v)*H;
+      g.fillStyle='#808080'; g.fillRect(0,0,W,H);
+      g.fillStyle='#c8c8c8'; g.fillRect(0,Y(0.75),W,Y(0.25)-Y(0.75));
+      g.fillStyle='#2a2a2a'; for(const v of [0.37,0.5,0.63]) g.fillRect(0,Y(v+0.018),W,Y(v-0.018)-Y(v+0.018));
+      const n=56;
+      for(let k=0;k<n;k++){ const x=k/n*W; g.fillStyle='#2a2a2a';
+        g.beginPath(); g.moveTo(x,Y(0.25)); g.lineTo(x+3,Y(0.25)); g.lineTo(x+6,Y(0.355)); g.lineTo(x+3,Y(0.355)); g.fill();
+        g.beginPath(); g.moveTo(x+4,Y(0.645)); g.lineTo(x+7,Y(0.645)); g.lineTo(x+10,Y(0.75)); g.lineTo(x+7,Y(0.75)); g.fill();
+        g.fillStyle='#6a6a6a'; g.fillRect(x+4,Y(0.48),1.5,Y(0.39)-Y(0.48)); g.fillRect(x+1,Y(0.61),1.5,Y(0.52)-Y(0.61)); }
+      g.fillStyle='#868686'; g.fillRect(0,Y(0.965),W,Y(0.955)-Y(0.965)); },false),
+    kennzeichen:()=>tex(512,512,(g)=>{
+      /* 16 Fantasie-Kennzeichen (EU-Format: blaues Feld mit Sternenkranz und D, schwarze Schrift auf Weiss), je Zelle 256 x 64 */
+      const orte=['B','M','HH','K','F','S','D','KA','HD','MZ','WI','DO','E','BO','AC','OS'], AZ='ABCDEFGHKLMNPRSTUVWXYZ';
+      for(let n=0;n<16;n++){ const cx=(n%2)*256, y0=Math.floor(n/2)*64+4, w=256, h=55;
+        g.fillStyle='#1a1a1a'; g.fillRect(cx,y0,w,h);
+        g.fillStyle='#f3f3ee'; g.fillRect(cx+2,y0+2,w-4,h-4);
+        g.fillStyle='#1d43b0'; g.fillRect(cx+3,y0+3,22,h-6);
+        g.fillStyle='#ffd400'; for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; g.fillRect(cx+13.5+Math.cos(a)*6.5,y0+17+Math.sin(a)*6.5,1.8,1.8); }
+        g.fillStyle='#fff'; g.font='bold 15px Arial, sans-serif'; g.textAlign='center'; g.fillText('D',cx+14,y0+h-8);
+        const nr=orte[n]+' '+AZ[(n*7+3)%AZ.length]+AZ[(n*5+11)%AZ.length]+' '+(100+((n*733+219)%8900));
+        g.fillStyle='#111'; g.textAlign='center';
+        fitFont(g,nr,w-40,44,q=>'600 '+q+'px "Barlow Condensed","Arial Narrow",Arial,sans-serif');
+        g.fillText(nr,cx+26+(w-30)/2,y0+h-12); } })
   };
   function texGet(name){ zaehle('tex:'+name); let t=texCache.get(name); if(!t){ const f=TEXTUR[name]; if(!f) throw new Error('MAT.tex: Textur unbekannt: '+name); t=f(); t.userData=t.userData||{}; t.userData.mat=name; texCache.set(name,t); } return t; }
   /* ---------- Textur-Atlas mit Zellen (14.10., Schritt "Paletten + Kartons") ----------

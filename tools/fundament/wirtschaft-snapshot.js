@@ -33,7 +33,7 @@ function probe(name,seed,code){
   catch(e){ out[name]={FEHLER:String(e&&e.message||e)}; }
 }
 /* gemeinsame Helfer im Spiel-Scope */
-spiel.ev(`globalThis.__T=[]; toast=(m,c)=>{ globalThis.__T.push((c?c+': ':'')+m); }; later=(t,f)=>{ try{ f(); }catch(e){} };
+spiel.ev(`globalThis.__T=[]; save=()=>true; toast=(m,c)=>{ globalThis.__T.push((c?c+': ':'')+m); }; later=(t,f)=>{ try{ f(); }catch(e){} };
   globalThis.__neu=(o)=>{ S=freshState(); newDayStats(); shelves.length=0; racks.length=0; dekos.length=0; dirts.length=0; hype=0; phase='closed';
     for(const k in staff) staff[k]=null; marktInit(); if(o) for(const k in o){ if(k==='up') Object.assign(S.up,o.up); else S[k]=o[k]; } globalThis.__T.length=0; return S; };
   globalThis.__regale=(arten,lager)=>{ shelves.length=0; for(const k of arten) shelves.push({kind:k,levels:[]}); racks.length=0; for(let i=0;i<(lager|0);i++) racks.push({kind:'standard',slots:[]}); };

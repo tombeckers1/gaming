@@ -10,6 +10,14 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 
 ## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
 
+> **AUTOS (17.10., Branch `claude/autos`, noch NICHT veröffentlicht):** Tom: „Die Autos draußen sehen immer noch nicht realistisch
+> genug aus.“ Neu als Baukasten-Bauteil `bk.auto`/`bk.autos` (04z, Doku `docs/fundament/autos.md`): 6 Formen nach echten Maßen
+> (Polo, Golf, 3er/Passat, Passat Variant, Tiguan, T6.1), Seitenprofil-Extrusion mit Fase, verformt (Grundriss, Querschnitt, Sicke,
+> Tumblehome), Details auf der Fläche, Lackfarben nach KBA/VDA 2024. `makeAuto` (05e) gelöscht, Materialien in MAT (`autoLack` …,
+> Texturen `umgebungStrasse`, `reifenProfil`, `kennzeichen`). Straße Hoch: Zeichenaufrufe der Autos 44 → 6, Dreiecke 281 k → 131 k;
+> Ultra Low 16 → 6 / 70 k → 55 k. Bilder `docs/fundament/autos/vorher|nachher/`. Tests grün: autos (neu, Gegenprobe rot), Node- und
+> Laufzeit-Wächter (Ausgangswerte mit Grund), material, gameplay. `leistung` nicht gefahren (Feuerwerk/Testfeld, Verkehr unverändert).
+
 > **ZUSAMMEN (17.10. nachts, Branch `claude/zusammen2` = Rückbau + Werkbank, noch NICHT veröffentlicht):** Merge von `claude/rueckbau`
 > und `claude/werkbank` (Basis a3baa21). Ergebnis: keine Halle/Werk/Produktion, volle Werkbank (Kapitel 5, `docs/werkbank/werkbank.md`,
 > Stufen labor..labor5 bis L32). Laptop ohne Reiter Entwicklung/Produktion, Vorführung 8 Sprungpunkte (mit Werkbank). Alte V141-Stände:
@@ -22,6 +30,14 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 > Tests 17.10. (real.html, je einzeln, alle grün): gameplay 2× (4,8/4,7 GB; ohne Fix 12,6 GB Abbruch), rueckbau (beide Migrationen; Gegenprobe
 > alte Reihenfolge → WARE rot), werkbank, werkbank-leistung, ausbau, stufen, lager, versand, versandtor, verpackung, ausstellung,
 > abschussregel, leistungsbericht, Laufzeit-waechter (Budget eingehalten, keine neuen Ausgangswerte), Node-Wächter.
+
+> **PASTELL + REGALKÖPFE (Tom 17.10., Branch `claude/werkbank-farben`, noch NICHT veröffentlicht):** (1) Werkbank-Farbwahl pastellig: 14 Töne
+> (Rosé, Koralle, Pfirsich, Champagner, Zitronencreme, Salbei, Minze, Aquamarin, Himmelblau, Lavendel, Flieder + Gold, Silber, Weiß), Tonwerte nur in
+> `FW` (14-fireworks, eigene Namen: `koralle`/`lavendel` gibt es dort schon kräftig), Anzeige aus `FW` abgeleitet, alte Farb-IDs werden beim Laden
+> auf den nächsten Pastellton abgebildet (`WB_FARB_ALT`, 02d). (2) **Alle Kopf-/Kategorieschilder an Verkaufsmöbeln entfernt** (bk.regal; samt Taste L
+> „Regalschild beschriften“, Laptop-Farbwahl der Regalschilder, `08f-schild.js`, `HEADNAME/headArt/updateHead`). Bilder `docs/bilder/pastell-1710/`.
+> Tests 17.10. grün: werkbank (mit Farbcheck), moebelneu, regalsicht, einraeumer, verpackung, gameplay, Laufzeit-Wächter, Node-Wächter. `sparten` rot **vorbestehend**
+> (eiswuerfel ohne Gruppe, Laptop-Filter zeigt alle 238 – auch auf V142 identisch, offen).
 
 > **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
 > mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und

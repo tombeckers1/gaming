@@ -1,0 +1,28 @@
+{
+ "regalLaden": {
+  "calls": 3210,
+  "tris": 23980582
+ },
+ "regalEingang": {
+  "calls": 3197,
+  "tris": 23980307
+ },
+ "kuehl": {
+  "calls": 2411,
+  "tris": 23839885
+ },
+ "kasse": {
+  "calls": 3334,
+  "tris": 23897807
+ },
+ "front": {
+  "calls": 3616,
+  "tris": 24068952
+ },
+ "_graf": {
+  "meshes": 3564,
+  "materialien": 939,
+  "texturen": 526,
+  "programme": 149
+ }
+}

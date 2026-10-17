@@ -22,8 +22,8 @@ const H=require(path.join(__dirname,'../../tools/test/start-hilfe.js'));
     if(!st.init){ st.init=1; st.t=0; st.logik=[]; st.bild=[]; st.part=[]; st.max={}; st.log=[]; bb.fwLog(st.log); st.px=new Uint8Array(4);
       if(was==='monster'){ const N=500, d={stufe:4,name:'Monster',abschnitte:[
           bb.wbAbschnitt({e:'licht:kometenkrone',A:'gold',B:'weiss',n:60,takt:2,muster:'faecher'}),
-          bb.wbAbschnitt({e:'brokat',A:'gold',B:'rot',n:120,takt:1,muster:'lr',hoehe:2,kal:2}),
-          bb.wbAbschnitt({e:'zeitregen',A:'gold',B:'violett',n:120,takt:0,muster:'w',hoehe:2,kal:2}),
+          bb.wbAbschnitt({e:'brokat',A:'gold',B:'pastellkoralle',n:120,takt:1,muster:'lr',hoehe:2,kal:2}),
+          bb.wbAbschnitt({e:'zeitregen',A:'gold',B:'flieder',n:120,takt:0,muster:'w',hoehe:2,kal:2}),
           bb.wbAbschnitt({e:'kronleuchter',A:'gold',B:'blau',n:100,takt:0,muster:'z',hoehe:2,kal:2}),
           bb.wbAbschnitt({e:'kamuro',A:'gold',B:'weiss',n:100,muster:'finale',hoehe:2,kal:2})]};
         st.soll=bb.wbDauer(d); bb.wbVorschauStart(d); }

@@ -298,9 +298,9 @@ function gpBeispielBatterie(){
   const N=WIRT.werkbank.stufen[st].schuss, n=f=>Math.max(1,Math.round(N*f));
   const d={stufe:st,name:'Nordlicht',abschnitte:[
     wbAbschnitt({e:'licht:goldkomet',A:'gold',B:'weiss',n:n(0.2),takt:2,muster:'faecher',hoehe:0,kal:1,pause:1.5}),
-    wbAbschnitt({e:'chrys',A:'tuerkis',B:'blau',n:n(0.25),takt:1,muster:'lr',hoehe:1,kal:1}),
-    wbAbschnitt({e:'crossette',A:'violett',B:'gold',n:n(0.25),takt:1,muster:'z',hoehe:2,kal:1,pause:1.5})]};
-  d.abschnitte.push(wbAbschnitt({e:'kamuro',A:'gold',B:'violett',n:N-wbSchuss(d),muster:'finale',hoehe:2,kal:2}));
+    wbAbschnitt({e:'chrys',A:'aquamarin',B:'himmelblau',n:n(0.25),takt:1,muster:'lr',hoehe:1,kal:1}),
+    wbAbschnitt({e:'crossette',A:'flieder',B:'gold',n:n(0.25),takt:1,muster:'z',hoehe:2,kal:1,pause:1.5})]};
+  d.abschnitte.push(wbAbschnitt({e:'kamuro',A:'gold',B:'flieder',n:N-wbSchuss(d),muster:'finale',hoehe:2,kal:2}));
   S.money=Math.max(S.money,450000);
   const r=wbEntwickeln(d,0,0); if(!r.ok) return null;
   r.e.serien=[]; return r.e.id;

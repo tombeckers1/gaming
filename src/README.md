@@ -35,7 +35,6 @@ Die wichtigsten:
 | `karte.js`  | Grundriss, Vollausbau, Wege, Hofobjekte, Szenengroesse     |
 | `ausbau.js` | Bauwaende, Zonen, SB-Kassen, Packstation                   |
 | `durch.js`  | Geometrie, die in begehbare Raeume hineinragt              |
-| `schild.js` | Regalschilder: Farben setzen, alle Kombinationen, Speichern |
 | `gehen.js`  | ob jeder ausgebaute Raum wirklich zu betreten ist          |
 | `gang.js`   | Lagergang: Kopfenden zu vor dem Kauf, offen danach         |
 | `gangfrei.js`| ob im Lagergang etwas steht (braucht echtes three.js)     |

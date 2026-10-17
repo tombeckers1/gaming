@@ -1,89 +1,83 @@
-/* Autos (Tom, 26.09.: "deutlich schoener und echter"; 03.10.: neu gebaut,
-   "Reifen sehen kacke aus, Kruemmungen drin"). Gemessen am Modell:
-   - Facetten: 95 %-Wert der Abweichung Ecken- zu Flaechennormale auf der
-     Karosseriehaut <= 20 Grad; keine verdrehten Normalen
-   - Masse: Laenge/Breite/Hoehe wie AUTOFORM; Reifen steht auf y=0
-   - Leistung: hoechstens 12 Zeichenaufrufe und 25 000 Dreiecke je Auto
-   - Material: Lack mit Klarlack und Umgebungsspiegelung, eigenes Glas
-   - glatt: Anteil der Lack-Ecken mit gemittelter statt Flaechennormale
-     (facettiert = 0)
-   - Grundriss: die Nase ist schmaler als die Wagenmitte (keine Kiste)
-   - Haube: faellt zur Nase ab
-   - Scheinwerfer: sitzen vorn an der Oberflaeche, nicht in der Nase */
-async function neuesSpiel(p){
-  await p.waitForFunction("!!document.querySelector('#startBtns button:not([disabled])')",null,{timeout:900000});
-  await p.click('#startBtns button:last-child',{timeout:900000});
-  await p.waitForSelector('#nameBox.show',{state:'visible',timeout:900000});
-  await p.click('#nameGo',{timeout:900000,noWaitAfter:true});
-  await p.waitForFunction("!document.getElementById('start').classList.contains('show')",null,{timeout:900000});
-}
+/* Autos (Tom, 26.09.: "deutlich schoener und echter"; 03.10.: "Reifen sehen kacke aus"; 17.10.: "immer noch nicht
+   realistisch genug - die Form und so"). Seit 17.10. Baukasten bk.auto / bk.autos (04z, docs/fundament/autos.md).
+   Gemessen am Modell je Form (klein, kompakt, limo, kombi, suv, van):
+   - MASSE: Laenge/Breite (ohne Spiegel)/Hoehe wie bk.AUTO (echte Fahrzeugdaten), Toleranz 3 cm
+   - RAD: Reifen steht auf y = 0 (eingefedert, unten abgeplattet), Spur wie bk.AUTO
+   - MATERIAL: Lack mit Klarlack und Umgebungsspiegelung, eigenes Glas
+   - NORMALEN: keine verdrehten Normalen (< 0,5 %)
+   - GRUNDRISS: die Nase ist schmaler als die Wagenmitte; Kabine oben schmaler als unten (Tumblehome)
+   - SCHEINWERFER: Reflektor liegt auf der Karosserie (nicht dahinter, hoechstens 3 cm davor; Strahltest)
+   - LEISTUNG (ohne Schattenwerfer): je Auto hoechstens 6 Zeichenaufrufe und 22 000 Dreiecke (fein), grob hoechstens 2 / 1 500
+   - REIHE: bk.autos legt 7 Autos zu hoechstens 6 Meshes je Stufe zusammen (LOD nah/fern), Geometrie je Form gecacht
+   - FARBEN: Lackverteilung wie bk.AUTOFARBEN (VDA/KBA: Grau/Silber, Schwarz, Weiss vorn) */
+const path=require('path');
+const H=require(path.join(__dirname,'../../tools/test/start-hilfe.js'));
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
   const p=await b.newPage({viewport:{width:900,height:600}});
   const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message));
-  await p.goto('file://'+process.argv[2]);
-  await p.waitForFunction('window.__bb!==undefined',{timeout:60000});
-  await neuesSpiel(p);
+  await H.laden(p,process.argv[2]); await H.neuesSpiel(p,{stoppen:true});
   const mangel=[];
   const pruef=(n,ok,was)=>{ if(!ok) mangel.push(n+': '+was); };
-  const r=await p.evaluate(()=>{ const bb=window.__bb, out=[];
-    for(const f of Object.keys(bb.AUTOFORM)){ const F=bb.AUTOFORM[f], g=bb.makeAuto(0xc9ccd2,f);
-      const [lack,gummi,glas,chrom]=g.children, o={f};
-      o.klarlack=!!(lack.material.clearcoat>0&&lack.material.envMap);
-      o.glas=!!(glas&&glas.material!==lack.material&&glas.material.envMap&&glas.material.roughness<0.1);
-      const pa=lack.geometry.attributes.position, no=lack.geometry.attributes.normal;
-      let glatt=0, zaehl=0, verdreht=0, ecken=0; const a=new THREE.Vector3(), b2=new THREE.Vector3(), c=new THREE.Vector3(), fn=new THREE.Vector3(), nn=new THREE.Vector3();
-      /* gemittelte Normalen im Lack (facettiert = 0) und verdrehte
-         Normalen (zeigen gegen die Dreiecksflaeche) in allen Teilen */
-      for(const m of [lack,gummi,glas,chrom]){ const q=m.geometry.attributes.position, qn=m.geometry.attributes.normal;
+  const r=await p.evaluate(()=>{ const bb=window.__bb, bk=bb.bk, out=[];
+    const kl=(g,k)=>{ let m=null; g.traverse(o=>{ if(o.isMesh&&o.userData.klasse===k&&!m) m=o; }); return m; };
+    for(const f of Object.keys(bk.AUTO)){ const F=bk.AUTO[f], g=bk.auto({form:f,farbe:'autoSilber',detail:'fein'}), o={f};
+      const lack=kl(g,'lack'), glas=kl(g,'glas'), dunkel=kl(g,'dunkel'), chrom=kl(g,'chrom');
+      o.klarlack=!!(lack.material.clearcoat>0&&lack.material.envMap); o.glas=!!(glas&&glas.material!==lack.material&&glas.material.envMap);
+      /* verdrehte Normalen: Ecknormale gegen die Dreiecksflaeche */
+      let ecken=0, verdreht=0; const a=new THREE.Vector3(), b2=new THREE.Vector3(), c=new THREE.Vector3(), fn=new THREE.Vector3(), nn=new THREE.Vector3();
+      for(const m of [lack,glas,dunkel,chrom]){ const q=m.geometry.attributes.position, qn=m.geometry.attributes.normal;
         for(let i=0;i+2<q.count;i+=3){ a.fromBufferAttribute(q,i); b2.fromBufferAttribute(q,i+1); c.fromBufferAttribute(q,i+2);
           fn.subVectors(b2,a).cross(c.clone().sub(a)); if(fn.length()<1e-9) continue; fn.normalize();
-          for(let k=0;k<3;k++){ nn.fromBufferAttribute(qn,i+k); const d=nn.dot(fn); ecken++; if(d<0) verdreht++; if(m===lack){ zaehl++; if(d<0.9995) glatt++; } } } }
-      o.glatt=+(glatt/Math.max(1,zaehl)).toFixed(2); o.verdreht=+(verdreht/Math.max(1,ecken)*100).toFixed(2);
-      /* Facetten: auf der Karosseriehaut weicht die Eckennormale kaum von
-         der Dreiecksflaeche ab, wenn das Raster fein genug ist (95 %-Wert) */
-      { const h=g.userData.haut, hp=h.attributes.position, hn=h.attributes.normal, ix=h.index.array, w=[];
-        for(let t=0;t<ix.length;t+=3){ a.fromBufferAttribute(hp,ix[t]); b2.fromBufferAttribute(hp,ix[t+1]); c.fromBufferAttribute(hp,ix[t+2]);
-          fn.subVectors(b2,a).cross(c.clone().sub(a)); if(fn.length()<2e-6) continue; fn.normalize();
-          for(let k=0;k<3;k++){ nn.fromBufferAttribute(hn,ix[t+k]); w.push(Math.acos(Math.min(1,Math.max(-1,nn.dot(fn))))*180/Math.PI); } }
-        w.sort((x,y)=>x-y); o.facette=+w[Math.floor(w.length*0.95)].toFixed(1); }
-      /* Masse der Karosserie unterhalb der Guertellinie (ohne Spiegel) */
-      { let xm=0, z0=9, z1=-9; const gurt=F.H*(F.stufe?0.655:0.640); for(let i=0;i<pa.count;i++) if(pa.getY(i)<gurt-0.1){ xm=Math.max(xm,Math.abs(pa.getX(i))); z0=Math.min(z0,pa.getZ(i)); z1=Math.max(z1,pa.getZ(i)); }
-        const bx=new THREE.Box3().setFromObject(lack); o.L=+(z1-z0).toFixed(3); o.B=+(2*xm).toFixed(3); o.H=+bx.max.y.toFixed(3); }
-      /* Raeder: Reifen steht auf dem Boden (nicht schwebend, nicht
-         eingesunken) und bleibt innerhalb der Karosseriebreite */
-      { const q=gummi.geometry.attributes.position; let ymin=9, xr=0; for(let i=0;i<q.count;i++){ const y=q.getY(i); ymin=Math.min(ymin,y); if(y<F.rad*0.5) xr=Math.max(xr,Math.abs(q.getX(i))); }
-        o.reifenY=+ymin.toFixed(4); o.reifenX=+xr.toFixed(3); }
-      o.soll=[F.L,F.B,F.H]; o.dc=g.children.length; o.tri=g.children.reduce((s,m)=>s+m.geometry.attributes.position.count/3,0);
-      /* nur die Flanke unter der Guertellinie zaehlt - Spiegel und
-         Saeulen sitzen hoeher */
-      const gurt=F.H*(F.stufe?0.655:0.640);
-      let zMax=-9, xMitte=0, xNase=0, yNase=-9;
-      for(let i=0;i<pa.count;i++){ const x=Math.abs(pa.getX(i)), y=pa.getY(i), z=pa.getZ(i); if(y<gurt-0.1) zMax=Math.max(zMax,z);
-        if(y<gurt-0.1&&Math.abs(z)<1.6) xMitte=Math.max(xMitte,x); }
+          for(let k=0;k<3;k++){ nn.fromBufferAttribute(qn,i+k); ecken++; if(nn.dot(fn)<-0.05) verdreht++; } } }
+      o.verdreht=+(verdreht/Math.max(1,ecken)*100).toFixed(2);
+      /* Masse am Lack: Laenge/Breite unter der Guertellinie (ohne Spiegel), Hoehe gesamt */
+      const pa=lack.geometry.attributes.position, gu=Math.min(F.gurt[0],F.gurt[1])-0.13; let xm=0, z0=9, z1=-9, ym=0, xN=0, xM=0, xU=0, xO=0;
+      for(let i=0;i<pa.count;i++){ const x=Math.abs(pa.getX(i)), y=pa.getY(i), z=pa.getZ(i); ym=Math.max(ym,y);
+        if(y<gu){ xm=Math.max(xm,x); z0=Math.min(z0,z); z1=Math.max(z1,z); } }
       for(let i=0;i<pa.count;i++){ const x=Math.abs(pa.getX(i)), y=pa.getY(i), z=pa.getZ(i);
-        if(z>zMax-0.1&&y<gurt-0.1) xNase=Math.max(xNase,x); if(z>zMax-0.3&&z<zMax-0.12) yNase=Math.max(yNase,y); }
-      o.nase=+(xNase/xMitte).toFixed(2); o.haube=+(gurt+0.02-yNase).toFixed(2);
-      /* Scheinwerferglas: vorderster Punkt im Glas-/Chromteil gegen die Nase */
-      let zLicht=-9; for(const m of [glas,chrom]){ const q=m.geometry.attributes.position; for(let i=0;i<q.count;i++) if(q.getY(i)<F.H*0.6&&q.getY(i)>0.3) zLicht=Math.max(zLicht,q.getZ(i)); }
-      o.licht=+(zMax-zLicht).toFixed(3);
+        if(y<gu&&y>F.yS+0.1){ if(z>z1-0.08) xN=Math.max(xN,x); if(Math.abs(z)<0.5) xM=Math.max(xM,x); }
+        if(Math.abs(z-(F.L/2-F.dach[1][0]))<0.3){ if(Math.abs(y-(F.gurt[0]+0.06))<0.03) xU=Math.max(xU,x); if(Math.abs(y-(F.H-0.12))<0.03) xO=Math.max(xO,x); } }
+      o.L=+(z1-z0).toFixed(3); o.B=+(2*xm).toFixed(3); o.H=+ym.toFixed(3); o.soll=[F.L,F.B,F.H];
+      o.nase=+(xN/xM).toFixed(3); o.tumble=+(xO/Math.max(1e-6,xU)).toFixed(3);
+      /* Reifen (Teile mit UV): Unterkante und Spur */
+      { const q=dunkel.geometry.attributes.position, uv=dunkel.geometry.attributes.uv; let ymin=9, xr=0, xl=9;
+        for(let i=0;i<q.count;i++){ if(uv.getX(i)===0&&uv.getY(i)===0) continue; const y=q.getY(i); ymin=Math.min(ymin,y); if(y<0.05){ xr=Math.max(xr,Math.abs(q.getX(i))); xl=Math.min(xl,Math.abs(q.getX(i))); } }
+        o.reifenY=+ymin.toFixed(4); o.spur=+(xr+xl).toFixed(3); o.spurSoll=F.spur; }
+      /* Scheinwerfer: Reflektor liegt auf der Karosserie - Strahl von vorn auf den Lack, Abstand zum Reflektor (20 Punkte) */
+      { const y0=F.stirn-(F.lichtH||0.095), y1=F.stirn-0.01, q=chrom.geometry.attributes.position, rc=new THREE.Raycaster(), d=[];
+        lack.updateMatrixWorld(true);
+        for(let i=0;i<q.count&&d.length<20;i+=7){ const x=q.getX(i), y=q.getY(i), z=q.getZ(i); if(!(y>y0&&y<y1&&Math.abs(x)>0.35&&Math.abs(x)<0.7&&z>F.L/2-0.3)) continue;
+          rc.set(new THREE.Vector3(x,y,z+0.5),new THREE.Vector3(0,0,-1)); const h=rc.intersectObject(lack)[0]; if(h) d.push(+(h.point.z-z).toFixed(3)); }
+        o.licht=d.length?Math.max(...d):9; o.lichtMin=d.length?Math.min(...d):9; }
+      /* Zaehlen ohne den Schattenwerfer (grobe Form auf Ebene 5, nur fuer die Schattenkarte) */
+      const zaehl=G=>{ let t=0, d=0; G.traverse(m=>{ if(m.isMesh&&m.userData.klasse!=='schatten'){ d++; t+=m.geometry.attributes.position.count/3; } }); return [d,Math.round(t)]; };
+      [o.dc,o.tri]=zaehl(g); o.th=F.th;
+      const gr=bk.auto({form:f,farbe:'autoSilber',detail:'grob'}); [o.grobDc,o.grobTri]=zaehl(gr);
       out.push(o); }
-    return out; });
-  r.forEach(o=>console.log('AUTO',JSON.stringify(o)));
-  r.forEach(o=>{
+    /* Reihe: 7 Autos, LOD, Cache */
+    const L=[]; for(let i=0;i<7;i++) L.push({form:Object.keys(bk.AUTO)[i%6],farbe:bk.autoFarbe(),x:i*6,z:0,ry:Math.PI/2,licht:i===2});
+    const vor=Object.keys(bk.autoInfo()).length, R=bk.autos(L,{lod:true}), nach=Object.keys(bk.autoInfo()).length;
+    const stufen=R.levels?R.levels.map(l=>{ let n=0; l.object.traverse(m=>{ if(m.isMesh) n++; }); return n; }):[];
+    /* Farben: Verteilung */
+    const zahl={}; for(let i=0;i<20000;i++){ const t=bk.autoFarbe(); zahl[t]=(zahl[t]||0)+1; }
+    const summe=bk.AUTOFARBEN.reduce((s,f)=>s+f[1],0), farbe=bk.AUTOFARBEN.map(([t,w])=>[t,+(w/summe).toFixed(3),+((zahl[t]||0)/20000).toFixed(3)]);
+    return {out,reihe:{lod:!!R.isLOD,stufen,cacheNeu:nach-vor},farbe}; });
+  r.out.forEach(o=>console.log('AUTO',JSON.stringify(o)));
+  console.log('REIHE',JSON.stringify(r.reihe)); console.log('FARBEN',JSON.stringify(r.farbe));
+  r.out.forEach(o=>{
     pruef('MATERIAL',o.klarlack&&o.glas,o.f+': Lack oder Glas ohne Spiegelung');
-    pruef('GLATT',o.glatt>=0.4,o.f+': nur '+o.glatt+' glatte Ecken - facettiert');
-    pruef('FACETTEN',o.facette<=20,o.f+': Karosserie facettiert ('+o.facette+' Grad)');
     pruef('NORMALEN',o.verdreht<0.5,o.f+': '+o.verdreht+' % verdrehte Normalen');
-    pruef('MASSE',Math.abs(o.L-o.soll[0])<0.05&&Math.abs(o.B-o.soll[1])<0.05&&Math.abs(o.H-o.soll[2])<0.06,o.f+': Masse '+o.L+'/'+o.B+'/'+o.H+' statt '+o.soll.join('/'));
-    pruef('RAD',o.reifenY>=-0.001&&o.reifenY<=0.002&&o.reifenX<=o.soll[1]/2,o.f+': Reifen Unterkante '+o.reifenY+' m, aussen '+o.reifenX+' m');
-    pruef('LEISTUNG',o.dc<=12&&o.tri<=25000,o.f+': '+o.dc+' Zeichenaufrufe, '+o.tri+' Dreiecke');
-    pruef('GRUNDRISS',o.nase<=0.96,o.f+': Nase so breit wie die Mitte ('+o.nase+')');
-    pruef('HAUBE',o.haube>=0.04,o.f+': Haube faellt nicht ab ('+o.haube+')');
-    pruef('SCHEINWERFER',o.licht<=0.05,o.f+': Scheinwerfer '+o.licht+' m hinter der Nase');
+    pruef('MASSE',Math.abs(o.L-o.soll[0])<0.03&&Math.abs(o.B-o.soll[1])<0.03&&Math.abs(o.H-o.soll[2])<0.03,o.f+': Masse '+o.L+'/'+o.B+'/'+o.H+' statt '+o.soll.join('/'));
+    pruef('RAD',o.reifenY>=-0.0005&&o.reifenY<=0.002&&Math.abs(o.spur-o.spurSoll)<0.03,o.f+': Reifen Unterkante '+o.reifenY+' m, Spur '+o.spur+' statt '+o.spurSoll);
+    pruef('GRUNDRISS',o.nase<=0.97&&o.tumble<=1-o.th*0.5,o.f+': Nase/Mitte '+o.nase+', Kabine oben/unten '+o.tumble);
+    pruef('SCHEINWERFER',o.licht<=0.002&&o.lichtMin>=-0.03,o.f+': Reflektor '+o.lichtMin+'..'+o.licht+' m vor/hinter dem Lack (Lack davor = positiv)');
+    pruef('LEISTUNG',o.dc<=6&&o.tri<=22000&&o.grobDc<=2&&o.grobTri<=1500,o.f+': fein '+o.dc+' Aufrufe/'+o.tri+' Dreiecke, grob '+o.grobDc+'/'+o.grobTri);
   });
+  pruef('REIHE',r.reihe.lod&&r.reihe.stufen.length===2&&r.reihe.stufen.every(n=>n<=6)&&r.reihe.cacheNeu===0,JSON.stringify(r.reihe));
+  pruef('FARBEN',r.farbe.every(([t,s,i])=>Math.abs(s-i)<0.02),JSON.stringify(r.farbe));
   console.log('MANGEL:',mangel.length?mangel.join(' | '):'keine');
-  console.log('ERRORS:',errs.length||mangel.length?errs.concat(mangel).join('\n'):'keine');
+  console.log(errs.length||mangel.length?'ERRORS: '+errs.concat(mangel).join('\n'):'ALLES OK');
   await b.close();
 })();

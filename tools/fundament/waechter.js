@@ -95,10 +95,12 @@ const BAUTEILE=[
   /* Verpackungs-Ausstellung 2.0 (15.10.) */
   {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'},
   /* Werkbank (Kapitel 5 Eigene Marke, 16.10.) */
-  {bk:'werkbank',woerter:['werkbank','werktisch'],wofuer:'Werkbank im Lager: Werktisch, Lochwand, Schraubstock, Musterbatterie, Tablet (Bauprogramm eigene Batterien)'}
+  {bk:'werkbank',woerter:['werkbank','werktisch'],wofuer:'Werkbank im Lager: Werktisch, Lochwand, Schraubstock, Musterbatterie, Tablet (Bauprogramm eigene Batterien)'},
+  /* Autos (17.10.): jedes Pkw-Modell ueber bk.auto/bk.autos (Formen klein, kompakt, limo, kombi, suv, van) */
+  {bk:'auto',woerter:['auto','autos','pkw','car','cars','fahrzeug','karosse','karosserie'],wofuer:'Pkw (Kleinwagen bis Transporter) nach echten Massen, geteilte Geometrie je Form, Reihe = ein Mesh je Material - autos.md'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
+const HELFER=['autos','AUTO','AUTOFARBEN','autoFarbe','autoNacht','autoInfo','lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];
@@ -241,7 +243,7 @@ const GRUND=[
   [/^(05g-dock|05h-ausbau|05l-eingang2)\.js$/,'Hof/Ausbau/Logistik: veraenderliche Materialien (Ampeln, Lampen, Bauwaende), Zaeune, Schiebetueren, Restfarben ohne Ton','Schritte Zaeune/Waende, Lampen, Tueren'],
   [/^(05j-stadt|05k-schoner|05n-park)\.js$/,'Skyline/Stadt/Park: eigene Sammler und Atlas, Wasser, Pflanzen','Aussenwelt-Paket (inventar-optik §5 letzte Zeile)'],
   [/^05o-oberflaechen\.js$/,'waehlbare Wand-/Bodenbelaege (Katalog mit Absicht verschieden)','bleibt Katalog; Malfarben bei Bedarf in MAT'],
-  [/^06-fixtures\.js$/,'Regale, Kasse, Gitterbox, Regalschilder (Farben je Regal waehlbar, veraenderlich)','Schritt Regale (Umbauliste 7)'],
+  [/^06-fixtures\.js$/,'Regale, Kasse, Gitterbox, Regalfarben (folgen der Wand, veraenderlich)','Schritt Regale (Umbauliste 7)'],
   [/^(06b-gravur|15b-pda|12-belt)\.js$/,'Geraete mit Display/Leuchten (Automat, Handgeraet, Kassenband)','Schritt Geraete (geraetBau ausbauen)'],
   [/^(07-deko|07b-wischer)\.js$/,'Deko (waehlbare Vielfalt), Wischer','Deko-Katalog (eigener Schritt)'],
   [/^08b-truck\.js$/,'LKW: Lieferanten-Hausfarben (Vielfalt), Lichter','Fahrzeuge (eigener Schritt)'],

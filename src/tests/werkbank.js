@@ -41,6 +41,22 @@ const BILDER=process.env.BILDER||'';
   pruef(!vor.reiterRez,'Laptop hat noch den Reiter Entwicklung'); pruef(!vor.gebaut&&!vor.offen,'Werkbank ohne Kauf da/offen');
   pruef(vor.stufen.length===5,'nicht fuenf Werkbank-Stufen');
 
+  /* --- 1b. Farbwahl: Pastell (Tom 17.10.), alte Farb-IDs bleiben gueltig --- */
+  const fa=await p.evaluate(()=>{ const bb=window.__bb, o={}; const F=bb.WB_FARBEN;
+    o.n=F.length; o.ids=F.map(f=>f.id); o.hex=F.map(f=>f.hex);
+    /* Saettigung (max-min)/max je Farbe: Pastell <= 0,55 (Gold 0,78 ist gewollt, Silber/Weiss grau) */
+    o.sat=F.filter(f=>!['gold','silber','weiss'].includes(f.id)).map(f=>{ const c=f.hex.slice(1).match(/../g).map(h=>parseInt(h,16)); return +((Math.max(...c)-Math.min(...c))/Math.max(...c)).toFixed(2); });
+    o.eindeutig=new Set(o.hex).size===F.length;
+    o.alt={}; ['rot','orange','gold','zitrone','limette','gruen','mint','tuerkis','himmel','blau','violett','magenta','weiss','silber','quatsch'].forEach(k=>{ o.alt[k]=bb.wbAbschnitt({A:k}).A; });
+    o.altOk=Object.values(o.alt).every(id=>o.ids.includes(id));
+    o.fwFehlt=o.ids.filter(id=>!bb.FW[id]);
+    o.farbVon=bb.farbVon('rot').id;
+    return o; });
+  console.log('FARBEN',JSON.stringify({n:fa.n,ids:fa.ids.join(','),maxSat:Math.max(...fa.sat),eindeutig:fa.eindeutig,altOk:fa.altOk,fwFehlt:fa.fwFehlt}));
+  pruef(fa.n>=12&&fa.n<=14,'Farbzahl '+fa.n); pruef(fa.sat.every(v=>v<=0.55),'Farbe nicht pastell (Saettigung '+fa.sat.join(',')+')');
+  pruef(fa.eindeutig,'zwei Farben mit gleichem Hex'); pruef(fa.altOk,'alte Farb-ID ohne Abbildung: '+JSON.stringify(fa.alt)); pruef(!fa.fwFehlt.length,'Farbe ohne Wert in FW: '+fa.fwFehlt);
+  pruef(['gold','silber','weiss'].every(k=>fa.ids.includes(k)),'Gold/Silber/Weiss fehlen');
+
   /* --- 2. Kauf, Platz, Ansprechen --- */
   const kauf=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, o={};
     S.level=20; S.money=200000; ['shop_halb','lager','lager_nord','shop_gross','testfeld','labor'].forEach(id=>bb.testKauf(id));
@@ -100,7 +116,7 @@ const BILDER=process.env.BILDER||'';
   await klick('[data-a="dup"][data-i="0"]'); const z5=await zust();
   await klick('[data-a="ab"][data-i="0"]'); const z6=await zust();
   await klick('[data-a="del"][data-i="1"]'); const z7=await zust();
-  await klick('[data-a="set"][data-v="muster:rl"]'); await klick('[data-a="set"][data-v="e:dahlie"]'); await klick('[data-a="set"][data-v="A:blau"]'); const z8=await zust();
+  await klick('[data-a="set"][data-v="muster:rl"]'); await klick('[data-a="set"][data-v="e:dahlie"]'); await klick('[data-a="set"][data-v="A:himmelblau"]'); const z8=await zust();
   console.log('KLICK',JSON.stringify({z0,z1,z2,z3,z4,z5,z6,z7,z8}));
   pruef(z1.stufe===0&&z1.rest===0,'Groessenwechsel streckt die Abschnitte nicht');
   pruef(z2.n===z1.n+1,'+ Abschnitt'); pruef(z3.rest===z2.rest+5,'Schuss -5 zeigt Rest nicht'); pruef(z4.rest===0,'Rest auffuellen');
@@ -120,8 +136,8 @@ const BILDER=process.env.BILDER||'';
 
   /* --- 4. Vorschau: echte Engine, Abschuss-Baustein, Abfolge --- */
   const vs=await p.evaluate(()=>{ const bb=window.__bb, S=bb.S, A=window.__abschuss, o={};
-    const d={stufe:1,name:'Probe',abschnitte:[bb.wbAbschnitt({e:'chrys',A:'gold',B:'rot',n:20,takt:0,muster:'lr'}),bb.wbAbschnitt({e:'licht:goldkomet',A:'gold',B:'weiss',n:20,takt:1,muster:'gerade',pause:1.5}),
-      bb.wbAbschnitt({e:'kamuro',A:'gold',B:'violett',n:20,muster:'finale',hoehe:2,kal:2})]};
+    const d={stufe:1,name:'Probe',abschnitte:[bb.wbAbschnitt({e:'chrys',A:'gold',B:'pastellkoralle',n:20,takt:0,muster:'lr'}),bb.wbAbschnitt({e:'licht:goldkomet',A:'gold',B:'weiss',n:20,takt:1,muster:'gerade',pause:1.5}),
+      bb.wbAbschnitt({e:'kamuro',A:'gold',B:'flieder',n:20,muster:'finale',hoehe:2,kal:2})]};
     o.dauerPlan=bb.wbDauer(d);
     bb.run(2,0.05);   /* liegengebliebene Zeitgeber (Kapitel-Aufstieg nach dem Kauf) vorher abarbeiten */
     const AL=[]; A.log(AL); const log=[]; bb.fwLog(log); bb.ROHR_LOG=[];

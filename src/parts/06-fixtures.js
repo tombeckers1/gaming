@@ -566,14 +566,14 @@ function regalFarben(K){
   const wa=hx(w.a), hell=lum(wa)>0.42;
   /* Verkaufstische (02.10., Tom: "nicht gelb, sondern weiss und so"):
      weisse Schichtstoffplatte, Gestell in Alu bzw. Anthrazit zur Wand */
-  if(K&&K.bau==='tisch') return {rahmen:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), seite:MAT.farbe('aluminium'), blende:MAT.farbe('aluminium'), fuss:MAT.farbe('gummischwarz'), boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:MAT.farbe('cremeweiss'), rueck:MAT.farbe('cremeweiss')};
+  if(K&&K.bau==='tisch') return {rahmen:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), seite:MAT.farbe('aluminium'), blende:MAT.farbe('aluminium'), fuss:MAT.farbe('gummischwarz'), boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), platte:MAT.farbe('cremeweiss'), rueck:MAT.farbe('cremeweiss')};
   /* Kassenregal: Farben der Kasse (Korpus und Blende weiss, Sockel
      dunkel, Platte und Boeden hellgrau, Leisten Edelstahl) - unabhaengig
      von der Wand. 06.10.: weiss wie die Kasse, vorher Anthrazit. */
-  if(K&&K.kasse) return {rahmen:CK_KORPUS, seite:CK_KORPUS, blende:CK_KORPUS, fuss:CK_SOCKEL, boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('aluminium'), kopf:CK_KORPUS, platte:MAT.farbe('lichtgrau'), rueck:MAT.farbe('lichtgrau')};
-  if(K&&K.cold) return {rahmen:MAT.farbe('aluminium'),seite:MAT.farbe('aluminium'),blende:MAT.farbe('aluminium'),fuss:MAT.farbe('anthrazit'),boden:MAT.farbe('lichtgrau'),preis:MAT.farbe('aluminium'),lippe:MAT.farbe('weiss'),kopf:MAT.farbe('nachtblau'),platte:MAT.farbe('holzPalette'),rueck:MAT.farbe('weiss')};
+  if(K&&K.kasse) return {rahmen:CK_KORPUS, seite:CK_KORPUS, blende:CK_KORPUS, fuss:CK_SOCKEL, boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('aluminium'), platte:MAT.farbe('lichtgrau'), rueck:MAT.farbe('lichtgrau')};
+  if(K&&K.cold) return {rahmen:MAT.farbe('aluminium'),seite:MAT.farbe('aluminium'),blende:MAT.farbe('aluminium'),fuss:MAT.farbe('anthrazit'),boden:MAT.farbe('lichtgrau'),preis:MAT.farbe('aluminium'),lippe:MAT.farbe('weiss'),platte:MAT.farbe('holzPalette'),rueck:MAT.farbe('weiss')};
   return {rahmen:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), seite:hell?mix(wa,MAT.farbe('cremeweiss'),0.78):mix(wa,MAT.farbe('hellgrau'),0.45), blende:hell?MAT.farbe('graphit'):MAT.farbe('aluminium'), fuss:MAT.farbe('gummischwarz'),
-    boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), kopf:hell?MAT.farbe('anthrazit'):MAT.farbe('gummischwarz'), platte:hell?MAT.farbe('holzPalette'):MAT.farbe('holzPaletteDunkel'), rueck:hell?mix(wa,MAT.farbe('cremeweiss'),0.82):mix(wa,MAT.farbe('hellgrau'),0.5)};
+    boden:MAT.farbe('lichtgrau'), preis:MAT.farbe('weiss'), lippe:MAT.farbe('hellgrau'), platte:hell?MAT.farbe('holzPalette'):MAT.farbe('holzPaletteDunkel'), rueck:hell?mix(wa,MAT.farbe('cremeweiss'),0.82):mix(wa,MAT.farbe('hellgrau'),0.5)};
 }
 function regaleFaerben(){
   bk.regal.rueckwand().color.copy(LIN(regalFarben(null).rueck));
@@ -585,7 +585,7 @@ function regaleFaerben(){
    Alpha-Textur - man sieht die Ware durch das Gitter */
 /* gitterTex() entfaellt (13.10., Materialangleichung): Drahtgitter = MAT.tex('drahtgitter') (geteilt) */
 /* Verkaufsmoebel (Regal, Gondel, Eck, Kuehlschrank, Kassenregal, Verkaufstisch, Gitterbox): gebaut von bk.regal (04z, art 'laden') -
-   hier nur Platz, Faecher (Level), Speicherstand. Tisch und Gitterbox haben dieselben Faecher, Preisschilder, Kopfschild und
+   hier nur Platz, Faecher (Level), Speicherstand. Tisch und Gitterbox haben dieselben Faecher, Preisschilder und
    Treffer wie ein Regal - Kunden, Einraeumer und Speicherstand behandeln sie wie jedes andere Regal. */
 function createShelf(i,data){
   const kind=(data&&data.kind&&SHELFKIND[data.kind])?data.kind:'standard';
@@ -599,60 +599,21 @@ function createShelf(i,data){
   { const sb=wandSchub(moebelRect(K,s.x,s.z,s.ry||0),s.ry||0,SCHUB_T,SCHUB_L); if(sb){ g.position.x+=sb.dx; g.position.z+=sb.dz; } }
   const W=K.w, D=K.d;
   const sh={i,g,kind,levels:[],W,D};
-  if(data&&typeof data.schild==='string'&&data.schild.trim()) sh.schild=data.schild.trim().slice(0,24);
   /* Farben nach Rolle: sie folgen der Wandfarbe (regalFarben) und werden beim Umstreichen nachgefaerbt (regaleFaerben) */
   const R=bk.regal({art:'laden',K,g,farben:regalFarben(K),px:REGAL_TEX});
-  sh.gestelle=R.gestelle; sh.headTex=R.headTex; sh.headY=R.headY; if(R.kopfG) sh.kopfG=R.kopfG; if(R.gitterM) sh.gitterM=R.gitterM;
+  sh.gestelle=R.gestelle; if(R.gitterM) sh.gitterM=R.gitterM;
   if(R.leiste){ if(shelfStrips.indexOf(R.leiste)<0) shelfStrips.push(R.leiste); R.leiste.emissiveIntensity=(S&&S.up&&S.up.regallicht)?1.5:0; }
   for(const f of R.faecher){ const lv={sh,li:f.li,face:f.face,type:null,count:0,q:1,items:[],tex:f.tex,zelle:f.zelle,hit:f.hit}; f.hit.userData={kind:'level',ref:lv}; sh.levels.push(lv); }
   sh.mov=addMovable({kind:'shelf',name:K.name,g,fw:(K.fw||W)+0.06,fd:(K.fd||D)+0.04,ref:sh,onPlace:()=>syncShelf(sh)});
   shelves.push(sh);
   if(data&&data.levels) data.levels.forEach((ld,li)=>{ if(ld&&ld.type&&P[ld.type]&&sh.levels[li]){ const n=Math.min(ld.count|0,layout(ld.type,sh,sh.levels[li]).cap); for(let k=0;k<n;k++) addToLevel(sh.levels[li],ld.type,ld.q||1); } });
-  sh.levels.forEach(updateLabel); updateHead(sh);
+  sh.levels.forEach(updateLabel);
   return sh;
 }
 function shelfStand(sh,lv){ const K=kindOf(sh); return faceWorld(sh,lv?faceOf(sh,lv):seitenVon(K)[0],0,K.d/2+0.65); }
 function itemMatrix(sh,lv,idx,jit){ const f=faceOf(sh,lv), p=slotLocal(lv.type,idx,sh,lv), w=faceWorld(sh,f,p.x,p.z);
   return mx(w.x,kindOf(sh).lv[lv.li]+p.y,w.z,sh.g.rotation.y+f.ry+jit); }
 function syncShelf(sh){ sh.levels.forEach(lv=>{ lv.items.forEach((h,k)=>{ if(lv.type) h.pool.set(h,itemMatrix(sh,lv,k,h.jit||0)); }); }); }
-/* nach Sparte: Essen und Getraenke haben seit 26.09. ihr eigenes Schild */
-const HEADNAME={zubehoer:['SILVESTER-ZUBEHÖR','#2f7fd0'],f1:['KLEINFEUERWERK F1','#2f9e57'],f2:['FEUERWERK F2 · AB 18','#c8322a'],essen:['ESSEN & SNACKS','#d0782f'],getraenke:['GETRÄNKE','#1f8fb8']};
-/* Welche Sparte ueberwiegt im Regal - daraus das Kopfschild */
-function headArt(sh){
-  const cnt={}; sh.levels.forEach(l=>{ if(l.type){ const c=sparteVon(l.type); cnt[c]=(cnt[c]||0)+l.count; } });
-  let best=null,bn=0; for(const k in cnt) if(cnt[k]>bn){ bn=cnt[k]; best=k; }
-  return best; }
-function updateHead(sh){
-  if(!sh.headTex) return;
-  /* Kassenregal: Schild wie das Namensschild der Kasse - weiss (06.10.,
-     vorher Anthrazit), dunkle Serifenschrift, feine Edelstahllinie */
-  if(kindOf(sh).kasse){ const t=(sh.schild||'Nicht vergessen').toUpperCase();
-    redraw(sh.headTex,(g,W,Hh)=>{ g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
-      g.fillStyle=CK_BLENDE; g.fillRect(0,0,W,Hh);
-      g.fillStyle='#9aa1ac'; g.fillRect(0,Hh-5,W,2);
-      g.textAlign='center'; g.textBaseline='middle'; if('letterSpacing' in g) g.letterSpacing='3px';
-      fitFont(g,t,W-60,40,CK_SCHRIFT); g.fillStyle=CK_TEXT; g.fillText(t,W/2,Hh/2+2);
-      if('letterSpacing' in g) g.letterSpacing='0px'; });
-    return; }
-  const best=headArt(sh);
-  /* 02.10. (Tom): kein "REGAL FREI" mehr - dass es leer ist, sieht man.
-     Tisch und Gitterbox zeigen leer gar kein Schild, Regale einen
-     schlichten Kopf ohne Schrift. */
-  /* eigenes Schild (Taste L) geht vor die Warengruppe */
-  if(sh.kopfG) sh.kopfG.visible=best!==null||!!sh.schild;
-  const H=best!==null?HEADNAME[best].slice():['','#39405a']; if(sh.schild) H[0]=sh.schild;
-  const bg=schildBg().c||H[1], fg=schildFg().c;
-  redraw(sh.headTex,(g,W,Hh)=>{
-    g.setTransform(1,0,0,1,0,0); g.scale(W/512,Hh/80); W=512; Hh=80;
-    g.fillStyle=bg; g.fillRect(0,0,W,Hh);
-    g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(0,0,W,10);
-    g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(0,Hh-8,W,8);
-    g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
-    if(H[0]){ fitFont(g,H[0],W-40,44,BUN); g.fillText(H[0],W/2,Hh/2+2); }
-  });
-}
-/* Alle Kopfschilder neu drucken, nachdem die Farbe gewechselt wurde */
-function repaintSchilder(){ shelves.forEach(updateHead); }
 /* Preisschild eines Fachs: eine Zeile im Preisbild des Moebels (lv.zelle, bk.regal) */
 function updateLabel(lv){
   const Z=lv.zelle; if(!Z) return;
@@ -668,11 +629,11 @@ function capOf(lv,t){ return layout(t||lv.type,lv.sh,lv).cap; }
    Moebel auf einmal auf - mit halber Aufloesung brauchen ihre rund 250
    Schilder ein Viertel des Grafikspeichers (02.10., iPhone stuerzte ab). */
 let REGAL_TEX=1;
-/* Viele Stuecke auf einmal: Preis- und Kopfschild erst am Ende zeichnen.
+/* Viele Stuecke auf einmal: Preisschild erst am Ende zeichnen.
    Vorher wurde fuer jedes einzelne Stueck neu gemalt und hochgeladen -
    bei 10 000 Stueck zwanzigtausendmal (Verpackungs-Vorfuehrung, 6 s). */
 let _ohneSchild=false;
-function addViele(lv,t,n){ _ohneSchild=true; let k=0; try{ while(k<n&&addToLevel(lv,t,1)) k++; } finally{ _ohneSchild=false; } updateLabel(lv); updateHead(lv.sh); return k; }
+function addViele(lv,t,n){ _ohneSchild=true; let k=0; try{ while(k<n&&addToLevel(lv,t,1)) k++; } finally{ _ohneSchild=false; } updateLabel(lv); return k; }
 function leereFach(lv){ _ohneSchild=true; try{ while(lv.count>0) removeFromLevel(lv); } finally{ _ohneSchild=false; } }
 function addToLevel(lv,t,q){
   if(lv.sh&&lv.sh.weg) return false;
@@ -686,7 +647,7 @@ function addToLevel(lv,t,q){
   /* face mitgeben: sonst landete die Ware der zweiten Gondel- und
      Eckregalseite auf der ersten (02.10., Verpackungs-Vorfuehrung) */
   const h=pools[t].add(itemMatrix(lv.sh,{li:lv.li,type:t,face:lv.face},lv.count,jit)); h.jit=jit;
-  lv.items.push(h); lv.count++; lvSicht(lv); if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } return true;
+  lv.items.push(h); lv.count++; lvSicht(lv); if(!_ohneSchild){ updateLabel(lv); } return true;
 }
 /* der Kunde nimmt vorn: das zuletzt eingeraeumte Stueck steht am weitesten vorn */
 /* Verdeckte Ware (04.10.): eingeraeumt wird von hinten nach vorn, also
@@ -744,7 +705,7 @@ function regaleImBlick(){
     if(an===!rk._fern&&(an||rk._n===rk.g.children.length)) continue;
     rk._fern=!an; rk._n=rk.g.children.length; rk.g.traverse(o=>o.layers.set(an?0:1)); }
 }
-function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; lvSicht(lv); if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); updateHead(lv.sh); } }
+function removeFromLevel(lv){ const h=lv.items.pop(); if(h) h.pool.remove(h); lv.count--; lvSicht(lv); if(lv.count<=0){ lv.count=0; lv.type=null; lv.q=1; } if(!_ohneSchild){ updateLabel(lv); } }
 function allLevels(){ const a=[]; shelves.forEach(s=>s.levels.forEach(l=>a.push(l))); return a; }
 function findLevel(t,from){ let best=null,bd=1e9; for(const l of allLevels()){ if(l.type===t&&l.count>0){ const d=from?from.distanceTo(shelfStand(l.sh,l)):0; if(d<bd){ bd=d; best=l; } } } return best; }
 /* Größtes Fach, das dieses Produkt überhaupt aufnehmen kann */

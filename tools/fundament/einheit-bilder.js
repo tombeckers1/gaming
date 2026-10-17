@@ -8,7 +8,7 @@ const fs=require('fs'), path=require('path');
 const H=require(path.join(__dirname,'../test/start-hilfe.js'));
 /* Kameras: p = Auge, t = Ziel (Welt-Meter). Je Kategorie mindestens eine Ansicht. */
 const ANS={
-  regalLaden:{p:[-3.6,1.65,4.2],t:[-3.6,1.1,-4]},       /* Verkaufsregale, Mittelgondeln, Kopfschilder, Preisleisten */
+  regalLaden:{p:[-3.6,1.65,4.2],t:[-3.6,1.1,-4]},       /* Verkaufsregale, Mittelgondeln, Preisleisten (Kopfschilder entfielen 17.10.) */
   regalEingang:{p:[0.5,2.9,5.3],t:[2,0.4,-4]},           /* Laden vom Eingang: Regale, Tische, Gitterboxen */
   regalLager:{p:[-9,2.4,4.8],t:[-17,0.6,-4]},            /* Lagerregale */
   kuehl:{p:[10.6,1.9,1.4],t:[10.6,0.9,4.4]},             /* Kuehlregal nah (Glastuer, Schild) */

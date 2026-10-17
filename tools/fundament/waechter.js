@@ -95,10 +95,12 @@ const BAUTEILE=[
   /* Verpackungs-Ausstellung 2.0 (15.10.) */
   {bk:'verkaufstisch',woerter:['verkaufstisch','verkaufstische'],wofuer:'Ladenbau-Verkaufstische (viele in einem Mesh) - Optik wie SHELFKIND.tisch/tischgross'},
   /* Werkbank (Kapitel 5 Eigene Marke, 16.10.) */
-  {bk:'werkbank',woerter:['werkbank','werktisch'],wofuer:'Werkbank im Lager: Werktisch, Lochwand, Schraubstock, Musterbatterie, Tablet (Bauprogramm eigene Batterien)'}
+  {bk:'werkbank',woerter:['werkbank','werktisch'],wofuer:'Werkbank im Lager: Werktisch, Lochwand, Schraubstock, Musterbatterie, Tablet (Bauprogramm eigene Batterien)'},
+  /* Autos (17.10.): jedes Pkw-Modell ueber bk.auto/bk.autos (Formen klein, kompakt, limo, kombi, suv, van) */
+  {bk:'auto',woerter:['auto','autos','pkw','car','cars','fahrzeug','karosse','karosserie'],wofuer:'Pkw (Kleinwagen bis Transporter) nach echten Massen, geteilte Geometrie je Form, Reihe = ein Mesh je Material - autos.md'}
 ];
 /* Helfer im Baukasten (kein Bauteil, keine Namensregel) */
-const HELFER=['lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
+const HELFER=['autos','AUTO','AUTOFARBEN','autoFarbe','autoNacht','autoInfo','lod','kasten','stab','uvZeile','schildTex','liste','WB','PALETTE','inst','bandMat','bandTex','flaeche','flaecheArt','fuss','wandFlaeche','wandBildAdd','wandbildTakt','paletten','palFarbe','MARKIERUNG','HUBWAGEN','verkaufstischTeile','schildAtlas','schildWeg','SCHILD','AUSSEN','DACHRAND','LAMPE_AUSSEN'];
 /* geloeschte Duplikate - duerfen nie zurueckkommen (Schritte Material, Angleichung, Tore, Feuerwerk) */
 const GELOESCHT=['torPanelMat','torBlattMat','westTorInnen','vdPanelMat','panelPose','strebe','concreteTex','gitterTex','gitterMat',
   'stationsModell','stationSlot','rampeMund','kerzeImRohr','stationsPool','vfMuendung','vfImRohr','hvLamellenTex','hvTor'];

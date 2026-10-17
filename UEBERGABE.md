@@ -10,6 +10,14 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 
 ## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
 
+> **AUTOS (17.10., Branch `claude/autos`, noch NICHT veröffentlicht):** Tom: „Die Autos draußen sehen immer noch nicht realistisch
+> genug aus.“ Neu als Baukasten-Bauteil `bk.auto`/`bk.autos` (04z, Doku `docs/fundament/autos.md`): 6 Formen nach echten Maßen
+> (Polo, Golf, 3er/Passat, Passat Variant, Tiguan, T6.1), Seitenprofil-Extrusion mit Fase, verformt (Grundriss, Querschnitt, Sicke,
+> Tumblehome), Details auf der Fläche, Lackfarben nach KBA/VDA 2024. `makeAuto` (05e) gelöscht, Materialien in MAT (`autoLack` …,
+> Texturen `umgebungStrasse`, `reifenProfil`, `kennzeichen`). Straße Hoch: Zeichenaufrufe der Autos 44 → 6, Dreiecke 281 k → 131 k;
+> Ultra Low 16 → 6 / 70 k → 55 k. Bilder `docs/fundament/autos/vorher|nachher/`. Tests grün: autos (neu, Gegenprobe rot), Node- und
+> Laufzeit-Wächter (Ausgangswerte mit Grund), material, gameplay. `leistung` nicht gefahren (Feuerwerk/Testfeld, Verkehr unverändert).
+
 > **ZUSAMMEN (17.10. nachts, Branch `claude/zusammen2` = Rückbau + Werkbank, noch NICHT veröffentlicht):** Merge von `claude/rueckbau`
 > und `claude/werkbank` (Basis a3baa21). Ergebnis: keine Halle/Werk/Produktion, volle Werkbank (Kapitel 5, `docs/werkbank/werkbank.md`,
 > Stufen labor..labor5 bis L32). Laptop ohne Reiter Entwicklung/Produktion, Vorführung 8 Sprungpunkte (mit Werkbank). Alte V141-Stände:

@@ -117,8 +117,8 @@
     {"datei":"reuse-pack.js","art":"material","anzahl":1,"werte":{"MeshStandardMaterial":1},"grund":"Ware/Produktmodelle und Pools: Verpackung (frei) gemischt mit Hilfsmaterialien (glassMat, Etiketten, Karton-Texturen je Sorte)","schritt":"Schritt Paletten/Kartons (Karton-Atlas) + glassMat -> MAT-Rezept","anlass":"Ausgangsstand 14.10.2026 (d9e733d, Hauptstand V130) - Fundament Etappe 5","seit":"2026-10-14"}
   ],
   "laufzeit": {
-    "stand": "2026-10-16",
-    "grund": "Rueckbau 16.10. (Tom): Logistikhalle, Hochregal, Werk West und Produktion geloescht - Werk-/Hallen-Bauteile entfallen, weniger Tore/Waende/Schilder/Lampen, Zeichenaufrufe Laden -18 %, Lager -22 % | Schattenpass: Hoechstwert aus drei Laeufen (Schreiblauf traf ein Bild ohne Deckenschatten, Laden 251 statt 323)",
+    "stand": "2026-10-17",
+    "grund": "Autos 17.10.: neues Bauteil auto (bk.auto/bk.autos), geparkte Reihe als ein Mesh je Material - Strasse 34 Zeichenaufrufe weniger | Schattenpass: Hoechstwert aus altem Stand und zwei Laeufen (Mittel zeichnet die Schattenkarte nur jedes 3. Bild)",
     "toleranz": {
       "rel": 0.05,
       "abs": 15
@@ -142,48 +142,49 @@
       "anfahrschutz": 2,
       "stadtmoebel": 6,
       "stadthaus": 18,
+      "auto": 10,
       "hubwagen": 6
     },
     "sechsMaterial": 23,
     "sechsGrund": "alte Waende aus wall() (05-world) mit je einem Material pro Seite - Schritt Waende (claude/fundament-waende) loest sie auf",
     "szene": {
-      "meshes": 1469,
+      "meshes": 1444,
       "materialien": 329,
       "texturen": 198
     },
     "ansichten": {
       "laden": {
-        "calls": 517,
+        "calls": 522,
         "schatten": 323,
-        "mats": 207,
-        "texs": 129
-      },
-      "lager": {
-        "calls": 423,
-        "schatten": 295,
-        "mats": 181,
-        "texs": 119
-      },
-      "lagerDock": {
-        "calls": 647,
-        "schatten": 291,
         "mats": 212,
         "texs": 131
       },
+      "lager": {
+        "calls": 426,
+        "schatten": 295,
+        "mats": 186,
+        "texs": 121
+      },
+      "lagerDock": {
+        "calls": 608,
+        "schatten": 291,
+        "mats": 208,
+        "texs": 131
+      },
       "dockHof": {
-        "calls": 749,
+        "calls": 702,
         "schatten": 260,
-        "mats": 224,
+        "mats": 221,
         "texs": 141
       },
       "testfeld": {
-        "calls": 418,
+        "calls": 378,
         "schatten": 332,
-        "mats": 184,
-        "texs": 121
+        "mats": 177,
+        "texs": 115
       },
       "strasse": {
-        "calls": 125,
+        "calls": 120,
         "schatten": 330,
         "mats": 107,
         "texs": 82

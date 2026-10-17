@@ -10,6 +10,16 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 
 ## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
 
+> **ZUSAMMEN (17.10. nachts, Branch `claude/zusammen2` = Rückbau + Werkbank, noch NICHT veröffentlicht):** Merge von `claude/rueckbau`
+> und `claude/werkbank` (Basis a3baa21). Ergebnis: keine Halle/Werk/Produktion, volle Werkbank (Kapitel 5, `docs/werkbank/werkbank.md`,
+> Stufen labor..labor5 bis L32). Laptop ohne Reiter Entwicklung/Produktion, Vorführung 8 Sprungpunkte (mit Werkbank). Alte V141-Stände:
+> Werkbank-Umstellung (Rezepturen, labor2-Erstattung 13.500 €) läuft VOR dem Rückbau, sonst gingen Rezeptur-Kartons aus dem Hochregal
+> verloren; je eine Meldung (Test `rueckbau` prüft beides). **„gameplay rot“ gelöst:** Ursache war die beim Spielstart eingefangene
+> Maussperre, die in der Vorführung aktiv blieb – headless Chromium flutet dann den Renderer mit Maus-Eingaben, die sich während der
+> Tagesschleife stauten (> 12,5 GB beim Neuladen). Fix in 17e/21-input (Vorführung gibt die Sperre frei, kein Wiedereinfangen ohne
+> Spielergeste). **Offen:** Progressionslücke ab L33 (nach Werkbank-Stufe 5 bei L32 kein Ausbauziel mehr) → Balancing; leerer Asphalt
+> West/Süd des Lagers → Vorschlag: Stadt oder Park dort wachsen lassen (eigener Schritt, Tom entscheidet).
+
 > **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
 > mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und
 > Produktion sind **VERWORFEN und aus dem Code gelöscht** (−3 200 Zeilen in src/parts, 6 Dateien, 10 Bauteile, 8 MAT-Rezepte). Westwand von

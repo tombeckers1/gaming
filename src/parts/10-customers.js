@@ -294,7 +294,8 @@ function route(from,to){
   return zoneOf(from)==='front'?[A.clone(),B.clone(),to]:[B.clone(),A.clone(),to];
 }
 const KASSE_GRIFF=0.35;
-function spotPos(i){ return i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68); }
+/* 17.10.: weit hinten in der Schlange kann ein Platz in einem Moebel liegen (Gitterbox) - dann aus dem Hindernis geschoben */
+function spotPos(i){ return ausHindernis(i===0?ck(1.05,1.05):ck(0.1-(i-1)*0.8,1.68),KOERPER_R); }
 function queueApproach(){ return ck(-4.0,1.7); }
 function priceTol(){ const T=WIRT.kunden.toleranz; return (T.grund+ambienteScore()/T.ambTeiler+S.rep/T.rufTeiler+bildBoost()+(friendliness()-1)*T.jeFreundlichkeit)*evv('tol')*(S.comp||1); }
 function buyChance(t,price,q,cold,ct){ const K=WIRT.kunden.kauf, r=price/marketOf(t), lo=priceTol()*(ct?ct.tol:1)+((q||1)-1)*K.jeMenge+(cold?K.kuehl:0); if(r<=lo) return 1; if(r>=lo+K.spanne) return 0; return 1-(r-lo)/K.spanne; }

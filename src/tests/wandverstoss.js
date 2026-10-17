@@ -34,13 +34,14 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     const td=bb.truckDriver; if(td) wer.push(['lkwFahrer',td,'']);
     if(bb.LD&&bb.LD.fig&&bb.LD.fig.visible) wer.push(['ddlFahrer',bb.LD.fig,bb.LD.ph]);
     const stirn=bb.VT&&bb.VT.cols?bb.VT.cols[2]:null, grenze=V.KR-0.01;
+    const vor=V.vor||new Set(CO); V.vor=new Set(CO);   /* ein Rechteck, das erst in diesem Schritt entsteht (Wagen wird abgestellt), zaehlt erst ab dem naechsten Schritt */
     for(const [id,g,st] of wer){ if(!g||g.visible===false||!g.parent) continue;
       const x=g.position.x, z=g.position.z; V.proben++; V.arten.add(id); if(id==='ddlFahrer') V.ddl++;
       let mw=9, bad=false;
       for(const w of W){ const dd=dist(x,z,w.x0,w.x1,w.z0,w.z1); if(dd<mw) mw=dd;
         if(dd<grenze){ bad=true; const k=id+' Wand '+[w.x0,w.x1,w.z0,w.z1].map(v=>v.toFixed(1)); const f=V.w.get(k)||{n:0,x:x,z:z,st,min:9}; f.n++; f.min=Math.min(f.min,dd); V.w.set(k,f); } }
       V.minW[id]=Math.min(V.minW[id]===undefined?9:V.minW[id],mw);
-      for(const c of CO){ if(c===stirn&&id==='ddlFahrer') continue; const dd=dist(x,z,c.minX,c.maxX,c.minZ,c.maxZ);
+      for(const c of CO){ if(c===stirn&&id==='ddlFahrer') continue; if(!vor.has(c)) continue; const dd=dist(x,z,c.minX,c.maxX,c.minZ,c.maxZ);
         if(dd<grenze){ bad=true; const nm=c.ref?(c.ref.kind||'')+':'+(c.ref.name||''):'-'; const k=id+' Koll '+[c.minX,c.maxX,c.minZ,c.maxZ].map(v=>v.toFixed(1)).join(',')+' '+nm; const f=V.c.get(k)||{n:0,x:x,z:z,st,min:9}; f.n++; f.min=Math.min(f.min,dd); V.c.set(k,f); } }
       if(bad) V.verstoesse++; } };
   await p.addScriptTag({content:'window.__sample='+sample.toString()});

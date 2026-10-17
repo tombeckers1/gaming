@@ -47,7 +47,9 @@ const vsPalObj={};          /* id -> {g,holz,pk,sig,cx,cz} */
 const palHits=[];           /* Trefferflaechen der Boxplaetze (Station) */
 const HUB={pal:null,g:null,park:null,t:0,von:null};
 const DDL={ruf:false,warte:false,eta:0,t:0,lad:0,voll:false,heute:0};
-const VT={g:null,rahmen:null,raum:null,bruecke:null,state:null,t:0,flap:0,cols:[],flapCol:null};
+/* LKW von DDL (Tom 17.10.): kein sichtbares An- und Abfahren, keine Klappe/Bruecke. Der Laderaum erscheint hinter dem geschlossenen
+   Tor V1, V1 faehrt hoch (torauf), laden (docked), V1 faehrt zu (torzu), Laderaum weg. */
+const VT={g:null,rahmen:null,raum:null,state:null,t:0,cols:[]};
 /* Fahrer und Hubwagen (ldUpdate): jx/jz = Gabelfuss, psi = Richtung der Gabel in (lx,lz), fx/fz/fpsi = Fahrer (haengt am Griff, wenn att),
    pf = Weg, wd = Drehung auf der Stelle, hub 0..1 = Gabelhub, phi = Deichselwinkel, gang = Gehtempo (negativ = rueckwaerts) */
 const LD={ph:'idle',t:0,pal:null,fig:null,jack:null,slot:0,ziel:null,jx:0,jz:0,psi:0,fx:0,fz:0,fpsi:0,att:false,armW:0,hub:0,phi:0,phiZ:0,door:0,gang:0,pf:null,wd:null};
@@ -411,38 +413,34 @@ function ddlTelZeichnen(){
       c.fillText(st.unterwegs?'DDL ist unterwegs':st.voll?`BOX VOLL · ${st.pakete} Pakete`:`Box ${st.pakete} Pakete · ${st.paletten} Palette${st.paletten===1?'':'n'}`,W/2,190); } });
 }
 /* ---------------------------------------------------------
-   Der LKW von DDL: rueckwaerts an V1, Tor auf, Brueckenklappe, laden, zu, weg
+   Der LKW von DDL: steht hinter dem geschlossenen Tor V1, Tor auf, laden, Tor zu, LKW weg (seit 17.10. ohne Fahrt und ohne Klappe)
    --------------------------------------------------------- */
 function vtRahmen(){
   if(VT.rahmen) return VT.rahmen;
   const r=new THREE.Group(); r.position.set(V1.x,0,V1.rz); r.rotation.y=-Math.PI/2; scene.add(r); VT.rahmen=r; return r;
 }
 function vtStart(){
-  const r=vtRahmen();
-  VT.g=makeTruck('DDL',TRUCKCOL.ddl); VT.g.position.set(-9.5,0,0); r.add(VT.g);
-  VT.state='anfahrt'; VT.t=0; VT.flap=0; DDL.t=0; DDL.lad=0;
-  toast('DDL biegt in den Versandhof ein und setzt rückwärts an Tor V1.');
+  vtRahmen();
+  /* Tom 17.10.: "Rolltor V1 faehrt hoch -> der LKW steht schon da; Rolltor runter -> LKW ist weg." Der LKW fuehrt keine sichtbare Fahrt
+     aus: hinter dem noch geschlossenen Tor steht der Laderaum, dann geht das Tor hoch. */
+  VT.g=null; VT.state='torauf'; VT.t=0; DDL.t=0; DDL.lad=0;
+  vdOffen(true); vtLaderaumOeffnen();
+  toast('DDL steht an V1. Das Tor fährt hoch.');
 }
 function vtLaderaumOeffnen(){
   if(VT.raum) return;
   const r=vtRahmen();
-  VT.g.visible=false;
   VT.raum=makeLaderaum('DDL',TRUCKCOL.ddl,r);
-  VT.bruecke=makeBruecke(r); VT.flap=0; vtFlap();
   /* Seitenwaende und Stirnwand des Laderaums, in Weltkoordinaten */
-  const a=vf(-LR.len-0.05,0), L=(lz0,lz1,lx0,lx1)=>{ const p=vf(lx0,lz0), q=vf(lx1,lz1); return col(Math.min(p.x,q.x),Math.max(p.x,q.x),Math.min(p.z,q.z),Math.max(p.z,q.z)); };
+  const L=(lz0,lz1,lx0,lx1)=>{ const p=vf(lx0,lz0), q=vf(lx1,lz1); return col(Math.min(p.x,q.x),Math.max(p.x,q.x),Math.min(p.z,q.z),Math.max(p.z,q.z)); };
   VT.cols=[L(-LR.w/2-0.2,-LR.w/2+0.02,-LR.len-0.3,0.2),L(LR.w/2-0.02,LR.w/2+0.2,-LR.len-0.3,0.2),L(-LR.w/2,LR.w/2,-LR.len-0.25,-LR.len-0.02)];
-  void a;
   if(typeof navDirty==='function') navDirty();
   /* Hubwagen steht an der Wand, der Fahrer sitzt im Fuehrerhaus und steigt durch den Durchstieg ein, wenn das Tor offen ist (ldUpdate) */
   ldStowen();
 }
-function vtFlap(){ if(VT.bruecke) VT.bruecke.rotation.z=VT.flap*FLAP_MAX; }
 function vtRaumWeg(){
   if(VT.raum){ if(VT.raum.parent) VT.raum.parent.remove(VT.raum); VT.raum=null; LR_LAMPE.forEach(l=>{ l.intensity=0; }); }
-  if(VT.bruecke){ if(VT.bruecke.parent) VT.bruecke.parent.remove(VT.bruecke); VT.bruecke=null; }
   VT.cols.forEach(c=>dropCol(c)); VT.cols=[];
-  if(VT.flapCol){ dropCol(VT.flapCol); VT.flapCol=null; }
   if(LD.ph!=='idle') ldAbbruch(); else { if(LD.jack) LD.jack.g.visible=false; if(LD.fig) LD.fig.visible=false; }
   if(typeof navDirty==='function') navDirty();
 }
@@ -461,26 +459,14 @@ function vtBesetzt(){
 }
 function vtUpdate(dt){
   if(!VT.state) return;
-  const g=VT.g;
-  if(VT.state==='anfahrt'){
-    /* Rueckwaerts an V1, das Tor bleibt dabei zu */
-    const d=0-g.position.x, sp=clamp(d*0.9,0.5,2.6);
-    g.position.x+=sp*dt;
-    if(d<=0.03){ g.position.x=0; VT.state='torauf'; vdOffen(true); vtLaderaumOeffnen(); toast('DDL steht an V1. Das Tor fährt hoch.'); }
-  } else if(VT.state==='torauf'){
+  if(VT.state==='torauf'){
     if(vdIstOffen()){ VT.state='docked'; VT.t=0; DDL.t=0; toast('Der DDL-Fahrer lädt die Paletten mit dem Hubwagen – so lange ist die Box belegt, der Kran wartet.',COARSE?'':'xp'); }
   } else if(VT.state==='docked'){
     ddlTruckUpdate(dt);
-  } else if(VT.state==='flap'){
-    if(vtBesetzt()){ VT.flap=Math.max(0,VT.flap-dt/FLAP_T); vtFlap(); if(VT.flapCol&&VT.flap<0.6){ dropCol(VT.flapCol); VT.flapCol=null; } if(VT.flap<=0) VT.state='docked'; return; }
-    VT.flap=Math.min(1,VT.flap+dt/FLAP_T); vtFlap();
-    if(VT.flap>=0.6&&!VT.flapCol){ const p=vf(0.3,-1.6), q=vf(0.05,1.6); VT.flapCol=col(Math.min(p.x,q.x),Math.max(p.x,q.x),Math.min(p.z,q.z),Math.max(p.z,q.z)); }
-    if(VT.flap>=1){ VT.state='torzu'; VT.t=0; vdOffen(false); }
   } else if(VT.state==='torzu'){
-    if(VD.t<=0.05){ vtRaumWeg(); g.visible=true; VT.state='out'; VT.t=0; }
-  } else if(VT.state==='out'){
-    VT.t+=dt; g.position.x-=Math.min(7,VT.t*5)*dt;
-    if(g.position.x<-LR.len-14){ vtEntfernen(); DDL.warte=false; }
+    /* Betritt jemand den Laderaum, waehrend das Tor zufaehrt: wieder auf */
+    if(VD.t>0.3&&vtBesetzt()){ VT.state='docked'; vdOffen(true); return; }
+    if(VD.t<=0.05){ vtEntfernen(); DDL.warte=false; }
   }
 }
 
@@ -498,11 +484,11 @@ function vtUpdate(dt){
    1,0 m/s, ziehen 1,2 / 0,9 m/s, zu Fuss 1,4 m/s. Kurven laufen auf Bahnen mit Rundung (Gabel folgt der Bahn, kein Ruckeln).
    --------------------------------------------------------- */
 const HW_PAL=bk.HUBWAGEN.gabelL/2, HW_HAND=0.55;
-const LD_STOW={lx:-2.4,lz:-1.15};        /* Hubwagen an der Seitenwand nahe dem Heck, Gabel zum Tor */
+const LD_STOW={lx:-2.4,lz:-0.85};        /* Hubwagen an der Seitenwand nahe dem Heck, Gabel zum Tor */
 const LD_T={lx:0.6,lz:0.2};              /* Wendeplatz am Tor: Hubwagen samt Palette dreht sich frei (Zone -1,95..1,65 quer) */
 const LD_V={leer:1.3,last:1.0,zugLeer:1.2,zugLast:0.9,fuss:1.4};
-/* Boden unter dem Fahrer: Ladeboden und Bruecke 0,06, dahinter die Halle 0 (kurze Auffahrt) */
-function ldBoden(lx){ return LADEBODEN_V1*(1-vsGlatt((lx-1.5)/0.35)); }
+/* Boden unter dem Fahrer: Ladeboden 0,06, dahinter die Halle 0 (kurze Auffahrt; seit 17.10. ohne Ueberladebruecke) */
+function ldBoden(lx){ return LADEBODEN_V1*(1-vsGlatt((lx-0.1)/0.35)); }
 function ldWd(d){ while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; return d; }
 /* Linienzug w=[[lx,lz],..] mit Rundung r an den Ecken (Kreisbogen), dicht abgetastet */
 function ldRund(w,r){
@@ -762,7 +748,7 @@ function ddlAbfahrt(){
   DDL.t=0; DDL.lad=0; DDL.ruf=false; DDL.voll=false; S.boxVoll=false; S.ddlUnterwegs=false; DS.ddlAbgeholt=true;
   vsPalAbgleich(); syncPakete(); drawPackSchild(); ddlTelZeichnen();
   if(n) toast(`DDL hat ${n} Paket${n===1?'':'e'} abgeholt.`,'money');
-  VT.state='flap'; VT.t=0;
+  VT.state='torzu'; VT.t=0; vdOffen(false);
 }
 /* Fuer Tests und Notfaelle: alles sofort weg, ohne LKW-Fahrt und ohne Kosten.
    Das Spiel selbst ruft das nicht mehr auf (keine Abholung zum Tagesende seit 09.10.). */

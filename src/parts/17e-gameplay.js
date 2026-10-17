@@ -67,9 +67,14 @@ function gpHochladen(pl){
       try{ if(renderer&&renderer.initTexture) renderer.initTexture(tx); }catch(e){} } } }
 }
 let gpBau=null, gpFertig=false, gpBauEl=null, gpWarteDdl=0;
+let gpSicherung=true;
 function gpStart(){
   if(gpAn||!S) return;
-  try{ save(); localStorage.setItem(GP_KEY,localStorage.getItem(KEY)||''); }catch(e){}
+  /* Sicherungskopie des eigenen Spielstands (17.10.: schlaegt sie fehl - Speicher voll -, wird am Ende NICHTS zurueckgeschrieben oder
+     geloescht; waehrend der Vorfuehrung bleibt KEY ohnehin unberuehrt, save() sperrt) */
+  gpSicherung=false;
+  try{ save(); const cur=localStorage.getItem(KEY)||''; localStorage.setItem(GP_KEY,cur); gpSicherung=localStorage.getItem(GP_KEY)===cur; }catch(e){ gpSicherung=false; }
+  if(!gpSicherung){ try{ toast('Vorführung ohne Sicherungskopie (Browser-Speicher voll) – dein Spielstand bleibt unberührt.','bad'); }catch(e){} }
   gpAn=true; gpFertig=false;
   if(laptopOpen) closeLaptop(false);
   /* Die Vorfuehrung laeuft von selbst: Maus frei (Leiste mit Sprungpunkten anklickbar); umsehen per Klick ins Bild wie sonst.
@@ -326,7 +331,7 @@ function gpEnde(){
   let alt=''; try{ alt=localStorage.getItem(GP_KEY)||''; }catch(e){}
   /* gpAn bleibt an: beim Neuladen speichert das Spiel sonst den
      Vorfuehrungsstand ueber den eben zurueckgeschriebenen */
-  try{ if(alt) localStorage.setItem(KEY,alt); else localStorage.removeItem(KEY); localStorage.removeItem(GP_KEY); }catch(e){}
+  try{ if(gpSicherung){ if(alt) localStorage.setItem(KEY,alt); else localStorage.removeItem(KEY); } localStorage.removeItem(GP_KEY); }catch(e){}
   location.reload();
 }
 function gpSpringe(i){

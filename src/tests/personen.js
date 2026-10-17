@@ -47,7 +47,13 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     o.farbKombis=new Set(leute.map(l=>l.u.kopf+'|'+l.u.oben)).size;
     o.geschlechter=[...new Set(leute.map(l=>kopf(l.u.kopf).sex))];
     o.alter=[...new Set(leute.map(l=>kopf(l.u.kopf).alter))];
-    o.jugendNichtTeen=leute.filter(l=>l.ct==='jugend'&&kopf(l.u.kopf).alter!=='teen').length;
+    o.jugendNichtJung=leute.filter(l=>l.ct==='jugend'&&kopf(l.u.kopf).alter!=='jung').length;
+    /* Keine Kinder (Tom 17.10.): Groesse und Kopf-Koerper-Verhaeltnis aller 300 Figuren + des Personals */
+    { const gr=[], kv=[], alle=leute.map(l=>l.g).concat(Object.keys(bb.STAFFKOPF).map(id=>bb.makePerson({uniform:id})));
+      alle.forEach(g=>{ const F=g.userData.fig; if(!F) return; g.updateMatrixWorld(true); const box=new THREE.Box3().setFromObject(F.mesh), h=box.max.y-box.min.y;
+        const nk=F.bones.find(b=>b.name==='Neck'), v=new THREE.Vector3(); nk.getWorldPosition(v); gr.push(h); kv.push((box.max.y-v.y)/h); });
+      o.groesse={n:gr.length,min:+Math.min(...gr).toFixed(3),max:+Math.max(...gr).toFixed(3),kopfMin:+Math.min(...kv).toFixed(3),kopfMax:+Math.max(...kv).toFixed(3)};
+      o.kinderKoepfe=KOEPFE.filter(k=>k.alter==='teen').length+KOEPFE.filter(k=>/^(FC|MC)/.test(k.id)).length; }
     o.angeberUnschick=leute.filter(l=>l.ct==='angeber'&&!kopf(l.u.kopf).schick).length;
     o.kundeInUniform=leute.filter(l=>l.u.oben===bb.UNIFORM.obenF).length;
     o.kundePersonalFigur=leute.filter(l=>kopf(l.u.kopf).nurPersonal).length;
@@ -73,7 +79,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     let kor=0; for(let i=0;i<fz[0].length;i++) kor+=(fz[0][i]-fz[0].reduce((s,x)=>s+x,0)/fz[0].length)*(fz[1][i]-fz[1].reduce((s,x)=>s+x,0)/fz[1].length);
     o.fuesse=[+sp(fz[0]).toFixed(2),+sp(fz[1]).toFixed(2),kor<0];
     /* Hoehe der Figur: Scheitel ueber dem Boden (Ruhelage) */
-    const ad=leute.find(l=>l.u.fig&&kopf(l.u.kopf).alter!=='teen').g; ad.updateMatrixWorld(true);
+    const ad=leute.find(l=>l.u.fig).g; ad.updateMatrixWorld(true);
     const box=new THREE.Box3().setFromObject(ad.userData.fig.mesh);
     o.hoehe=+(box.max.y-box.min.y).toFixed(2); o.boden=+box.min.y.toFixed(2);
     /* Arm-IK: Arm nach vorn wie beim Kartontragen */
@@ -95,16 +101,20 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
   });
   console.log('VIELFALT',JSON.stringify({koepfe:r.koepfe,ohneFigur:r.ohneFigur,farbKombis:r.farbKombis,sex:r.geschlechter,alter:r.alter,texturen:r.texturen}));
   console.log('AUFBAU  ',JSON.stringify({teile:r.teile,skinned:r.skinned,knochen:r.knochen,einMaterial:r.einMaterial,dreiecke:r.dreiecke}));
-  console.log('REGELN  ',JSON.stringify({jugend:r.jugendNichtTeen,angeber:r.angeberUnschick,uniform:r.kundeInUniform,personalFigur:r.kundePersonalFigur}));
+  console.log('GROESSE ',JSON.stringify(r.groesse),'kinderKoepfe',r.kinderKoepfe);
+  console.log('REGELN  ',JSON.stringify({jugend:r.jugendNichtJung,angeber:r.angeberUnschick,uniform:r.kundeInUniform,personalFigur:r.kundePersonalFigur}));
   console.log('PERSONAL',JSON.stringify(r.personal));
   console.log('FIGUR   ',JSON.stringify({beine:r.beine,fuesse:r.fuesse,hoehe:r.hoehe,boden:r.boden,ikHand:r.ikHand,freiHand:r.freiHand,tuete:r.tuete}));
   pruef('VIELFALT',r.koepfe>=16&&r.ohneFigur===0,'nur '+r.koepfe+' Figuren, '+r.ohneFigur+' ohne Figur');
   pruef('VIELFALT',r.farbKombis>=40,'nur '+r.farbKombis+' Kombinationen aus Figur und Oberteil');
-  pruef('VIELFALT',r.geschlechter.length===2&&r.alter.length===4,'Geschlecht/Alter fehlt: '+r.geschlechter+' '+r.alter);
+  pruef('VIELFALT',r.geschlechter.length===2&&r.alter.length===3&&!r.alter.includes('teen'),'Geschlecht/Alter fehlt: '+r.geschlechter+' '+r.alter);
   pruef('VIELFALT',r.texturen<=r.koepfe,'Texturen nicht je Figur geteilt: '+r.texturen);
   pruef('AUFBAU',r.skinned&&r.knochen===27&&r.einMaterial,'keine echte Figur: '+JSON.stringify(r));
   pruef('AUFBAU',r.teile<=3,'zu viele Zeichenteile je Person: '+r.teile);
-  pruef('REGELN',r.jugendNichtTeen===0,r.jugendNichtTeen+' Jugend-Kunden sind keine Jugendlichen');
+  pruef('REGELN',r.jugendNichtJung===0,r.jugendNichtJung+' Jugend-Kunden sind keine jungen Erwachsenen');
+  pruef('KEINE_KINDER',r.kinderKoepfe===0,'Kinder-Figuren im Satz: '+r.kinderKoepfe);
+  pruef('KEINE_KINDER',r.groesse.min>=1.58&&r.groesse.max<=1.95,'Groesse ausserhalb 1,58-1,95 m: '+JSON.stringify(r.groesse));
+  pruef('KEINE_KINDER',r.groesse.kopfMax<=0.17,'Kopf im Verhaeltnis zu gross (Kind?): '+JSON.stringify(r.groesse));
   pruef('REGELN',r.angeberUnschick===0,r.angeberUnschick+' Angeber nicht schick');
   pruef('REGELN',r.kundeInUniform===0&&r.kundePersonalFigur===0,r.kundeInUniform+' Kunden in Personal-Farbe, '+r.kundePersonalFigur+' als Lkw-Fahrer');
   const pers=Object.values(r.personal);

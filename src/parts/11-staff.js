@@ -54,9 +54,9 @@ const PRIO={lkw:'LKW zuerst',regal:'Regale zuerst'};
    des Einraeumers lag mitten im Buerotisch. Dann die naechste freie Stelle. */
 function freiePos(v){
   if(typeof NAV==='undefined') return v.clone();
-  if(NAV.dirty) navBuild();
-  if(navFrei(navIdx(v.x,v.z))) return v.clone();
-  const n=navNah(v.x,v.z); return n>=0?navPos(n):v.clone();
+  if(NAV.dirty||NAV.nc!==colliders.length) navBuild();
+  if(navFrei(navIdx(v.x,v.z))) return ausHindernis(v.clone(),KOERPER_R);
+  const n=navNah(v.x,v.z); return ausHindernis(n>=0?navPos(n):v.clone(),KOERPER_R);
 }
 /* Lohnstufen: mehr Geld heißt schneller, gründlicher und freundlicher */
 const WAGES=[
@@ -127,6 +127,7 @@ class Worker{
   applyWage(){ const f=wageOf(this.id); this.speed=this.base*(WIRT.personal.tempo.grund+WIRT.personal.tempo.jeLohn*f); this.wf=f; }
   walk(dt){
     if(!this.path.length){ this.moving=false; return true; }
+    umweg(this);
     const t=this.path[0], dx=t.x-this.pos.x, dz=t.z-this.pos.z, d=Math.hypot(dx,dz), st=this.speed*dt;
     if(d<=st){ this.pos.x=t.x; this.pos.z=t.z; this.path.shift(); } else { this.pos.x+=dx/d*st; this.pos.z+=dz/d*st; }
     if(d>0.02){ const ty=Math.atan2(dx,dz); let df=ty-this.g.rotation.y; while(df>Math.PI) df-=Math.PI*2; while(df<-Math.PI) df+=Math.PI*2; this.g.rotation.y+=df*Math.min(1,dt*9); }

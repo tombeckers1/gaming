@@ -191,18 +191,18 @@ function makeLaderaum(name,col,rahmen){
   else {
   LR_LAMPE[0].position.set(g.position.x-L*0.45,HH-0.3,g.position.z); LR_LAMPE[0].intensity=0.85;
   LR_LAMPE[1].position.set(g.position.x-L*0.85,HH-0.3,g.position.z); LR_LAMPE[1].intensity=0.6; }
-  /* Stirnwand mit Lieferantenschrift */
-  const fm=new THREE.MeshStandardMaterial({map:liveryTex(name,col,true),roughness:0.78});
+  /* Stirnwand (Tom 17.10.: "Bei den angelieferten LKWs soll nichts stehen - immer derselbe LKW-Inhalt, ausser beim DDL mit der Tuer
+     zum Fuehrerhaus"): dieselbe helle Verkleidung wie die Seitenwaende, ohne Lieferantenschrift. Bei DDL (rahmen) mit Durchstieg.
+     UV wie bei den Seitenwaenden (eine Kachel = L/3,2 m), damit die Fugen durchlaufen. */
+  const stueck=(a0,a1,y0,y1)=>{ const geo=new THREE.PlaneGeometry(a1-a0,y1-y0), pos=geo.attributes.position, uv=geo.attributes.uv, c=(a0+a1)/2, cy=(y0+y1)/2;
+    for(let i=0;i<uv.count;i++){ uv.setXY(i,(W/2-(c-pos.getX(i)))/L,(cy+pos.getY(i))/HH); }
+    const m=new THREE.Mesh(geo,wm); m.rotation.y=Math.PI/2; m.position.set(-L+0.02,cy,c); g.add(m); };
   if(!rahmen){
-    const front=new THREE.Mesh(new THREE.PlaneGeometry(W,HH),fm);
-    front.rotation.y=Math.PI/2; front.position.set(-L+0.02,HH/2,0); g.add(front);
+    stueck(-W/2,W/2,0,HH);
   } else {
     /* DDL: Stirnwand mit Durchstieg zum Fuehrerhaus - der Fahrer kommt aus dem Fahrzeug, nicht aus dem Nichts (15.10.).
-       Vier Stuecke um die Oeffnung, UV wie bei der ganzen Wand (u laeuft in Richtung -z der Gruppe). */
+       Vier Stuecke um die Oeffnung. */
     const D=DURCHSTIEG, z0=D.lz-D.b/2, z1=D.lz+D.b/2;
-    const stueck=(a0,a1,y0,y1)=>{ const geo=new THREE.PlaneGeometry(a1-a0,y1-y0), pos=geo.attributes.position, uv=geo.attributes.uv, c=(a0+a1)/2, cy=(y0+y1)/2;
-      for(let i=0;i<uv.count;i++){ uv.setXY(i,(W/2-(c-pos.getX(i)))/W,(cy+pos.getY(i))/HH); }
-      const m=new THREE.Mesh(geo,fm); m.rotation.y=Math.PI/2; m.position.set(-L+0.02,cy,c); g.add(m); };
     stueck(-W/2,z0,0,HH); stueck(z1,W/2,0,HH); stueck(z0,z1,D.h,HH);
     /* Fuehrerhaus hinter der Wand: dunkle Kabine, die Figur steht darin, bis die Tuer aufgeht */
     const km=MAT.ober('anthrazit','matt',{side:THREE.DoubleSide}), kb=D.kabB, kt=D.tiefe, kx=-L-kt/2+0.02;

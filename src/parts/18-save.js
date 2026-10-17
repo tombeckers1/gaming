@@ -51,13 +51,8 @@ function sortenUmstellen(d){
 }
 function loadSave(){ try{ const r=localStorage.getItem(KEY); if(!r) return null; const d=JSON.parse(r); return d&&d.v===3?d:null; }catch(e){ return null; } }
 function mpos(g){ return g?{x:+g.position.x.toFixed(2),z:+g.position.z.toFixed(2),ry:+g.rotation.y.toFixed(3)}:null; }
-function save(){
-  if(!S) return;
-  /* Gameplay-Vorfuehrung (17e): der eigene Spielstand bleibt unangetastet */
-  if(typeof gpAn!=='undefined'&&gpAn) return;
-  /* Leistungsbericht (17g): waehrend und nach der Messung im eigenen Spielstand nichts speichern - bis zum Neuladen */
-  if(typeof LM!=='undefined'&&LM&&(LM.an||LM.halt)) return;
-  try{
+/* Der Spielstand als Objekt (ohne Schreiben) - save() und der Test speichern.js benutzen es */
+function stateBauen(){
     const d={v:3,money:S.money,rep:S.rep,level:S.level,xp:S.xp,season:S.season,day:S.day,loan:S.loan,prices:S.prices,up:S.up,staff:S.staff,prio:S.prio||{},einr:S.einr||{},wage:S.wage||{},pause:S.pause||{},ev:S.ev||null,goal:S.goal||null,mkt:r2(S.mkt||1),comp:r2(S.comp||1),lic:S.lic||['start'],stat:S.stat||{},erf:S.erf||{},gesehen:S.gesehen||[],eigene:(S.eigene||[]).map(e=>{ const q=Object.assign({},e); delete q._neig; return q; }),eigeneAlt:S.eigeneAlt||[],wbv:1,werkbank:wbG?mpos(wbG):null,gutschrift:r2(S.gutschrift||0),fwZaehler:S.fwZaehler||{},mi:S.mi||{},me:S.me||{},reg:S.reg||{},mh:S.mh||{},schock:S.schock||{},news:S.news||[],infl:S.infl||1,
       wall:S.wall,floor:S.floor,schildBg:S.schildBg||'auto',schildFg:S.schildFg||'weiss',paint:S.paint,test:S.test,stamm:S.stamm,blanks:gravBlanks,grav:gravG?mpos(gravG):null,grime:r2(S.grime||0),tut:S.tut,tutAus:!!S.tutAus,karre:S.karre||null,seasonRevenue:S.seasonRevenue,carrying:S.carrying,kisten:S.kisten|0,kisteHand:!!S.kisteHand,cart:S.cart||[],rest:S.rest||null,ekVor:S.ekVor||{},offen:S.offen|0,pakete:S.pakete|0,bestellungen:(S.bestellungen||[]).map(b=>({id:b.id,pos:b.pos.map(l=>({t:l.t,n:l.n,g:l.g})),gr:b.gr,wert:b.wert,versand:b.versand||0,rabatt:b.rabatt||0,st:b.st,tag:b.tag})),vm:S.vm||null,versandCfg:S.versandCfg||null,aktion:S.aktion||null,onlineLog:(S.onlineLog||[]).slice(-30),ddlUnterwegs:!!S.ddlUnterwegs,boxVoll:!!S.boxVoll,paketeVortag:S.paketeVortag|0,paketGr:(S.paketGr||[]).slice(),paketP:(S.paketP||[]).slice(),paletten:(S.paletten||[]).map(p=>({id:p.id,ort:p.ort,idx:p.idx})),palNr:S.palNr|0,ddlTag:S.ddlTag|0,bestNr:S.bestNr|0,shopName:S.shopName||SHOP_DEFAULT,slogan:S.slogan||'',
       deko:dekos.map(d2=>Object.assign({id:d2.id},mpos(d2.g))),
@@ -82,8 +77,48 @@ function save(){
       paketeBoden:einbauPakete.map(b=>Object.assign({regal:b.regal,einbau:b.einbau},mpos(b.mesh))),
       einbauBestellt:S.einbauBestellt||{},
       boxes:floorBoxes.filter(b=>!b.test).map(b=>({type:b.type,count:b.count,q:b.q||1,kiste:b.kiste?1:0,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),ry:+b.mesh.rotation.y.toFixed(2)})).concat(pending.filter(p=>p.type&&P[p.type]).map(p=>({type:p.type,count:P[p.type].box,q:p.q||1}))).concat((typeof truck!=='undefined'&&truck?truck.cargo:[]).filter(c=>c.type&&P[c.type]).map(c=>({type:c.type,count:P[c.type].box,q:c.q||1})))};
-    localStorage.setItem(KEY,JSON.stringify(d));
-  }catch(e){}
+    return d;
+}
+/* Speichern (Tom 17.10.: "save() schluckt Fehler still - bei der Simulation fiel der Spielstand auf einen aelteren Tag zurueck").
+   Jeder Fehler wird sichtbar: Toast "Speichern fehlgeschlagen" mit Grund (Speicher voll / gesperrt / Fehler beim Bauen) und
+   in SAVE_STATUS fuer Tests und die Leistungsanzeige. Der alte Stand bleibt dabei unveraendert (setItem schreibt nicht halb).
+   Bei vollem Speicher zuerst Platz schaffen: Sicherungskopie der Vorfuehrung (GP_KEY, nur ausserhalb der Vorfuehrung) und der
+   letzte Leistungsbericht (LM_KEY) sind ersetzbar - der Spielstand nicht. Danach wird nachgelesen, ob wirklich geschrieben wurde. */
+const SAVE_STATUS={ok:0,fehler:0,letzter:null,grund:'',kb:0,toastT:0,platz:0};
+function saveGrund(e,kb){
+  const n=e&&(e.name||''), m=e&&(e.message||String(e))||'unbekannt';
+  if(/quota/i.test(n+m)||(e&&(e.code===22||e.code===1014))) return 'Speicher des Browsers voll ('+kb+' KB Spielstand)';
+  if(/security|denied|access/i.test(n+m)) return 'Browser verweigert den Speicher (privates Fenster / gesperrt)';
+  return String(m).slice(0,80);
+}
+function saveMelden(grund,kb){
+  SAVE_STATUS.fehler++; SAVE_STATUS.letzter=Date.now(); SAVE_STATUS.grund=grund;
+  try{ console.warn('Speichern fehlgeschlagen: '+grund); }catch(_){}
+  /* hoechstens alle 20 s melden - das Spiel speichert oft */
+  const jetzt=Date.now(); if(jetzt-SAVE_STATUS.toastT<20000) return; SAVE_STATUS.toastT=jetzt;
+  try{ if(typeof toast==='function') toast('Speichern fehlgeschlagen: '+grund+'. Der letzte gespeicherte Stand bleibt erhalten.','bad'); }catch(_){}
+}
+function save(){
+  if(!S) return false;
+  /* Gameplay-Vorfuehrung (17e): der eigene Spielstand bleibt unangetastet */
+  if(typeof gpAn!=='undefined'&&gpAn) return false;
+  /* Leistungsbericht (17g): waehrend und nach der Messung im eigenen Spielstand nichts speichern - bis zum Neuladen */
+  if(typeof LM!=='undefined'&&LM&&(LM.an||LM.halt)) return false;
+  let txt;
+  try{ txt=JSON.stringify(stateBauen()); }
+  catch(e){ saveMelden('Spielstand nicht lesbar ('+saveGrund(e,0)+')',0); return false; }
+  const kb=Math.round(txt.length/1024); SAVE_STATUS.kb=kb;
+  const schreibe=()=>{ localStorage.setItem(KEY,txt); const r=localStorage.getItem(KEY); if(!r||r.length!==txt.length) throw new Error('nach dem Schreiben nicht lesbar'); };
+  try{ schreibe(); }
+  catch(e1){
+    /* Platz schaffen: ersetzbare Eintraege weg, dann noch einmal */
+    let frei=false;
+    try{ if(!(typeof gpAn!=='undefined'&&gpAn)){ if(localStorage.getItem(GP_KEY)!==null){ localStorage.removeItem(GP_KEY); frei=true; } }
+      if(typeof LM_KEY!=='undefined'&&localStorage.getItem(LM_KEY)!==null){ localStorage.removeItem(LM_KEY); frei=true; } }catch(_){}
+    if(frei){ try{ schreibe(); SAVE_STATUS.platz++; SAVE_STATUS.ok++; return true; }catch(e2){ e1=e2; } }
+    saveMelden(saveGrund(e1,kb),kb); return false;
+  }
+  SAVE_STATUS.ok++; return true;
 }
 /* =========================================================
    Rueckbau 16.10.2026 (Tom: "Die grosse Halle ist eine Katastrophe ... mach sie KOMPLETT weg"):

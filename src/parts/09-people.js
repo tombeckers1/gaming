@@ -16,10 +16,14 @@
    so gibt es viele Farbvarianten und die Personal-Uniform (rotes Polo,
    schwarze Hose) auf jeder Figur.
    ========================================================= */
+/* Koerpergroesse Erwachsener (Faktor auf die Rocketbox-Figur, Streuung +-) */
+const FIG_GROESSE={w:0.95,m:0.99,streu:0.03};
 const FIG_TINT_ROT=0xb3261e, FIG_TINT_SCHWARZ=0x1d1f24;
 /* Farbe als CSS-Text (auch fuer die Strassenschilder in 05e) */
 const hexCss=h=>'#'+('000000'+h.toString(16)).slice(-6);
-/* Die Figuren. alter: teen | jung | mittel | alt. kleid: Stil (KLEID).
+/* Die Figuren. NUR ERWACHSENE (Tom 17.10.: "Manche Kunden/Mitarbeiter sind extrem klein und sehen wie Kinder aus - das sollen alles
+   Erwachsene sein"): die beiden Rocketbox-Kinder FC01/MC01 (Wurzelhoehe 76/71 statt 92/90 cm, Kinderkopf) sind gestrichen,
+   Jugendliche gibt es nicht mehr. alter: jung | mittel | alt. kleid: Stil (KLEID).
    oben/unten: erlaubte Umfaerbungen (leer = nur Originalfarbe) */
 const KOEPFE=[
   {id:'F01', sex:'w',alter:'jung',  kleid:'bluse',  oben:[0xd88ca8,0x7aa0d8,0xe8e2d6,0x9ac08a],unten:[]},
@@ -33,7 +37,6 @@ const KOEPFE=[
   {id:'F17', sex:'w',alter:'jung',  kleid:'shirt',  oben:[0x3f8a4a,0xe0a030,0x2f7fd0,0xf2f2ee,0x6a4a7a],unten:[]},
   {id:'BF01',sex:'w',alter:'mittel',kleid:'anzug',  oben:[],unten:[],schick:1},
   {id:'BF03',sex:'w',alter:'alt',   kleid:'kostuem',oben:[],unten:[],schick:1},
-  {id:'FC01',sex:'w',alter:'teen',  kleid:'shirt',  oben:[0xd040b0,0x2f7fd0,0xe63b2e,0x3f6b3a],unten:[]},
   {id:'M02', sex:'m',alter:'mittel',kleid:'pulli',  oben:[],unten:[]},
   {id:'M03', sex:'m',alter:'alt',   kleid:'blazer', oben:[],unten:[],schick:1},
   {id:'M04', sex:'m',alter:'jung',  kleid:'hoodie', oben:[0x2a2e38,0x7a1f2a,0x2f5d8a,0x5a3a7a],unten:[]},
@@ -50,7 +53,6 @@ const KOEPFE=[
   {id:'BM04',sex:'m',alter:'alt',   kleid:'weste',  oben:[],unten:[],schick:1},
   {id:'BM06',sex:'m',alter:'jung',  kleid:'hemd',   oben:[0xf2f2ee,0xa8c4e8],unten:[],schick:1},
   {id:'BM07',sex:'m',alter:'mittel',kleid:'krawatte',oben:[],unten:[],schick:1},
-  {id:'MC01',sex:'m',alter:'teen',  kleid:'pulli',  oben:[0x2f7fd0,0x3f6b3a,0xb83a30,0x5a5f6a],unten:[]},
   {id:'CM07',sex:'m',alter:'mittel',kleid:'warnweste',oben:[],unten:[],arbeit:1,nurPersonal:1}
 ];
 /* Kleidungsstile (je Figur fest) */
@@ -62,20 +64,19 @@ const KLEID=[
    Leute wiedererkennt. */
 const UNIFORM={id:'uniform',obenF:FIG_TINT_ROT,untenF:FIG_TINT_SCHWARZ,logo:1};
 const STAFFKOPF={kassierer:'F08',auffueller:'M16',auffueller2:'M09',reinigung:'F13',security:'BM06',packer:'M04',
-  kassierer2:'F17',kassierer3:'M08',packer2:'MC01',packer3:'BM04'};
+  kassierer2:'F17',kassierer3:'M08',packer2:'M06',packer3:'BM04'};
 /* alte Kopf-Namen (bis 05.10.) auf die neuen Figuren */
-const FIG_ALIAS={teen_m:'MC01',teen_w:'FC01',jung_m:'M16',jung_w:'F08',jung_m2:'M04',jung_w2:'F17',mitte_m:'M08',mitte_m2:'CM07',mitte_w:'F13',mitte_m3:'BM06',alt_w:'F09',alt_m:'BM04'};
+const FIG_ALIAS={teen_m:'M09',teen_w:'F17',jung_m:'M16',jung_w:'F08',jung_m2:'M04',jung_w2:'F17',mitte_m:'M08',mitte_m2:'CM07',mitte_w:'F13',mitte_m3:'BM06',alt_w:'F09',alt_m:'BM04'};
 const kopfVon=id=>KOEPFE.find(k=>k.id===(FIG_ALIAS[id]||id))||KOEPFE[0];
 function kopfFuer(ct){
   const kunden=KOEPFE.filter(k=>!k.nurPersonal&&FIG_DATEN[k.id]);
-  const teen=kunden.filter(k=>k.alter==='teen'), rest=kunden.filter(k=>k.alter!=='teen');
   const id=ct&&ct.id;
-  if(id==='jugend') return pick(teen);
-  if(id==='angeber'){ const s=rest.filter(k=>k.schick); if(s.length) return pick(s); }
-  if(id==='profi'){ const s=rest.filter(k=>k.arbeit||k.kleid==='jacke'||k.kleid==='hoodie'); if(s.length) return pick(s); }
-  if(id==='spar'){ const s=rest.filter(k=>!k.schick); if(s.length) return pick(s); }
-  if(id==='profi'||id==='angeber'||id==='stamm') return pick(rest);
-  return Math.random()<0.1?pick(teen):pick(rest);
+  /* "Jugendliche" sind junge Erwachsene (Tom 17.10.: keine Kinder) */
+  if(id==='jugend'){ const j=kunden.filter(k=>k.alter==='jung'); if(j.length) return pick(j); }
+  if(id==='angeber'){ const s=kunden.filter(k=>k.schick); if(s.length) return pick(s); }
+  if(id==='profi'){ const s=kunden.filter(k=>k.arbeit||k.kleid==='jacke'||k.kleid==='hoodie'); if(s.length) return pick(s); }
+  if(id==='spar'){ const s=kunden.filter(k=>!k.schick); if(s.length) return pick(s); }
+  return pick(kunden);
 }
 /* Kleidung: Stil der Figur, Oberteil in einer ihrer Farben (oder Original) */
 function kleidFuer(k,ct){
@@ -279,9 +280,9 @@ function makePerson(opt){
   /* Schattenfleck (geteilt) */
   if(!_figBlobM){ _figBlobG=new THREE.CircleGeometry(0.33,18); _figBlobM=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.28,depthWrite:false}); }
   const blob=new THREE.Mesh(_figBlobG,_figBlobM); blob.rotation.x=-Math.PI/2; blob.position.y=0.024; g.add(blob);
-  /* Groesse: die Rocketbox-Frauen sind alle 1,74 m, die Maenner 1,80 m,
-     die Kinder 1,43 m - Jugendliche etwas groesser, Frauen etwas kleiner */
-  g.scale.setScalar((K.alter==='teen'?1.1:K.sex==='w'?0.95:0.99)*rand(0.97,1.03));
+  /* Groesse: die Rocketbox-Frauen sind alle 1,74 m, die Maenner 1,80 m (Erwachsene, 17.10. ohne Kinder/Jugendliche).
+     Frauen x0,95 = 1,65 m, Maenner x0,99 = 1,78 m, dazu +-3 % (1,60-1,70 / 1,73-1,84 m) - FIG_GROESSE */
+  g.scale.setScalar((K.sex==='w'?FIG_GROESSE.w:FIG_GROESSE.m)*rand(1-FIG_GROESSE.streu,1+FIG_GROESSE.streu));
   g.userData={legs,arms,torso,head,ph:Math.random()*6,sway:Math.random()*6,gang:1,kopf:K.id,kleid:O.id,oben:O.obenF,fig};
   if(fig){ figPose(g.userData,0); FIG_PERSONEN.add(g); if(fig.logo) figLogoSetzen(fig); }
   return g;

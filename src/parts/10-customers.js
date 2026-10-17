@@ -33,9 +33,97 @@ function navBuild(){
   }
   navTueren(R);
   NAV.waende=typeof wandRechtecke==='function'?wandRechtecke():[];
+  navHindernisse();
   /* Zaehler: wer Erreichbarkeit zwischenspeichert, sieht so den Neubau (11c) */
-  NAV.nr=(NAV.nr|0)+1;
+  NAV.nr=(NAV.nr|0)+1; NAV.nc=colliders.length;
   NAV.dirty=false;
+  /* Stellt der Spieler ein Moebel auf einen Platz, auf dem jemand steht (oder faehrt ein Tor zu), wird die Figur herausgeschoben,
+     statt halb im Regal stehenzubleiben (17.10.) */
+  try{ for(const k in staff){ const w=staff[k]; if(w&&w.g&&w.g.parent) ausHindernis(w.g.position,KOERPER_R); }
+    for(const c of customers){ if(c.g&&c.g.parent&&c.g.position.z<8.4) ausHindernis(c.g.position,KOERPER_R); } }catch(e){ /* beim Aufbau der Welt gibt es Personal und Kunden noch nicht */ }
+}
+/* Hindernis-Raster (17.10., Tom: "Mitarbeiter laufen durch Waende ... stehen halb in der Wand"): alle Waende UND alle
+   Kollisionsrechtecke in 3-m-Faechern. Damit pruefen navSicht (Strecke haelt Koerperabstand) und ausHindernis (Zielpunkt aus
+   jedem Hindernis schieben) auf KOERPER_R genau - das 0,5-m-Wegraster allein lies Ecken und Zielpunkte an Regalen im Hindernis. */
+function navHindernisse(){
+  const G={s:3,w:Math.ceil((NAV.x1-NAV.x0)/3)+2,h:Math.ceil((NAV.z1-NAV.z0)/3)+2,b:[],H:[],st:0};
+  const add=(x0,x1,z0,z1)=>{
+    if(x1<NAV.x0-2||x0>NAV.x1+2||z1<NAV.z0-2||z0>NAV.z1+2) return;
+    const o={x0,x1,z0,z1,st:0}; G.H.push(o);
+    const i0=Math.max(0,Math.floor((x0-1-NAV.x0)/G.s)), i1=Math.min(G.w-1,Math.floor((x1+1-NAV.x0)/G.s));
+    const k0=Math.max(0,Math.floor((z0-1-NAV.z0)/G.s)), k1=Math.min(G.h-1,Math.floor((z1+1-NAV.z0)/G.s));
+    for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++){ const q=k*G.w+i; (G.b[q]||(G.b[q]=[])).push(o); } };
+  for(const c of colliders) add(c.minX,c.maxX,c.minZ,c.maxZ);
+  for(const w of NAV.waende) add(w.x0,w.x1,w.z0,w.z1);
+  NAV.hg=G;
+}
+/* Kuerzester Abstand eines Punktes zu den Hindernissen im Umkreis (nur zum Messen/Testen) */
+function navAbstand(x,z){
+  if(NAV.dirty) navBuild();
+  const G=NAV.hg, i=Math.floor((x-NAV.x0)/G.s), k=Math.floor((z-NAV.z0)/G.s); let m=9;
+  const L=i>=0&&k>=0&&i<G.w&&k<G.h?G.b[k*G.w+i]:null; if(!L) return m;
+  for(const o of L){ const d=Math.hypot(Math.max(o.x0-x,0,x-o.x1),Math.max(o.z0-z,0,z-o.z1)); if(d<m) m=d; }
+  return m;
+}
+/* Punkt p (V-Vektor) so weit aus jedem Hindernis (Wand, Moebel, Wagen ...) schieben, dass ein Koerper vom Radius r frei steht */
+function ausHindernis(p,r){
+  if(NAV.dirty||NAV.nc!==colliders.length) navBuild();
+  const G=NAV.hg;
+  for(let n=0;n<6;n++){
+    const i=Math.floor((p.x-NAV.x0)/G.s), k=Math.floor((p.z-NAV.z0)/G.s);
+    const L=i>=0&&k>=0&&i<G.w&&k<G.h?G.b[k*G.w+i]:null; if(!L) return p;
+    let ok=true;
+    for(const o of L){
+      const cx=Math.min(Math.max(p.x,o.x0),o.x1), cz=Math.min(Math.max(p.z,o.z0),o.z1), dx=p.x-cx, dz=p.z-cz, d=Math.hypot(dx,dz);
+      if(d>=r-1e-4) continue;
+      ok=false;
+      if(d>1e-6){ p.x=cx+dx/d*r; p.z=cz+dz/d*r; }
+      else { const l=p.x-o.x0, rr=o.x1-p.x, t=p.z-o.z0, b=o.z1-p.z, m=Math.min(l,rr,t,b);
+        if(m===l) p.x=o.x0-r; else if(m===rr) p.x=o.x1+r; else if(m===t) p.z=o.z0-r; else p.z=o.z1+r; }
+    }
+    if(ok) break;
+  }
+  return p;
+}
+/* Erstes Hindernis, das die Strecke a-b mit Abstand m trifft (Rechteck um m aufgeweitet, Strecke gegen Rechteck); null = frei.
+   ohneStart: Hindernisse ueberspringen, in deren Randzone der Startpunkt schon liegt (man kommt von dort weg) */
+function hindernisErster(ax,az,bx,bz,m,ohneStart){
+  const G=NAV.hg; if(!G) return null;
+  const lx=Math.min(ax,bx)-m, hx=Math.max(ax,bx)+m, lz=Math.min(az,bz)-m, hz=Math.max(az,bz)+m;
+  const i0=Math.max(0,Math.floor((lx-NAV.x0)/G.s)), i1=Math.min(G.w-1,Math.floor((hx-NAV.x0)/G.s));
+  const k0=Math.max(0,Math.floor((lz-NAV.z0)/G.s)), k1=Math.min(G.h-1,Math.floor((hz-NAV.z0)/G.s));
+  const dx=bx-ax, dz=bz-az, st=++G.st; let best=null, bt=2;
+  for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++){ const L=G.b[k*G.w+i]; if(!L) continue;
+    for(const o of L){ if(o.st===st) continue; o.st=st;
+      if(o.x1+m<lx||o.x0-m>hx||o.z1+m<lz||o.z0-m>hz) continue;
+      const x0=o.x0-m, x1=o.x1+m, z0=o.z0-m, z1=o.z1+m;
+      if(ohneStart&&ax>x0&&ax<x1&&az>z0&&az<z1) continue;
+      let t0=0, t1=1;
+      const cl=(p,q)=>{ if(Math.abs(p)<1e-9) return q>=0; const r=q/p; if(p<0){ if(r>t1) return false; if(r>t0) t0=r; } else { if(r<t0) return false; if(r<t1) t1=r; } return true; };
+      if(cl(-dx,ax-x0)&&cl(dx,x1-ax)&&cl(-dz,az-z0)&&cl(dz,z1-az)&&t0<=t1&&t0<bt){ bt=t0; best=o; } } }
+  return best;
+}
+function hindernisKreuzt(ax,az,bx,bz,m){ return !!hindernisErster(ax,az,bx,bz,m,false); }
+/* Umweg (17.10.): trifft die gerade Strecke von pos zum naechsten Wegpunkt ein Hindernis - etwa ein Poller auf der Strasse, ausserhalb
+   des Wegrasters, oder eine Ecke, an der zwei Wegpunkte aus verschiedenen Quellen zusammentreffen -, kommt ein Eckpunkt davor als
+   Wegpunkt dazu. Geprueft wird einmal je Wegpunkt und Wegenetz-Stand. */
+function umweg(w){
+  const path=w.path, t=path[0];
+  if(!t||(w._uT===t&&w._uN===NAV.nr&&NAV.nc===colliders.length)) return;
+  if(NAV.dirty||NAV.nc!==colliders.length) navBuild();
+  w._uT=t; w._uN=NAV.nr;
+  const p=w.pos, m=KOERPER_R*0.9;
+  for(let n=0;n<4;n++){
+    const o=hindernisErster(p.x,p.z,t.x,t.z,m,true); if(!o) return;
+    const e=KOERPER_R+0.08; let best=null, bl=1e9;
+    for(const [cx,cz] of [[o.x0-e,o.z0-e],[o.x1+e,o.z0-e],[o.x0-e,o.z1+e],[o.x1+e,o.z1+e]]){
+      if(hindernisErster(cx,cz,cx,cz,m,false)) continue;                         /* Eckpunkt selbst frei */
+      if(hindernisErster(p.x,p.z,cx,cz,m,true)||hindernisErster(cx,cz,t.x,t.z,m,true)) continue;
+      const l=Math.hypot(cx-p.x,cz-p.z)+Math.hypot(t.x-cx,t.z-cz); if(l<bl){ bl=l; best=[cx,cz]; } }
+    if(!best) return;
+    const c=V(best[0],0,best[1]); path.unshift(c); w._uT=c;
+    if(!hindernisErster(p.x,p.z,c.x,c.z,m,true)) return;
+  }
 }
 /* Keine Figur in der Wand (05.10., Tom: Einraeumer und Packer
    "verschwinden halb in der Wand"): gemessen standen Haltepunkte direkt
@@ -134,7 +222,9 @@ function navSicht(ax,az,bx,bz){
     if(!navFrei(navIdx(ax+(bx-ax)*t,az+(bz-az)*t))) return false; }
   /* 05.10.: die Rasterprobe allein schnitt Ecken an Tuerlaibungen - die
      Strecke muss auch einen Koerper breit an jeder Wand vorbeigehen */
-  return !wandKreuzt(ax,az,bx,bz,0.2);
+  if(wandKreuzt(ax,az,bx,bz,KOERPER_R)) return false;
+  /* 17.10.: dazu alle Kollisionsrechtecke - eine Strecke haelt Koerperabstand zu Regal, Tisch, Wagen und Mauerecke */
+  return !hindernisKreuzt(ax,az,bx,bz,KOERPER_R);
 }
 const _navQ=[];
 /* Breitensuche vom Ziel aus, danach die Kette glaetten */
@@ -163,7 +253,7 @@ function navPfad(from,to,nah){
       for(const n2 of [i>0?c-1:-1,i<W-1?c+1:-1,k>0?c-W:-1,k<H-1?c+W:-1]) if(n2>=0&&!NAV.g[n2]&&E[n2]<0){ E[n2]=0; Q.push(n2); } }
     const weg=navPfad(from,navPos(best),true)||[navPos(best)];
     /* das letzte Stueck zum Ziel nur, wenn keine Wand dazwischen ist */
-    if(!wandKreuzt(weg[weg.length-1].x,weg[weg.length-1].z,to.x,to.z,0.2)) weg.push(to.clone?to.clone():V(to.x,0,to.z));
+    if(!wandKreuzt(weg[weg.length-1].x,weg[weg.length-1].z,to.x,to.z,KOERPER_R)) weg.push(to.clone?to.clone():V(to.x,0,to.z));
     return weg; }
   /* absteigend zum Ziel laufen */
   const roh=[]; let c=start;
@@ -185,8 +275,8 @@ function navPfad(from,to,nah){
   return out;
 }
 function route(from,to){
-  if(NAV.dirty) navBuild();
-  to=ausWand(V(to.x,0,to.z),KOERPER_R);
+  if(NAV.dirty||NAV.nc!==colliders.length) navBuild();
+  to=ausHindernis(ausWand(V(to.x,0,to.z),KOERPER_R),KOERPER_R);
   const p=navPfad(from,to);
   if(p) return p;
   /* Ausserhalb des Rasters - Strasse, Hof, geschlossenes Rolltor -
@@ -274,6 +364,7 @@ class Customer{
   clearBub(){ if(this.bub){ this.g.remove(this.bub); this.bub.material.map.dispose(); this.bub.material.dispose(); this.bub=null; } }
   walk(dt){
     if(!this.path.length){ this.moving=false; return true; }
+    umweg(this);
     const t=this.path[0], dx=t.x-this.pos.x, dz=t.z-this.pos.z, d=Math.hypot(dx,dz), st=this.speed*dt;
     if(d<=st){ this.pos.x=t.x; this.pos.z=t.z; this.path.shift(); } else { this.pos.x+=dx/d*st; this.pos.z+=dz/d*st; }
     /* draussen auf dem erhoehten Gehweg (28.09.) - sonst steckten die Fuesse darin */

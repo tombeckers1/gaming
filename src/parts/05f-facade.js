@@ -230,6 +230,9 @@ function tuerNahD(d){
   if(typeof pl!=='undefined'&&nah(pl.x,pl.z)) return true;
   if(typeof customers!=='undefined')
     for(const c of customers){ if(c.pos&&nah(c.pos.x,c.pos.z)) return true; }
+  /* 17.10.: auch fuers Personal (die Reinigung ging sonst durch die geschlossene Scheibe) */
+  if(typeof staff!=='undefined')
+    for(const k in staff){ const w=staff[k]; if(w&&w.g&&w.g.parent&&nah(w.g.position.x,w.g.position.z)) return true; }
   return false;
 }
 function tuerNah(){ return tuerNahD(tuer); }

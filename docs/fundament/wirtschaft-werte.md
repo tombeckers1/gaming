@@ -78,8 +78,8 @@ Spalte „gelesen in“: wo der Wert (oder seine Gruppe) im Spiel benutzt wird. 
 | `markt.schnittMin` | 0,7 | S.mkt (Marktschnitt fuer Texte) | `02b-markt.js:184` | markt |
 | `markt.schnittMax` | 1,5 | (Gruppe) Markt: Preisindex je Sorte (02b rollMarkt, taeglich) mi = Einkaufsindex (sofort), me = Kundenerwartung (zieht traege nach) -> Einkaufschance = Luecke me/mi. Inflation wirkt auf EK UND VK-Erwartung (Marge bleibt) - nicht auf Loehne, Fixkosten, Porto, Ausbau. | `02b-markt.js:184` | markt |
 | `markt.konkurrenz` | schwank 0,95 / 1,05, min 0,88, max 1,12, ladeMin 0,85, ladeMax 1,15 | Konkurrenz S.comp: taeglich x Zufall, multipliziert die Preistoleranz | `16-day.js:63` | markt |
-| `markt.ladeMktMin` | 0,7 | Klemmen beim Laden eines Spielstands (18-save) | `18-save.js:236` | markt |
-| `markt.ladeMktMax` | 1,4 | (Gruppe) Markt: Preisindex je Sorte (02b rollMarkt, taeglich) mi = Einkaufsindex (sofort), me = Kundenerwartung (zieht traege nach) -> Einkaufschance = Luecke me/mi. Inflation wirkt auf EK UND VK-Erwartung (Marge bleibt) - nicht auf Loehne, Fixkosten, Porto, Ausbau. | `18-save.js:236` | markt |
+| `markt.ladeMktMin` | 0,7 | Klemmen beim Laden eines Spielstands (18-save) | `18-save.js:238` | markt |
+| `markt.ladeMktMax` | 1,4 | (Gruppe) Markt: Preisindex je Sorte (02b rollMarkt, taeglich) mi = Einkaufsindex (sofort), me = Kundenerwartung (zieht traege nach) -> Einkaufschance = Luecke me/mi. Inflation wirkt auf EK UND VK-Erwartung (Marge bleibt) - nicht auf Loehne, Fixkosten, Porto, Ausbau. | `18-save.js:238` | markt |
 
 ## einkauf
 

@@ -10,8 +10,8 @@
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs'), path=require('path');
 const H=require(path.join(__dirname,'../test/start-hilfe.js'));
-const FORMEN=['klein','limo','kombi','suv','van'];
-const AX=62, AZ=13.0;                 /* Studio-Platz auf der Fahrbahn (Ost), Wagen faehrt nach +x */
+const FORMEN=['klein','kompakt','limo','kombi','suv','van'];
+const AX=-8, AZ=16.0;                 /* Studio-Platz: Parkstreifen gegenueber (geparkte Autos ausgeblendet), Wagen zeigt nach +x */
 const STUDIO={
   seite:{p:[AX,1.05,AZ-7.2],t:[AX,0.72,AZ]},
   vorn34:{p:[AX+5.0,1.45,AZ-4.0],t:[AX+0.3,0.7,AZ]},
@@ -78,7 +78,7 @@ const STRASSE={
     for(const zeit of [['tag',600],['nacht',1320]]){
       if(!NUR||NUR.includes('strasse')) for(const k in STRASSE){ const r=await ansicht(STRASSE[k],zeit[1],{bild:true}); speichern(k+'-'+zeit[0],r.u); } }
     await p.evaluate(()=>window.__autos.forEach(a=>a.visible=false));
-    const farben={klein:0x1f4a8a,limo:0x17191d,kombi:0xc9ccd2,suv:0x5b6068,van:0xeeeeec};
+    const farben={klein:0x1f4a8a,kompakt:0x7e1418,limo:0x17191d,kombi:0xc9ccd2,suv:0x5b6068,van:0xeeeeec};
     for(const f of FORMEN){ if(NUR&&!NUR.includes(f)) continue;
       await p.evaluate(({f,c,AX,AZ})=>{ const bb=window.__bb; if(window.__studio){ bb.scene.remove(window.__studio); }
         const g=bb.makeAuto(c,f); g.position.set(AX,0,AZ); g.rotation.y=Math.PI/2; bb.scene.add(g); window.__studio=g; },{f,c:farben[f],AX,AZ});

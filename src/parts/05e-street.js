@@ -1899,9 +1899,8 @@ function buildSchneehaufen(){
     if(R()<(COARSE?0.35:0.7)) haufen(x,zS-0.3,0.9+R()*1.4,0.3+R()*0.16); }
   /* Autos: Laenge aus den Huellquadern der Teile, sie stehen laengs x */
   const autos=[];
-  for(const o of scene.children) if(o.isGroup&&o.children[0]&&o.children[0].material===_lackM){ let h=0;
-    for(const m of o.children){ m.geometry.computeBoundingBox(); const b=m.geometry.boundingBox; h=Math.max(h,b.max.x-b.min.x,b.max.z-b.min.z); }
-    autos.push({min:{x:o.position.x-h/2},max:{x:o.position.x+h/2}}); }
+  for(const o of scene.children) if(o.userData&&o.userData.bauteil==='auto'&&o.userData.plaetze) for(const a of o.userData.plaetze){
+    const h=Math.abs(Math.sin(a.ry))*a.L+Math.abs(Math.cos(a.ry))*a.B; autos.push({min:{x:a.x-h/2},max:{x:a.x+h/2}}); }
   autos.sort((a,b)=>a.min.x-b.min.x);
   let x0=-25.3;
   for(const b of autos.concat([{min:{x:21.5},max:{x:99}}])){

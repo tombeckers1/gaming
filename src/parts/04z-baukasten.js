@@ -1788,7 +1788,7 @@ function _akFein(P,maxL){
 /* Polygon, das in der ersten Koordinate monoton ist (jede senkrechte Linie schneidet es einmal), in Spalten triangulieren:
    Spalten an jeder Ecke und alle dA, senkrecht alle dB geteilt - keine langen Splitter wie beim Ohrenschneiden, die
    Verformung danach folgt der Kruemmung. -> flache Liste [a,b,0, ...] je Dreieck; null, wenn nicht monoton */
-function _akMono(P,dA,dB){
+function _akMono(P,dA,dB,zus){
   const n=P.length; if(n<3) return null; let i0=0, i1=0;
   for(let i=1;i<n;i++){ if(P[i][0]<P[i0][0]) i0=i; if(P[i][0]>P[i1][0]) i1=i; }
   const kette=(von,bis,dir)=>{ const K=[]; let i=von; for(let g=0;g<=n;g++){ K.push([P[i][0],P[i][1]]); if(i===bis) break; i=(i+dir+n)%n; } return K; };
@@ -1796,7 +1796,7 @@ function _akMono(P,dA,dB){
   /* kleine Rueckspruenge (Fase an engen Innenecken, < 3 cm) werden fuer die Spalten geglaettet; die Ecke selbst bleibt am Ort */
   const orig=[new Map(),new Map()];
   for(let k=0;k<2;k++){ const K=[A,B][k]; for(let i=0;i<K.length;i++){ const a=K[i][0];
-      if(i&&K[i][0]<K[i-1][0]-0.03){ if(_AK.dbg) _AK.dbg.push(['nichtMonoton',K[i-1],K[i]]); return null; }
+      if(i&&K[i][0]<K[i-1][0]-0.03){ if(_AK.dbg) _AK.dbg.push(['nichtMonoton',K[i-1],K[i],String(new Error().stack).split('\n').slice(2,5).join(' ')]); return null; }
       if(i&&K[i][0]<=K[i-1][0]) K[i][0]=K[i-1][0]+1e-7; orig[k].set(K[i][0],[a,K[i][1]]); } }
   const lies=(K,a)=>{ if(a<=K[0][0]) return K[0][1]; for(let i=1;i<K.length;i++) if(K[i][0]>=a){ const t=(a-K[i-1][0])/Math.max(1e-12,K[i][0]-K[i-1][0]); return K[i-1][1]+(K[i][1]-K[i-1][1])*t; } return K[K.length-1][1]; };
   const S=new Set(); for(const K of [A,B]) for(const p of K) S.add(p[0]);
@@ -1804,10 +1804,13 @@ function _akMono(P,dA,dB){
   const Z=[...S].sort((x,y)=>x-y), oben=lies(A,(a0+a1)/2)>lies(B,(a0+a1)/2)?A:B, unten=oben===A?B:A, Sp=[];
   const oU=orig[unten===A?0:1], oO=orig[oben===A?0:1];
   for(const a of Z){ const lo=oU.get(a)||[a,lies(unten,a)], hi=oO.get(a)||[a,lies(oben,a)], m=hi[1]-lo[1]>1e-7?Math.max(1,Math.ceil((hi[1]-lo[1])/dB)):0, c=[];
-    for(let k=0;k<=m;k++){ const t=m?k/m:0; c.push([lo[0]+(hi[0]-lo[0])*t,lo[1]+(hi[1]-lo[1])*t]); } Sp.push(c); }
+    for(let k=0;k<=m;k++){ const t=m?k/m:0; c.push([lo[0]+(hi[0]-lo[0])*t,lo[1]+(hi[1]-lo[1])*t]); }
+    /* Zusatzzeilen (Sickenkante): genau dort eine Ecke je Spalte, damit die Kante scharf bleibt */
+    if(zus&&m) for(const yb of zus(a)) if(yb>lo[1]+0.01&&yb<hi[1]-0.01){ const t=(yb-lo[1])/(hi[1]-lo[1]); c.push([lo[0]+(hi[0]-lo[0])*t,yb]); }
+    c.sort((u,v)=>u[1]-v[1]); Sp.push(c); }
   const T=[]; const tri=(p,q,r)=>T.push(p[0],p[1],0,q[0],q[1],0,r[0],r[1],0);
   for(let s=0;s+1<Sp.length;s++){ const L=Sp[s], R=Sp[s+1]; let i=0, j=0;
-    while(i<L.length-1||j<R.length-1){ const adv=i>=L.length-1?false:j>=R.length-1?true:(i+1)/(L.length-1)<=(j+1)/(R.length-1);
+    while(i<L.length-1||j<R.length-1){ const adv=i>=L.length-1?false:j>=R.length-1?true:L[i+1][1]<=R[j+1][1];
       if(adv){ tri(L[i],R[j],L[i+1]); i++; } else { tri(L[i],R[j],R[j+1]); j++; } } }
   return T;
 }
@@ -1850,7 +1853,7 @@ function _akKlasse(){ const P=[], N=[], C=[], U=[];
 function _akStufe(detail){ const D={
   grob:   {w:32,seg:9,bev:0,steps:1,fein:0,rad:10,details:0},
   einfach:{w:18,seg:0.2,bev:2,steps:4,fein:0.25,rad:16,details:1},
-  fein:   {w:10,seg:0.1,bev:4,steps:6,fein:0.1,rad:24,details:2},
+  fein:   {w:12,seg:0.12,bev:3,steps:4,fein:0.11,rad:20,details:2},
   fein2:  {w:7,seg:0.07,bev:5,steps:10,fein:0.07,rad:32,details:2}}; return D[detail]; }
 /* ---------- Karosserie: Profile und Verformung ---------- */
 function _akKoerper(F,St){
@@ -1866,11 +1869,15 @@ function _akKoerper(F,St){
     for(let k=1;k<nb;k++){ const a=Math.PI*k/nb; u.push([zw-Ra*Math.cos(a),yc+Ra*Math.sin(a),0]); }
     u.push([zw+Ra,yc,0],[zw+Ra,yS,0]); }
   const KU=_akKontur(u,St.w,St.seg);
+  /* die Rundung an Nase und Heck schneidet die Ecke ab - Front und Heck so strecken, dass die Laenge genau L ist */
+  { let zx=-9, zn=9; for(const p of KU){ zx=Math.max(zx,p[0]); zn=Math.min(zn,p[0]); } const zA=ach[0]+Ra, zB=ach[1]-Ra;
+    for(const p of KU){ if(p[0]>zA) p[0]+=(L2-zx)*(p[0]-zA)/(zx-zA); else if(p[0]<zB) p[0]-=(L2+zn)*(zB-p[0])/(zB-zn); } }
   /* Kabine: Frontscheibe (unten verlaengert, steckt im Unterbau), Dach, Heck je Typ */
   const crC=ein?0:0.035, d0=F.dach[0], d1=F.dach[1], d2=F.dach[2], hg=F.heckGlas;
   const wsx=(F.dW-d0[0])/(d0[1]-F.gurt[0]), Q=[zD(F.dW+wsx*0.07),F.gurt[0]-0.07,0];
-  const k=[Q,[zD(d0[0]),d0[1]-crC,0.2],[zD(d1[0]),d1[1]-crC,2.0],[zD(d2[0]),d2[1]-crC,F.heck==='kasten'?0.08:F.heck==='stufe'?0.15:0.12]];
-  const hx=(hg[0]-d2[0])/(d2[1]-crC-hg[1]); k.push([zD(hg[0]+hx*0.07),hg[1]-0.07,0]);
+  /* unten senkrecht abgesetzt: spitze Ecken (Frontscheibe/Boden) gaeben lange Gehrungen in der Fase */
+  const k=[[Q[0],Q[1]-0.04,0],Q,[zD(d0[0]),d0[1]-crC,0.2],[zD(d1[0]),d1[1]-crC,2.0],[zD(d2[0]),d2[1]-crC,F.heck==='kasten'?0.08:F.heck==='stufe'?0.15:0.12]];
+  const hx=(hg[0]-d2[0])/(d2[1]-crC-hg[1]); k.push([zD(hg[0]+hx*0.07),hg[1]-0.07,0],[zD(hg[0]+hx*0.07),hg[1]-0.11,0]);
   const KC=_akKontur(k,St.w,St.seg);
   const RU=_akRand(KU,L2), RC=_akRand(KC,L2);
   /* Breiten: Unterbau so, dass mit ausgestellten Kotfluegeln genau B herauskommt */
@@ -1884,9 +1891,12 @@ function _akKoerper(F,St){
     let f=(1-F.kV*sv*sv)*(1-F.kH*sh*sh), fl=0; for(const zw of ach){ const q=(z-zw)/0.8; fl+=Math.exp(-q*q); }
     const g=gurt(z), ym=yS+0.58*(g-yS), yr=0.55*(g-yS), q=_akC(-1.3,1.3,(y-ym)/yr);
     fl*=flare*_akG(yS+0.04,yS+0.25,y)*(1-_akG(g-0.32,g-0.08,y));
-    return f*(1+fl)*(1-kQ*(q<0?0.06:0.035)*q*q); };
+    /* Sicke (Tornadolinie) 11,5 cm unter der Guertellinie: darueber neigt sich die Schulter nach innen - scharfe Lichtkante */
+    const yK=g-0.115, sk=y>yK?(F.heck==='kasten'?0.008:0.026)*(y-yK)/0.115:0;
+    return f*(1+fl)*(1-kQ*(q<0?0.06:0.035)*q*q)*(1-sk); };
+  const sicke=z=>{ const g=gurt(z); return [g-0.115-0.004,g-0.115,g-0.115+0.004]; };
   /* Pfeilung: Front und Heck im Grundriss gewoelbt (Mitte vorn), Haube und Deckel gewoelbt */
-  const defU=(x,y,z,o)=>{ let yy=y, zz=z; if(!ein){ const t=RU.oben(z), q=x/W0; if(t!==null) yy+=0.03*Math.max(0,1-q*q)*_akG(t-0.1,t-0.004,y);
+  const defU=(x,y,z,o)=>{ let yy=y, zz=z; if(!ein){ const t=RU.oben(z), q=x/W0; if(t!==null) yy+=0.03*Math.max(0,1-q*q)*_akG(t-0.1,t-0.004,y)*_akG(F.haube[1]-0.1,F.haube[1]-0.01,t);
       zz-=(z>0?0.07:-0.045)*q*q*_akG(L2-0.35,L2,Math.abs(z)); }
     o[0]=x*fU(y,z); o[1]=yy; o[2]=zz; return o; };
   const fC=(y,z)=>{ const g=gurt(z); let f=1-F.th*_akC(0,1.1,(y-g)/(F.H-g));
@@ -1894,19 +1904,23 @@ function _akKoerper(F,St){
     return f; };
   const defC=(x,y,z,o)=>{ let yy=y; if(!ein){ const t=RC.oben(z); if(t!==null){ const q=x/Wc; yy+=crC*Math.max(0,1-q*q)*_akG(t-0.25,t-0.01,y); } }
     o[0]=x*fC(y,z); o[1]=yy; o[2]=z; return o; };
-  return {L2,zD,ach,Ra,yc,yS,KU,KC,RU,RC,W0,Wc,btU,bsU,btC,bsC,gurt,fU,fC,defU,defC,crC,ein};
+  return {L2,zD,ach,Ra,yc,yS,KU,KC,RU,RC,W0,Wc,btU,bsU,btC,bsC,gurt,fU,fC,defU,defC,crC,ein,sicke};
 }
 /* Kappen (Seitenflaechen x = +-W) neu triangulieren: Rand aus den Kappendreiecken (Kanten, die nur einmal vorkommen),
    dann in Spalten (_akMono). Die Randpunkte bleiben dieselben wie an der Fase - keine Risse. */
-function _akKappen(kap,W,dB){
+function _akKappen(kap,W,dB,zus){
   const out=[];
   for(const sg of [-1,1]){ const key=(i)=>Math.round(kap[i+1]*1e5)+','+Math.round(kap[i+2]*1e5), pt=new Map(), kant=new Map();
     for(let i=0;i<kap.length;i+=9){ if(Math.sign(kap[i])!==sg) continue; const k=[key(i),key(i+3),key(i+6)];
       for(let j=0;j<3;j++){ pt.set(k[j],[kap[i+j*3+2],kap[i+j*3+1]]); const a=k[j], b=k[(j+1)%3], r=b+'|'+a; if(kant.has(r)) kant.delete(r); else kant.set(a+'|'+b,[a,b]); } }
-    const nach=new Map(); for(const [a,b] of kant.values()) nach.set(a,b);
-    const start=nach.keys().next().value, ring=[]; let k=start;
-    for(let g=0;g<=nach.size&&k!==undefined;g++){ ring.push(pt.get(k)); k=nach.get(k); if(k===start) break; }
-    const T=ring.length>=3?_akMono(ring,0,dB):null;
+    /* Rand ablaufen ueber Kanten (eine Ecke kann doppelt vorkommen); bei mehreren Schleifen die laengste */
+    const nach=new Map(); for(const [a,b] of kant.values()){ let l=nach.get(a); if(!l) nach.set(a,l=[]); l.push(b); }
+    let ring=[];
+    for(const st of nach.keys()){ if(!nach.get(st).length) continue; const r=[]; let k=st;
+      for(let g=0;g<=kant.size;g++){ const l=nach.get(k); if(!l||!l.length) break; r.push(pt.get(k)); k=l.pop(); if(k===st) break; }
+      if(r.length>ring.length) ring=r; }
+    const T=ring.length>=3?_akMono(ring,0,dB,zus):null;
+    if(!T&&_AK.dbg) _AK.dbg.push(['kappe',W,sg,ring.length,kant.size]);
     if(!T){ for(let i=0;i<kap.length;i+=9) if(Math.sign(kap[i])===sg) for(let j=0;j<9;j++) out.push(kap[i+j]); continue; }
     for(let i=0;i<T.length;i+=9){ const a=[T[i],T[i+1]], b=[T[i+3],T[i+4]], c=[T[i+6],T[i+7]];
       const nx=(b[1]-a[1])*(c[0]-a[0])-(b[0]-a[0])*(c[1]-a[1]), q=nx*sg>=0?[a,b,c]:[a,c,b];
@@ -1914,7 +1928,7 @@ function _akKappen(kap,W,dB){
   return new Float32Array(out);
 }
 /* Profil extrudieren (Fase nur nach innen: die Seitenwaende liegen genau auf der Kontur), Kappen fein teilen, verformen */
-function _akExtrude(K,W,bt,bs,St,def){
+function _akExtrude(K,W,bt,bs,St,def,zus){
   const sh=new THREE.Shape(K.map(p=>new THREE.Vector2(p[0],p[1])));
   const geo=new THREE.ExtrudeGeometry(sh,bt>0?{depth:2*W-2*bt,steps:St.steps,bevelEnabled:true,bevelThickness:bt,bevelSize:bs,bevelOffset:-bs,bevelSegments:St.bev,curveSegments:1}
                                             :{depth:2*W,steps:St.steps,bevelEnabled:false,curveSegments:1});
@@ -1922,10 +1936,11 @@ function _akExtrude(K,W,bt,bs,St,def){
   const A=new THREE.Vector3(), B=new THREE.Vector3(), C=new THREE.Vector3();
   for(let i=0;i+2<n;i+=3){ const t=[]; for(let k=0;k<3;k++){ t.push(x0-pa.getZ(i+k),pa.getY(i+k),pa.getX(i+k)); }
     A.fromArray(t,0); B.fromArray(t,3).sub(A); C.fromArray(t,6).sub(A); B.cross(C); const l=B.length();
-    const istKappe=l>0&&Math.abs(B.x)/l>0.995&&Math.abs(Math.abs(t[0])-W)<1e-4;
+    /* Kappe = alle drei Ecken auf derselben Seitenebene (auch entartete Dreiecke, sonst reisst der Rand) */
+    const istKappe=Math.abs(Math.abs(t[0])-W)<1e-4&&Math.abs(t[3]-t[0])<1e-6&&Math.abs(t[6]-t[0])<1e-6;
     (istKappe?kap:rest).push(...t); }
   geo.dispose();
-  const P=St.fein&&kap.length?_akKappen(kap,W,St.fein):new Float32Array(kap);
+  const P=St.fein&&kap.length?_akKappen(kap,W,St.fein,zus):new Float32Array(kap);
   const roh=new Float32Array(P.length+rest.length); roh.set(P,0); roh.set(rest,P.length);
   const pos=new Float32Array(roh.length), o=[0,0,0];
   for(let i=0;i<roh.length;i+=3){ def(roh[i],roh[i+1],roh[i+2],o); pos[i]=o[0]; pos[i+1]=o[1]; pos[i+2]=o[2]; }
@@ -1989,15 +2004,17 @@ function _akBau(form,detail){
   const UNT=MAT.farbe('tiefschwarz'), PL=MAT.farbe('gummischwarz');
   const mark=l=>{ if(_AK.dbg) _AK.dbg.push([form,l,Math.round(Object.values(T).reduce((s,k)=>s+k.P.length/9,0))]); };
   /* --- Unterbau: Lack, Radhaus und Unterboden dunkel, Schweller (SUV: Planken) dunkel --- */
-  { const {g,roh}=_akExtrude(K.KU,W0,btU,bsU,St,defU), pa=g.attributes.position.array, na=g.attributes.normal.array;
+  { const {g,roh}=_akExtrude(K.KU,W0,btU,bsU,St,defU,K.sicke), pa=g.attributes.position.array, na=g.attributes.normal.array;
     const n3=(i,a)=>a.slice(i,i+9);
     for(let i=0;i<roh.length;i+=9){ const cz=(roh[i+2]+roh[i+5]+roh[i+8])/3, cy=(roh[i+1]+roh[i+4]+roh[i+7])/3, cx=Math.abs(roh[i]+roh[i+3]+roh[i+6])/3;
       const ax=roh[i+3]-roh[i], ay=roh[i+4]-roh[i+1], az=roh[i+5]-roh[i+2], bx=roh[i+6]-roh[i], by=roh[i+7]-roh[i+1], bz=roh[i+8]-roh[i+2];
       const ny=(az*bx-ax*bz)/(Math.hypot(ay*bz-az*by,az*bx-ax*bz,ax*by-ay*bx)||1);
       let kl='lack', f=0xffffff;
       const imRad=ach.some(zw=>Math.hypot(cz-zw,cy-yc)<Ra+0.018)&&cx<W0-btU*0.35&&cy>yS-0.01;
-      const schwell=cy<yS+bsU*0.95&&cx>W0-btU*1.02&&cz<ach[0]-Ra&&cz>ach[1]+Ra;
-      const planke=F.planke&&cx>W0-btU*1.02&&(cy<yS+0.075||ach.some(zw=>Math.hypot(cz-zw,cy-yc)<Ra+bsU*1.1));
+      /* nur die Fase (die Seitenflaeche selbst liegt bei x = W0 und bekommt Planken als Auflage, sonst Saegezahn) */
+      const fase=cx>W0-btU*1.02&&cx<W0-1e-4;
+      const schwell=fase&&cy<yS+bsU*0.95&&cz<ach[0]-Ra&&cz>ach[1]+Ra;
+      const planke=F.planke&&fase&&(cy<yS+bsU*0.95||ach.some(zw=>Math.hypot(cz-zw,cy-yc)<Ra+bsU*1.1));
       if(ny<-0.6&&cy<yS+0.12||imRad){ kl='dunkel'; f=UNT; } else if(btU&&(schwell||planke)){ kl='dunkel'; f=PL; }
       T[kl].tri(n3(i,pa),n3(i,na),f); }
     g.dispose(); }
@@ -2008,8 +2025,9 @@ function _akBau(form,detail){
       const ax=roh[i+3]-roh[i], ay=roh[i+4]-roh[i+1], az=roh[i+5]-roh[i+2], bx=roh[i+6]-roh[i], by=roh[i+7]-roh[i+1], bz=roh[i+8]-roh[i+2];
       const nx0=ay*bz-az*by, ny0=az*bx-ax*bz, nz0=ax*by-ay*bx, l=Math.hypot(nx0,ny0,nz0)||1, nx=nx0/l, ny=ny0/l;
       if(ny<-0.5&&cy<gurt(cz)) continue;
-      const top=RC.oben(cz)||F.H, g0=gurt(cz);
-      let glas=Math.abs(nx)<0.3&&cx<Wc-btC*0.97&&cy>g0+0.012&&ny<0.93;
+      const top=RC.oben(cz)||F.H, g0=gurt(cz), ymin=Math.min(roh[i+1],roh[i+4],roh[i+7]);
+      /* Glas nach der unteren Ecke (beide Dreiecke eines Vierecks gleich - kein Saegezahn an der Scheibenkante) */
+      let glas=Math.abs(nx)<0.3&&cx<Wc-btC*0.97&&ymin>g0-0.005&&ny<0.93;
       if(glas&&F.heck==='kasten'&&cz<0&&(cy<g0+0.32||cy>top-0.14)) glas=false;
       if(glas) T.glas.tri(pa.slice(i,i+9),na.slice(i,i+9),'gummischwarz'); else T.lack.tri(pa.slice(i,i+9),na.slice(i,i+9),0xffffff); }
     g.dispose(); }
@@ -2057,14 +2075,14 @@ function _akBau(form,detail){
       fl('licht',Rf,front,0.013,VOR,'lampeWarm',fs); }
     /* Grill: Klavierlack-Band zwischen den Scheinwerfern; SUV/Transporter: grosser Grill bis zum Stossfaenger */
     const gO=yT-0.006, gu=gross?F.nase+0.02:yT-0.058, gb=u0+0.005;
-    fl('glas',[[-gb,gO],[gb,gO],[gb*(gross?0.9:0.97),gu],[-gb*(gross?0.9:0.97),gu]],front,0.0035,VOR,'tiefschwarz',0.08);
-    if(D>=1){ const n=gross?4:1; for(let i=1;i<=n;i++){ const y=gross?gu+(gO-gu)*i/(n+1):gO-0.012; fl(gross?'dunkel':'chrom',[[-gb+0.03,y-0.005],[gb-0.03,y-0.005],[gb-0.03,y+0.005],[-gb+0.03,y+0.005]],front,0.007,VOR,gross?'anthrazit':'aluminium',0.1); } }
+    fl('glas',[[-gb,gO],[gb,gO],[gb*(gross?0.9:0.97),gu],[-gb*(gross?0.9:0.97),gu]],front,0.0035,VOR,'tiefschwarz',0.035);
+    if(D>=1){ const n=gross?4:1; for(let i=1;i<=n;i++){ const y=gross?gu+(gO-gu)*i/(n+1):gO-0.012; fl(gross?'dunkel':'chrom',[[-gb+0.03,y-0.005],[gb-0.03,y-0.005],[gb-0.03,y+0.005],[-gb+0.03,y+0.005]],front,0.007,VOR,gross?'anthrazit':'aluminium',0.04); } }
     /* Lufteinlass unten (unter dem Kennzeichen), Luftvorhaenge an den Ecken mit Nebellicht */
     const yL0=F.lipV[1]+0.045, yL1=F.nase+0.025, uL=0.64*W0;
-    fl('dunkel',[[-uL,yL1],[uL,yL1],[uL-0.08,yL0],[-uL+0.08,yL0]],front,0.004,VOR,PL,0.08);
-    if(D>=1) for(let i=1;i<=3;i++){ const y=yL0+(yL1-yL0)*i/4; fl('dunkel',[[-uL+0.06,y-0.005],[uL-0.06,y-0.005],[uL-0.06,y+0.005],[-uL+0.06,y+0.005]],front,0.0075,VOR,'anthrazit',0.1); }
+    fl('dunkel',[[-uL,yL1],[uL,yL1],[uL-0.08,yL0],[-uL+0.08,yL0]],front,0.004,VOR,PL,0.035);
+    if(D>=1) for(let i=1;i<=3;i++){ const y=yL0+(yL1-yL0)*i/4; fl('dunkel',[[-uL+0.06,y-0.005],[uL-0.06,y-0.005],[uL-0.06,y+0.005],[-uL+0.06,y+0.005]],front,0.0075,VOR,'anthrazit',0.04); }
     /* Frontlippe (Spoiler) dunkel ueber die ganze Breite */
-    { const yl=F.lipV[1]+0.005, ul=aU+arcU+0.12; fl('dunkel',[[-ul,yl],[ul,yl],[ul,yl+0.032],[-ul,yl+0.032]],front,0.004,VOR,PL,0.08); }
+    { const yl=F.lipV[1]+0.005, ul=aU+arcU+0.12; fl('dunkel',[[-ul,yl],[ul,yl],[ul,yl+0.032],[-ul,yl+0.032]],front,0.004,VOR,PL,0.035); }
     for(const sg of [-1,1]){ const ue=[[0.74*W0,yL0+0.01],[aU+0.01,yL0+0.03],[aU+0.01,F.nase+0.03],[0.8*W0,F.nase+0.01]], P=sg>0?ue:_akSp(ue);
       fl('dunkel',P,front,0.004,VOR,PL,0.05);
       if(D>=1) fl('chrom',_akKreis(sg*(0.84*W0),yL0+0.07,0.026,0.02,12),front,0.0075,VOR,'hellgrau',0.03); } }
@@ -2081,7 +2099,7 @@ function _akBau(form,detail){
       else fl('licht',P,heck,0.009,RUE,'signalrot',fs); }
     if(F.leiste&&D>=1) fl('glas',[[-u0,yT-0.035],[u0,yT-0.035],[u0,yT-0.022],[-u0,yT-0.022]],heck,0.006,RUE,'feuerrot',0.06);
     const yD0=F.lipH[1]+0.02, yD1=yD0+(F.planke?0.15:0.11), uD=aU+arcU+0.2;
-    fl('dunkel',[[-uD,yD0],[uD,yD0],[uD,yD1],[-uD,yD1]],heck,0.004,RUE,PL,0.08);
+    fl('dunkel',[[-uD,yD0],[uD,yD0],[uD,yD1],[-uD,yD1]],heck,0.004,RUE,PL,0.035);
     if(D>=1) for(const sg of [-1,1]){ const r=[[0.62*W0,yD1+0.05],[0.82*W0,yD1+0.05],[0.82*W0,yD1+0.075],[0.62*W0,yD1+0.075]]; fl('glas',sg>0?r:_akSp(r),heck,0.005,RUE,'feuerrot',0.05); }
     if(D>=2){ const fuge=(pts,map,hint)=>band('dunkel',pts,0.006,map,0.0025,hint,UNT,0.05);
       if(F.heck==='stufe'){ const y=yT-0.13; fuge([[-u0+0.02,y],[u0-0.02,y]],heck,RUE);
@@ -2118,6 +2136,7 @@ function _akBau(form,detail){
     if(F.planke) for(const zw of ach){ const ring=[]; for(let i=0;i<=16;i++){ const a=Math.PI*i/16; ring.push([zw+(Ra+0.012)*Math.cos(a),yc+(Ra+0.012)*Math.sin(a)]); }
       const aussen=[]; for(let i=16;i>=0;i--){ const a=Math.PI*i/16; aussen.push([zw+(Ra+0.075)*Math.cos(a),yc+(Ra+0.075)*Math.sin(a)]); }
       fl('dunkel',ring.concat(aussen),m,0.004,h,PL,0.05); }
+    if(F.planke){ const y0=yS+bsU+0.002, y1=y0+0.07, a=ach[1]+Ra+0.07, b=ach[0]-Ra-0.07; fl('dunkel',[[a,y0],[b,y0],[b,y1],[a,y1]],m,0.004,h,PL,0.1); }
     /* Aussenspiegel am Fuss der A-Saeule */
     { const zs=zD(F.dW)-0.2, ys=gurt(zs)+0.075, o=[0,0,0,0,0,0]; _akAuf(mc,zs,gurt(zs)+0.03,0,h,o);
       const X=o[0]+sg*0.11;
@@ -2249,7 +2268,7 @@ function _akVerbinde(liste,detail){
 function _akMeshes(geos,parent,o){ const M=_akMats(), res=[];
   for(const kl of ['lack','glas','chrom','dunkel','schild','licht']){ const g=geos[kl]; if(!g) continue;
     const me=new THREE.Mesh(g,M[kl]); me.userData.bauteil='auto'; me.userData.klasse=kl; me.matrixAutoUpdate=false;
-    if(kl!=='licht'&&kl!=='schild'&&o.schatten!==false&&typeof HIQ!=='undefined'&&HIQ){ me.castShadow=kl!=='chrom'; me.receiveShadow=kl==='lack'; }
+    if(kl==='lack'&&o.schatten!==false&&typeof HIQ!=='undefined'&&HIQ) me.receiveShadow=true;
     if(kl==='licht'){ me.visible=_AK.nacht>0.5; _AK.licht.push(me); }
     parent.add(me); res.push(me); }
   return res; }
@@ -2278,7 +2297,15 @@ bk.autos=function(liste,o){
     const h1=new THREE.Group(), h2=new THREE.Group(); h1.add(gr); h2.add(fern);
     res=new THREE.LOD(); res.addLevel(h1,0); res.addLevel(h2,o.abstand||50); res.position.set(cx,0,cz);
   }
+  /* Schatten wirft nur die grobe Form (Ebene 5, die nur die Schattenkamera der Sonne sieht): ~1 000 statt ~16 000
+     Dreiecke je Auto in der Schattenkarte, der Umriss ist derselbe */
+  if(o.schatten!==false&&!ohneForm&&typeof HIQ!=='undefined'&&HIQ&&typeof sun!=='undefined'&&sun&&sun.shadow&&liste.length){
+    const sch=new THREE.Group(), w=res===gr?null:res.position; _akMeshes(_akVerbinde(liste,'grob'),sch,{schatten:false});
+    sch.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=false; m.layers.set(5); m.userData.klasse='schatten'; } });
+    if(w){ sch.position.set(-w.x,0,-w.z); } res.add(sch); sun.shadow.camera.layers.enable(5); }
   res.userData.bauteil='auto'; res.userData.autos=liste.length; if(o.parent) o.parent.add(res);
+  /* Stellplaetze (Schneehaufen in den Luecken, Tests) */
+  res.userData.plaetze=liste.map(a=>({form:a.form,x:a.x||0,z:a.z||0,ry:a.ry||0,L:bk.AUTO[a.form].L,B:bk.AUTO[a.form].B}));
   return res;
 };
 /* Nacht (20-loop, applyTOD): Spiegelung dimmen, Lichter an */

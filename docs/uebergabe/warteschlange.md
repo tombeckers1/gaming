@@ -25,3 +25,13 @@ Baukasten/Bibliothek/Wirtschaftszentrale. Start erst, wenn die laufenden Fundame
 - DDL auch per **Handy** rufen können (Tom 09.10.). Pauschale 39 € bleibt, sofern Stufe 1 sich lohnt (Rechnung prüfen: Stufe 1 muss nach Investition + Lohn + Pauschalen im Plus sein; sonst Pauschale senken). Test versandtor erweitern.
 
 Parallel nur bei „dreh auf“ und nur ohne gemeinsame Dateien (z. B. 6 neben 2/3).
+
+## Entscheidungen Tom 17.10. (nach Wirtschafts-Übersicht GTexfF1ZFmNoXxEGdZG8Ah) – Paket „Balancing & Rechnungen“
+- Anfang darf etwas eintönig sein (Eingewöhnung), aber nicht zu lang – über die Wirtschaftsregler lösen (z. B. Kredit als Beschleuniger).
+- **Miete neu** (je Fläche). **Rechnungen statt Abbuchung:** Miete, Kreditraten usw. gehen NICHT automatisch ab, sondern stehen im Laptop unter „Rechnungen“; der Spieler wählt, wann er zahlt – zahlen muss er irgendwann (Fälligkeit, Folgen bei Verzug).
+- **Kundendeckel wächst mit der Ladengröße** (je größer der Laden, desto mehr Kunden gleichzeitig).
+- **Verkaufsstarke Tage (Silvester-Ansturm/Saisonspitzen) vorerst raus** – schwer zu bemessen.
+- **Spielstände** müssen zuverlässig speichern (save() schluckt Fehler – beheben, Fehler sichtbar machen).
+- **Finanzbildung sichtbar:** Tagesabschluss zeigt klar Einnahmen und alle Ausgaben (Wareneinsatz, Miete, Löhne, Zinsen, Fixkosten …).
+- **Später (gemerkt):** Stadtfeuerwerk als Finale. **Nicht machen:** lebendige Kunden (Wünsche/Beratung). **Wetter** bleibt wie es ist.
+- Nach dem Balancing: Desktop-Version (Electron, eigenes Fenster, Speichern als Datei) für lokales Spielen/Steam.

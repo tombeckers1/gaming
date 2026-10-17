@@ -10,6 +10,15 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 
 ## 000. STAND 16.10.2026 ABENDS – ZUERST LESEN (danach 00 und 0 für Hintergrund)
 
+> **FIGUREN/LKW/SPEICHERN (17.10., Branch `claude/figuren-lkw`, nicht veröffentlicht, Bilder `docs/bilder/figuren-1710/`):** (1) nur Erwachsene: die Rocketbox-Kinder FC01/MC01 sind
+> gestrichen (Größen 1,60–1,90 m statt 1,53–1,90, `FIG_GROESSE` in 09-people), „Jugendliche“ = junge Erwachsene. (2) Figuren in Wänden: Hindernisraster
+> (`navHindernisse`, 10-customers) – Wegsuche hält 0,24 m Körperabstand zu Wänden UND allen Kollisionsrechtecken (`navSicht`), Zielpunkte werden aus Hindernissen
+> geschoben (`ausHindernis`, auch Ruheplätze), `umweg()` umgeht Poller auf der Straße, Schiebetür öffnet auch fürs Personal (Reinigung ging durch die Scheibe),
+> DDL-Hubwagen-Stellplatz 0,3 m von der Wand weg (Fahrer streifte die Laderaumwand); Test `wandverstoss.js`: Vorfall-Proben 1093 → 0 (7 Spieltage). (3) Liefer-LKW-Laderaum:
+> Stirnwand ohne Lieferantenschrift (gleiche Verkleidung wie die Seiten). (4) DDL: keine Anfahrt, keine Ladebordwand/Brücke – Laderaum erscheint hinter
+> geschlossenem V1, Tor auf, laden, Tor zu, weg (`vtStart`/`vtUpdate` in 11e). (5) Speichern: Ursache der Rückfälle war ein Karton ohne y (Bot) → `toFixed` von undefined,
+> still verschluckt; jetzt sichtbar (Toast), siehe `docs/bilder/figuren-1710/speichern.md`, Test `speichern.js`.
+
 > **AUTOS (17.10., Branch `claude/autos`, noch NICHT veröffentlicht):** Tom: „Die Autos draußen sehen immer noch nicht realistisch
 > genug aus.“ Neu als Baukasten-Bauteil `bk.auto`/`bk.autos` (04z, Doku `docs/fundament/autos.md`): 6 Formen nach echten Maßen
 > (Polo, Golf, 3er/Passat, Passat Variant, Tiguan, T6.1), Seitenprofil-Extrusion mit Fase, verformt (Grundriss, Querschnitt, Sicke,

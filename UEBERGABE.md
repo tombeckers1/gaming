@@ -19,6 +19,9 @@ Stand: **16.10.2026 abends** (Abschnitt 000 neu; Chat 14.–16.10. Halle, Licht,
 > Tagesschleife stauten (> 12,5 GB beim Neuladen). Fix in 17e/21-input (Vorführung gibt die Sperre frei, kein Wiedereinfangen ohne
 > Spielergeste). **Offen:** Progressionslücke ab L33 (nach Werkbank-Stufe 5 bei L32 kein Ausbauziel mehr) → Balancing; leerer Asphalt
 > West/Süd des Lagers → Vorschlag: Stadt oder Park dort wachsen lassen (eigener Schritt, Tom entscheidet).
+> Tests 17.10. (real.html, je einzeln, alle grün): gameplay 2× (4,8/4,7 GB; ohne Fix 12,6 GB Abbruch), rueckbau (beide Migrationen; Gegenprobe
+> alte Reihenfolge → WARE rot), werkbank, werkbank-leistung, ausbau, stufen, lager, versand, versandtor, verpackung, ausstellung,
+> abschussregel, leistungsbericht, Laufzeit-waechter (Budget eingehalten, keine neuen Ausgangswerte), Node-Wächter.
 
 > **RÜCKBAU (Tom 16.10. abends, Branch `claude/rueckbau`, Doku `docs/rueckbau/rueckbau.md`):** „Die große Halle ist eine Katastrophe …
 > mach sie KOMPLETT weg.“ Logistikhalle (3 Stufen), Tore R2–R5, Lagerlogistik (Hochregal, Kartonlager ③, N1, Schleuse), Werk West und

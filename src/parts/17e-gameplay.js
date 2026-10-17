@@ -71,7 +71,12 @@ function gpStart(){
   if(gpAn||!S) return;
   try{ save(); localStorage.setItem(GP_KEY,localStorage.getItem(KEY)||''); }catch(e){}
   gpAn=true; gpFertig=false;
-  if(laptopOpen) closeLaptop(true);
+  if(laptopOpen) closeLaptop(false);
+  /* Die Vorfuehrung laeuft von selbst: Maus frei (Leiste mit Sprungpunkten anklickbar); umsehen per Klick ins Bild wie sonst.
+     17.10.: die beim Spielstart eingefangene Maus blieb sonst die ganze Vorfuehrung gesperrt - in headless Chromium flutet eine
+     aktive Maussperre den Renderer mit Maus-Ereignissen (~7000/s); waehrend langer Rechenschritte stauten sie sich in Browser
+     und Renderer (je ~50 MB/s) bis ueber 12 GB beim Neuladen (Test gameplay). */
+  try{ if(document.pointerLockElement){ lockFreiStill=true; document.exitPointerLock(); } }catch(e){}
   if(typeof vfAn!=='undefined'&&vfAn&&typeof vorfuehrungAus==='function') vorfuehrungAus();
   if(typeof vpAn!=='undefined'&&vpAn&&typeof vpAus==='function') vpAus();
   if(typeof vp2An!=='undefined'&&vp2An&&typeof vp2Aus==='function') vp2Aus();

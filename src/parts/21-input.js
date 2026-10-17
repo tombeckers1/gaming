@@ -2,10 +2,15 @@
 /* =========================================================
    Eingabe
    ========================================================= */
+let lockFreiStill=false;   /* naechstes Loslassen der Maussperre kommt vom Spiel selbst (ohne Pausenmenue) */
 let locked=false, lockWorked=false, lockFailed=false, dragHinted=false, dealOpen=false, gravOpen=false;
 function dragHint(){ if(dragHinted) return; dragHinted=true; toast('Maus gedrückt halten und ziehen, um dich umzusehen.'); }
 function requestLock(){
   if(noLoop||COARSE||lockFailed||!canvas.requestPointerLock) return;
+  /* Gameplay-Vorfuehrung (17.10.): schliesst die Vorfuehrung Aufstieg/Tagesabschluss selbst (gpTick), ist das keine Geste des
+     Spielers - dann nicht die Maus einfangen. Ein echter Browser lehnt das ab (pointerlockerror -> lockFailed fuer die ganze
+     Sitzung), headless Chromium gewaehrt es und flutet den Renderer dann mit Maus-Eingaben (Ursache "gameplay rot", 17.10.). */
+  if(typeof gpAn!=='undefined'&&gpAn&&!(navigator.userActivation&&navigator.userActivation.isActive)) return;
   try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{ lockFailed=true; dragHint(); }); }catch(e){ lockFailed=true; dragHint(); }
 }
 let zuendOpen=false;
@@ -182,6 +187,7 @@ document.addEventListener('pointerlockchange',()=>{
      (Weiterspielen und gleich wieder Esc), sofort freigeben - sonst
      gehen die Klicks auf die Spielflaeche statt ins Menue */
   if(locked){ if(overlayOpen()) document.exitPointerLock(); return; }
+  if(lockFreiStill){ lockFreiStill=false; mouseDown=false; return; }   /* vom Spiel selbst freigegeben (gpStart) - kein Pausenmenue */
   if(lockWorked&&!COARSE&&!overlayOpen()){ mouseDown=false; showPause(); }
 });
 document.addEventListener('pointerlockerror',()=>{ lockFailed=true; dragHint(); });

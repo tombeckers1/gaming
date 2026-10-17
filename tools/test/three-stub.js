@@ -5,6 +5,8 @@ class Matrix3{ constructor(){ this.elements=[1,0,0,0,1,0,0,0,1]; } getNormalMatr
 class Vector3{ applyMatrix3(){ return this; } project(){ this.x=0; this.y=0; this.z=0.5; return this; } lerpVectors(a,b,t){this.x=a.x+(b.x-a.x)*t;this.y=a.y+(b.y-a.y)*t;this.z=a.z+(b.z-a.z)*t;return this;} toArray(){return [this.x,this.y,this.z];}
 
   constructor(x,y,z){this.x=x||0;this.y=y||0;this.z=z||0;}
+  transformDirection(){ return this; }
+  setFromMatrixPosition(m){ if(m&&m.p){this.x=m.p.x;this.y=m.p.y;this.z=m.p.z;} else if(m&&m.elements){this.x=m.elements[12]||0;this.y=m.elements[13]||0;this.z=m.elements[14]||0;} return this; }
   subVectors(a,b){this.x=a.x-b.x;this.y=a.y-b.y;this.z=a.z-b.z;return this;}
   addVectors(a,b){this.x=a.x+b.x;this.y=a.y+b.y;this.z=a.z+b.z;return this;}
   crossVectors(a,b){const x=a.y*b.z-a.z*b.y,y=a.z*b.x-a.x*b.z,z=a.x*b.y-a.y*b.x;this.x=x;this.y=y;this.z=z;return this;}
@@ -77,6 +79,7 @@ class Float32BufferAttribute extends BufferAttribute{constructor(a,i){super(a in
 class BufferGeometry{
   constructor(n){this.attributes={};this.index=null;this._n=n||24;this.userData={};this.groups=[];}
   addGroup(s,c,m){this.groups.push({start:s,count:c,materialIndex:m||0});}
+  clearGroups(){this.groups=[];}
   deleteAttribute(k){delete this.attributes[k];return this;}
   setAttribute(k,a){this.attributes[k]=a;return this;}
   getAttribute(k){return this.attributes[k];}

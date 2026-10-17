@@ -1,0 +1,5736 @@
+{
+ "meta": {
+  "erzeugt": "2026-10-17",
+  "stand": "Repo /home/user/gaming, HEAD 67d1212 (V142)",
+  "zahlen_extrahiert": "durch Laden des Spiels in Node (tools/fundament/spiel-node.js), keine Werte geschaetzt; Begruendungen nur aus Kommentaren/Docs, sonst \"keine\"",
+  "zielkurve_status": "Toms Freigabe 14.10. (balancing-0910.md), Stellschrauben aus ist-analyse Abschnitt 5 NICHT angewendet: die Preise im Code entsprechen noch der Ist-Spalte vom 10.10."
+ },
+ "startgeld": {
+  "geld": 500,
+  "ruf": 50,
+  "level": 1,
+  "startdatum": "1. Oktober (Tag 0), Silvester = Tag 91",
+  "begruendung": "Kommentar: \"eng gewollt\". Keine Herleitung (ist-analyse: nach 60 Min ~770-1.200 EUR, Demo-Bogen unmoeglich)."
+ },
+ "level": [
+  {
+   "lvl": 1,
+   "xp_fuer_naechstes_level": 50,
+   "xp_bis_dahin": 0,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Grundsortiment (5 Sorten)",
+    "Ausbau: Mehrwegkisten · 5 Stück",
+    "Lieferant: Pyro-Fachhandel Brandt"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 10
+  },
+  {
+   "lvl": 2,
+   "xp_fuer_naechstes_level": 146,
+   "xp_bis_dahin": 50,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Jugendfeuerwerk (11 Sorten)"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 60
+  },
+  {
+   "lvl": 3,
+   "xp_fuer_naechstes_level": 274,
+   "xp_bis_dahin": 196,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Silvesterzubehör (12 Sorten)",
+    "Ausbau: Sackkarre",
+    "Ausbau: Ladenerweiterung 1 – etwas mehr Platz"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 1870
+  },
+  {
+   "lvl": 4,
+   "xp_fuer_naechstes_level": 429,
+   "xp_bis_dahin": 470,
+   "neu_freigeschaltet": [
+    "Ausbau: Werbeplakate in der Stadt"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 400
+  },
+  {
+   "lvl": 5,
+   "xp_fuer_naechstes_level": 606,
+   "xp_bis_dahin": 899,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Silvester-Klassiker (16 Sorten)",
+    "Ausbau: Testfeld freischalten",
+    "Deko: Bild: Raketennacht",
+    "Bank: Kredit bis 1.000 €"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 3580
+  },
+  {
+   "lvl": 6,
+   "xp_fuer_naechstes_level": 804,
+   "xp_bis_dahin": 1505,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Partydeko (15 Sorten)",
+    "Ausbau: Kontaktlos-Terminal",
+    "Ausbau: Lager mit Warenannahme",
+    "Personal: Reinigungskraft",
+    "Deko: Zimmerpflanze",
+    "Deko: Stehtisch",
+    "Deko: Mülleimer"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 2040
+  },
+  {
+   "lvl": 7,
+   "xp_fuer_naechstes_level": 1021,
+   "xp_bis_dahin": 2309,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Snacks & Süßes (6 Sorten)",
+    "Ausbau: Sonntagsgenehmigung",
+    "Ausbau: Heizstrahler",
+    "Ausbau: Eintrag im Branchenbuch",
+    "Deko: Läufer-Teppich"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 2110
+  },
+  {
+   "lvl": 8,
+   "xp_fuer_naechstes_level": 1255,
+   "xp_bis_dahin": 3330,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Abteilung Krach (13 Sorten)",
+    "Lizenzpaket: Silvester-Buffet (13 Sorten)",
+    "Ausbau: Plattformwagen",
+    "Ausbau: Soundanlage",
+    "Ausbau: Lagererweiterung 1 – etwas mehr Platz",
+    "Deko: Lichterkette",
+    "Deko: Bild: Feuerwerk über der Stadt",
+    "Bank: Kredit bis 2.500 €",
+    "Lieferant: Feuerwerk-Großhandel Kowalski"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 5480
+  },
+  {
+   "lvl": 9,
+   "xp_fuer_naechstes_level": 1507,
+   "xp_bis_dahin": 4585,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Partynacht (16 Sorten)",
+    "Ausbau: Radiowerbung",
+    "Ausbau: Gravur-Automat",
+    "Personal: Einräumer",
+    "Deko: Deckenventilator"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 3900
+  },
+  {
+   "lvl": 10,
+   "xp_fuer_naechstes_level": 1774,
+   "xp_bis_dahin": 6092,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Kleinfeuerwerk (4 Sorten)",
+    "Ausbau: Überwachungskameras",
+    "Deko: Weihnachtsbaum"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 2700
+  },
+  {
+   "lvl": 11,
+   "xp_fuer_naechstes_level": 2056,
+   "xp_bis_dahin": 7866,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Bunte Nacht (13 Sorten)",
+    "Ausbau: Regalbeleuchtung",
+    "Ausbau: Ladenerweiterung 2 – deutlich mehr Platz",
+    "Personal: Kassierer",
+    "Deko: Bild: Sortimentstafel"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 10800
+  },
+  {
+   "lvl": 12,
+   "xp_fuer_naechstes_level": 2353,
+   "xp_bis_dahin": 9922,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Fondue & Raclette (14 Sorten)",
+    "Personal: Zweiter Einräumer",
+    "Deko: Neonschild Frohes Neues",
+    "Bank: Kredit bis 5.000 €"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 3400
+  },
+  {
+   "lvl": 13,
+   "xp_fuer_naechstes_level": 2664,
+   "xp_bis_dahin": 12275,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Feuerzauber (2 Sorten)",
+    "Ausbau: Lagererweiterung 2 – deutlich mehr Platz",
+    "Personal: Sicherheitsdienst"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 10400
+  },
+  {
+   "lvl": 14,
+   "xp_fuer_naechstes_level": 2989,
+   "xp_bis_dahin": 14939,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Verbund & Kugelbomben (14 Sorten)",
+    "Lizenzpaket: Feine Getränke (15 Sorten)",
+    "Ausbau: Warensicherung",
+    "Deko: Getränkeautomat",
+    "Lieferant: Restposten-Ratzke",
+    "Restposten: Kleine Wundertüte",
+    "Restposten: Knallkiste",
+    "Restposten: Partykiste",
+    "Restposten: Sortenreiner Posten"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 13200
+  },
+  {
+   "lvl": 15,
+   "xp_fuer_naechstes_level": 3326,
+   "xp_bis_dahin": 17928,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Festtafel (4 Sorten)",
+    "Ausbau: Onlineshop",
+    "Bank: Kredit bis 10.000 €",
+    "Restposten: Große Wundertüte",
+    "Restposten: Raketen-Paket"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 9700
+  },
+  {
+   "lvl": 16,
+   "xp_fuer_naechstes_level": 3676,
+   "xp_bis_dahin": 21254,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Nachthimmel (3 Sorten)",
+    "Ausbau: SB-Kassen",
+    "Personal: SB-Betreuer",
+    "Deko: Bild: Der Sprengmeister",
+    "Restposten: Halb sortierter Posten"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 12400
+  },
+  {
+   "lvl": 17,
+   "xp_fuer_naechstes_level": 4038,
+   "xp_bis_dahin": 24930,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Import & Sonderposten (4 Sorten)",
+    "Personal: Zweiter SB-Betreuer",
+    "Restposten: Restposten-Palette",
+    "Restposten: Verbund-Paket"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 13000
+  },
+  {
+   "lvl": 18,
+   "xp_fuer_naechstes_level": 4412,
+   "xp_bis_dahin": 28968,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Goldklasse (6 Sorten)",
+    "Ausbau: Lagererweiterung 3 – noch mehr Platz",
+    "Restposten: Kugelkiste"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 26000
+  },
+  {
+   "lvl": 19,
+   "xp_fuer_naechstes_level": 4798,
+   "xp_bis_dahin": 33380,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Schabernack-Edition (1 Sorten)",
+    "Lizenzpaket: Sternklasse (7 Sorten)",
+    "Deko: Leuchtsäule"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 34000
+  },
+  {
+   "lvl": 20,
+   "xp_fuer_naechstes_level": 5195,
+   "xp_bis_dahin": 38178,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Großkaliber (15 Sorten)",
+    "Ausbau: Werkbank – eigene Marke",
+    "Bank: Kredit bis 25.000 €"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 23900
+  },
+  {
+   "lvl": 21,
+   "xp_fuer_naechstes_level": 5603,
+   "xp_bis_dahin": 43373,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Feinkost (2 Sorten)",
+    "Ausbau: Stammkundenkarte",
+    "Ausbau: Ladenerweiterung 3 – viel mehr Platz"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 30600
+  },
+  {
+   "lvl": 22,
+   "xp_fuer_naechstes_level": 6022,
+   "xp_bis_dahin": 48976,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Profiklasse (13 Sorten)",
+    "Deko: Schauvitrine"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 26000
+  },
+  {
+   "lvl": 23,
+   "xp_fuer_naechstes_level": 6451,
+   "xp_bis_dahin": 54998,
+   "neu_freigeschaltet": [
+    "Ausbau: Digitale Werbetafel",
+    "Ausbau: Werkbank – Batterien mit 60 Schuss"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 7200
+  },
+  {
+   "lvl": 24,
+   "xp_fuer_naechstes_level": 6891,
+   "xp_bis_dahin": 61449,
+   "neu_freigeschaltet": [
+    "Ausbau: Ladenerweiterung 4 – riesig viel Platz"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 34000
+  },
+  {
+   "lvl": 25,
+   "xp_fuer_naechstes_level": 7341,
+   "xp_bis_dahin": 68340,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Meisterklasse (5 Sorten)",
+    "Ausbau: Großhandelslizenz",
+    "Ausbau: Lagererweiterung 4 – die ganze Halle",
+    "Ausbau: Packstation für den Versand",
+    "Ausbau: Ladenerweiterung 5 – zweite Tür",
+    "Personal: Versandmitarbeiter"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 73400
+  },
+  {
+   "lvl": 26,
+   "xp_fuer_naechstes_level": 7802,
+   "xp_bis_dahin": 75681,
+   "neu_freigeschaltet": [
+    "Ausbau: Werkbank – Batterien mit 110 Schuss",
+    "Bank: Kredit bis 60.000 €"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 3600
+  },
+  {
+   "lvl": 27,
+   "xp_fuer_naechstes_level": 8271,
+   "xp_bis_dahin": 83483,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Großfeuerwerk (6 Sorten)",
+    "Ausbau: Klima und Musikanlage XL",
+    "Ausbau: Packstation – zweiter Packplatz",
+    "Personal: Zweiter Versandmitarbeiter"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 53300
+  },
+  {
+   "lvl": 28,
+   "xp_fuer_naechstes_level": 8751,
+   "xp_bis_dahin": 91754,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 29,
+   "xp_fuer_naechstes_level": 9240,
+   "xp_bis_dahin": 100505,
+   "neu_freigeschaltet": [
+    "Lizenzpaket: Pyro-Weltklasse (4 Sorten)",
+    "Ausbau: Packstation – Versandstraße",
+    "Ausbau: Werkbank – Batterien mit 200 Schuss",
+    "Personal: Dritter Versandmitarbeiter"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 63700
+  },
+  {
+   "lvl": 30,
+   "xp_fuer_naechstes_level": 9739,
+   "xp_bis_dahin": 109745,
+   "neu_freigeschaltet": [
+    "Ausbau: Meisterbrief Pyrotechnik"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 12000
+  },
+  {
+   "lvl": 31,
+   "xp_fuer_naechstes_level": 10247,
+   "xp_bis_dahin": 119484,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 32,
+   "xp_fuer_naechstes_level": 10763,
+   "xp_bis_dahin": 129731,
+   "neu_freigeschaltet": [
+    "Ausbau: Werkbank – Batterien mit 500 Schuss"
+   ],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 8500
+  },
+  {
+   "lvl": 33,
+   "xp_fuer_naechstes_level": 11289,
+   "xp_bis_dahin": 140494,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 34,
+   "xp_fuer_naechstes_level": 11824,
+   "xp_bis_dahin": 151783,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 35,
+   "xp_fuer_naechstes_level": 12367,
+   "xp_bis_dahin": 163607,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 36,
+   "xp_fuer_naechstes_level": 12919,
+   "xp_bis_dahin": 175974,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 37,
+   "xp_fuer_naechstes_level": 13480,
+   "xp_bis_dahin": 188893,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 38,
+   "xp_fuer_naechstes_level": 14049,
+   "xp_bis_dahin": 202373,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 39,
+   "xp_fuer_naechstes_level": 14626,
+   "xp_bis_dahin": 216422,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  },
+  {
+   "lvl": 40,
+   "xp_fuer_naechstes_level": 15211,
+   "xp_bis_dahin": 231048,
+   "neu_freigeschaltet": [],
+   "summe_preise_neuer_ausbauten_und_lizenzen_eur": 0
+  }
+ ],
+ "xp_regel": {
+  "kurve": "xp bis zum naechsten Level = round(50 x Level^1,55); XP-Rest wird uebernommen; keine Obergrenze",
+  "quellen": {
+   "kurve": {
+    "a": 50,
+    "exp": 1.55
+   },
+   "kunde": {
+    "jeEuro": 0.5,
+    "grund": 4,
+    "barPassend": 3
+   },
+   "tag": {
+    "grund": 60,
+    "jeUmsatz": 0.05,
+    "ohneBeschwerde": 40
+   },
+   "jahr": 200,
+   "kreditGetilgt": 40,
+   "kapitel": 40,
+   "ausbauTeiler": 12,
+   "lizenz": {
+    "teiler": 14,
+    "bonus": 30
+   },
+   "herausforderung": {
+    "teiler": 10,
+    "bonus": 25
+   },
+   "wochenzielTeiler": 3,
+   "auftragAngenommen": 20,
+   "auftragErfuellt": {
+    "jeEuro": 0.4,
+    "grund": 40
+   },
+   "restposten": 20,
+   "eigeneBatterie": 180,
+   "zuenden": {
+    "hypeTeiler": 3,
+    "min": 1
+   },
+   "serieStufen": [
+    5,
+    10,
+    20,
+    35,
+    50,
+    75,
+    100
+   ],
+   "serieJeKunde": 6,
+   "diebGestellt": 25,
+   "regalAufbau": 12,
+   "einbau": 20,
+   "gravur": 12,
+   "paketGepackt": 3,
+   "dreckWeg": 3,
+   "fensterPutzen": 4,
+   "sbHilfe": 4,
+   "packmaterialEinlagern": 1
+  },
+  "hinweis": "Ausgaben bringen XP (Ausbau Kosten/12, Lizenz Kosten/14+30): Level folgt Geldausgeben (ist-analyse 3.3 \"Schere\")."
+ },
+ "kapitel": [
+  {
+   "nr": 1,
+   "name": "Pyro-Kiosk",
+   "ausbau": null,
+   "text": "Ein kleiner Laden, die Lieferungen kommen vor die Tür.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Start. Keine Kosten, kein Ausbau."
+  },
+  {
+   "nr": 2,
+   "name": "Kleines Fachgeschäft",
+   "ausbau": {
+    "id": "lager",
+    "preis": 1200,
+    "lvl": 6
+   },
+   "text": "Eigenes Lager mit Rampe: der LKW liefert direkt ans Rolltor.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Ausloeser Lager (Level 6, 1.200 EUR). Kapitel ist nur Anzeige/Gruppierung und gibt 40 XP (xp.kapitel); gekauft wird nach Level + Voraussetzung + Geld, nicht nach Kapitel (UPGRADES.kap wird in buyUp nicht geprueft; nur supOffen() prueft kap fuer den Grosshandel)."
+  },
+  {
+   "nr": 3,
+   "name": "Großes Fachgeschäft",
+   "ausbau": {
+    "id": "shop_gross",
+    "preis": 7500,
+    "lvl": 11
+   },
+   "text": "Das Ladenlokal nebenan gehört dir. Jetzt wird es richtig groß.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Ausloeser Ladenerweiterung 2 (Level 11, 7.500 EUR); setzt Ladenerweiterung 1 (1.400) voraus. Kapitel 4 kommt erst, wenn Kap. 3 geschafft ist, auch wenn der Onlineshop (L15) frueher gekauft wird (kapitelNr zaehlt der Reihe nach)."
+  },
+  {
+   "nr": 4,
+   "name": "Pyro-Versand",
+   "ausbau": {
+    "id": "onlineshop",
+    "preis": 3200,
+    "lvl": 15
+   },
+   "text": "Onlineshop und Packstation: du verkaufst ins ganze Land.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Ausloeser Onlineshop (Level 15, 3.200 EUR). Packstation (Level 25-29) gehoert dazu."
+  },
+  {
+   "nr": 5,
+   "name": "Eigene Marke",
+   "ausbau": {
+    "id": "labor",
+    "preis": 2900,
+    "lvl": 20
+   },
+   "text": "An der Werkbank im Lager entwirfst du eigene Batterien, lässt sie fertigen und verkaufst sie unter deinem Namen.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Ausloeser Werkbank (Level 20, 2.900 EUR, braucht Lagererweiterung 1). Stufen 2-5 bis Level 32."
+  },
+  {
+   "nr": 6,
+   "name": "Pyro-Kaufhaus",
+   "ausbau": {
+    "id": "shop_sued",
+    "preis": 34000,
+    "lvl": 24
+   },
+   "text": "Riesige Verkaufsfläche und ein zweiter Eingang mit eigener Kasse.",
+   "gebaut": true,
+   "vollversion": false,
+   "kommentar": "Ausloeser Ladenerweiterung 4 (Level 24, 34.000 EUR); setzt Ladenerweiterung 3 (16.000) voraus."
+  },
+  {
+   "nr": 7,
+   "name": "Pyro-Großhändler",
+   "ausbau": {
+    "id": "grosshandel",
+    "preis": null,
+    "lvl": null
+   },
+   "text": "Du belieferst andere Läden mit deinen eigenen Marken.",
+   "gebaut": false,
+   "vollversion": true,
+   "kommentar": "Nur Vorschau (geplant, voll=Vollversion). Kein Ausbau im Katalog (up=grosshandel gibt es nicht): nichts kaufbar."
+  },
+  {
+   "nr": 8,
+   "name": "Pyro-Kette",
+   "ausbau": {
+    "id": "filialen",
+    "preis": null,
+    "lvl": null
+   },
+   "text": "Filialen in anderen Städten, geführt von deinem Team.",
+   "gebaut": false,
+   "vollversion": true,
+   "kommentar": "Nur Vorschau, kein Ausbau im Katalog (up=filialen)."
+  },
+  {
+   "nr": 9,
+   "name": "Pyro-Imperium",
+   "ausbau": {
+    "id": "stadtfeuerwerk",
+    "preis": null,
+    "lvl": null
+   },
+   "text": "Das Finale: du zündest das offizielle Silvesterfeuerwerk der Stadt.",
+   "gebaut": false,
+   "vollversion": true,
+   "kommentar": "Nur Vorschau, kein Ausbau im Katalog (up=stadtfeuerwerk)."
+  }
+ ],
+ "ausbauten": [
+  {
+   "id": "plakat",
+   "name": "Werbeplakate in der Stadt",
+   "kat": "markt",
+   "lvl": 4,
+   "kap": null,
+   "req": null,
+   "preis": 400,
+   "xp_beim_kauf": 33,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Kundentakt x1.3 solange gekauft",
+   "begruendung": "Gemessen (ist-analyse 3.10, Bot \"gut\", 10.10.): +108 EUR/Tag, Amortisation ~4 Tage; als Quick-Win bewertet. Preis selbst nicht hergeleitet.",
+   "amortisation_laut_quelle": "~4 Tage (gemessen)"
+  },
+  {
+   "id": "sackkarre",
+   "name": "Sackkarre",
+   "kat": "einr",
+   "lvl": 3,
+   "kap": null,
+   "req": null,
+   "preis": 350,
+   "xp_beim_kauf": 29,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "4 Kartons auf einmal tragen",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "kisten",
+   "name": "Mehrwegkisten · 5 Stück",
+   "kat": "einr",
+   "lvl": 1,
+   "kap": null,
+   "req": null,
+   "preis": 10,
+   "xp_beim_kauf": 1,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "5 Mehrwegkisten je Kauf, beliebig oft kaufbar",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "wagen",
+   "name": "Plattformwagen",
+   "kat": "einr",
+   "lvl": 8,
+   "kap": null,
+   "req": "lager",
+   "preis": 1400,
+   "xp_beim_kauf": 117,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "8 Kartons auf einmal (ersetzt Sackkarre)",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "terminal",
+   "name": "Kontaktlos-Terminal",
+   "kat": "einr",
+   "lvl": 6,
+   "kap": null,
+   "req": null,
+   "preis": 320,
+   "xp_beim_kauf": 27,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Kartenzahlung schneller (60 % zahlen mit Karte; Kassendauer Karte 1,0 s / bar 2,2 s)",
+   "begruendung": "keine; ist-analyse 4.2 nennt nur Ziel \"Quick Wins 2-5 Tage\" fuer Terminal, nicht gemessen",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "tag4",
+   "name": "Sonntagsgenehmigung",
+   "kat": "markt",
+   "lvl": 7,
+   "kap": null,
+   "req": null,
+   "preis": 900,
+   "xp_beim_kauf": 75,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Sonntag oeffnen (sonst Ruhetag; Sonntagsfaktor Nachfrage 0,55)",
+   "begruendung": "keine; nur Ziel 4.2",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "heizung",
+   "name": "Heizstrahler",
+   "kat": "einr",
+   "lvl": 7,
+   "kap": null,
+   "req": null,
+   "preis": 450,
+   "xp_beim_kauf": 38,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Geduld +30 (Einheit wie geduld.min/max 75-110), Ambiente +4",
+   "begruendung": "keine; Ziel 4.2 Quick Win",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "musik",
+   "name": "Soundanlage",
+   "kat": "einr",
+   "lvl": 8,
+   "kap": null,
+   "req": null,
+   "preis": 380,
+   "xp_beim_kauf": 32,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Ambiente +6",
+   "begruendung": "keine; Ziel 4.2 Quick Win",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "radio",
+   "name": "Radiowerbung",
+   "kat": "markt",
+   "lvl": 9,
+   "kap": null,
+   "req": null,
+   "preis": 1200,
+   "xp_beim_kauf": 100,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Kundentakt x1.25",
+   "begruendung": "ist-analyse \"weitere\": \"Radio 1.200 EUR (L9) aehnlich wie Plakat\" - Annahme, nicht gemessen",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "cams",
+   "name": "Überwachungskameras",
+   "kat": "einr",
+   "lvl": 10,
+   "kap": null,
+   "req": null,
+   "preis": 900,
+   "xp_beim_kauf": 75,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Diebstahlversuche x0.5",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "regallicht",
+   "name": "Regalbeleuchtung",
+   "kat": "einr",
+   "lvl": 11,
+   "kap": null,
+   "req": null,
+   "preis": 700,
+   "xp_beim_kauf": 58,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Ambiente +6, Ware wirkt hochwertiger",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "alarm",
+   "name": "Warensicherung",
+   "kat": "einr",
+   "lvl": 14,
+   "kap": null,
+   "req": null,
+   "preis": 2200,
+   "xp_beim_kauf": 183,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Warensicherung stellt 70 % der Diebe am Ausgang",
+   "begruendung": "keine; kein Verlust-Vergleich (Diebstahl zaehlt nicht in Tagesausgaben, wirtschaft.md Kette diebstahl)",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "grosskunden",
+   "name": "Eintrag im Branchenbuch",
+   "kat": "markt",
+   "lvl": 7,
+   "kap": null,
+   "req": "lager",
+   "preis": 500,
+   "xp_beim_kauf": 42,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Telefon-Grossauftraege (Kartons nach Level, Auszahlung = Ladenpreis x Angebot)",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "onlineshop",
+   "name": "Onlineshop",
+   "kat": "flaeche",
+   "lvl": 15,
+   "kap": 4,
+   "req": null,
+   "preis": 3200,
+   "xp_beim_kauf": 267,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend. Onlineshop liefert zusaetzlich eine Pauschale (Einnahme, s. laufend.online).",
+   "wirkung": "Marktplatz-Pauschale je Tag: 40 + 1.6 x Ruf + 4 x Level (ohne Kosten); Kapitel 4",
+   "begruendung": "Gemessen (ist-analyse 3.10): +232 EUR/Tag, ~14 Tage. Die Pauschale ist reiner Gewinn (52 % des Betriebsgewinns, Tage 71-200) - von der ist-analyse selbst als Fehler bewertet, nicht behoben.",
+   "amortisation_laut_quelle": "~14 Tage (gemessen); rein aus der Pauschale gerechnet 13-18 Tage (180-252 EUR/Tag bei Level 15-25)"
+  },
+  {
+   "id": "kundenkarte",
+   "name": "Stammkundenkarte",
+   "kat": "markt",
+   "lvl": 21,
+   "kap": null,
+   "req": null,
+   "preis": 2600,
+   "xp_beim_kauf": 217,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Kundentakt x1.12, Stammkunden zahlen bereitwilliger",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "tafel",
+   "name": "Digitale Werbetafel",
+   "kat": "markt",
+   "lvl": 23,
+   "kap": null,
+   "req": null,
+   "preis": 4200,
+   "xp_beim_kauf": 350,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Kundentakt x1.3",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "lizenz",
+   "name": "Großhandelslizenz",
+   "kat": "markt",
+   "lvl": 25,
+   "kap": null,
+   "req": null,
+   "preis": 6500,
+   "xp_beim_kauf": 542,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Alle Einkaufspreise x0.9 (nicht Regale/Packmaterial)",
+   "begruendung": "keine; Amortisation haengt am Einkaufsvolumen, nirgends gerechnet",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "klima",
+   "name": "Klima und Musikanlage XL",
+   "kat": "einr",
+   "lvl": 27,
+   "kap": null,
+   "req": null,
+   "preis": 5400,
+   "xp_beim_kauf": 450,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Geduld +35, Ambiente (Stimmung) hoeher",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "meister",
+   "name": "Meisterbrief Pyrotechnik",
+   "kat": "markt",
+   "lvl": 30,
+   "kap": null,
+   "req": null,
+   "preis": 12000,
+   "xp_beim_kauf": 1000,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Grossauftraege zahlen x1.33",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "shop_halb",
+   "name": "Ladenerweiterung 1 – etwas mehr Platz",
+   "kat": "flaeche",
+   "lvl": 3,
+   "kap": null,
+   "req": null,
+   "preis": 1400,
+   "xp_beim_kauf": 117,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "~70 m2 mehr, zweites Schaufenster, 2 Regalplaetze, Zugang Testfeld; Ladengroesse-Faktor: kein Eintrag (nur shop_gross/ost/sued zaehlen)",
+   "begruendung": "ist-analyse: Amortisation nicht messbar (Kredit + Sonntag). Preisvorschlag Zielkurve ~800 EUR (nicht umgesetzt).",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "testfeld",
+   "name": "Testfeld freischalten",
+   "kat": "flaeche",
+   "lvl": 5,
+   "kap": null,
+   "req": "shop_halb",
+   "preis": 3200,
+   "xp_beim_kauf": 267,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Selbst zuenden: Hype hebt Kundentakt x(1+Hype/50) und F2-Wuensche ab Hype 40 x1,3",
+   "begruendung": "Gemessen ohne Zuenden: +108 EUR/Tag, ~30 Tage. Zielkurve schlaegt ~1.200 EUR vor (nicht umgesetzt).",
+   "amortisation_laut_quelle": "~30 Tage (ohne Hype gemessen)"
+  },
+  {
+   "id": "shop_gross",
+   "name": "Ladenerweiterung 2 – deutlich mehr Platz",
+   "kat": "flaeche",
+   "lvl": 11,
+   "kap": 3,
+   "req": "shop_halb",
+   "preis": 7500,
+   "xp_beim_kauf": 625,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Ladengroesse +0.34 (mehr Kunden, Korb 0,78+0,22 x Groesse), 142 m2, 10 Regalplaetze",
+   "begruendung": "Gemessen: +170 EUR/Tag, ~44 Tage. Zielkurve schlaegt ~4.500 EUR vor (heute 7.500).",
+   "amortisation_laut_quelle": "~44 Tage (gemessen)"
+  },
+  {
+   "id": "lager",
+   "name": "Lager mit Warenannahme",
+   "kat": "flaeche",
+   "lvl": 6,
+   "kap": 2,
+   "req": null,
+   "preis": 1200,
+   "xp_beim_kauf": 100,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Lagerzugang mit Rampe, Lagerregale, Grosshandel (L8) moeglich; Kapitel 2. Jedes Lagerregal kostet danach 6 EUR/Tag",
+   "begruendung": "Gemessen: +44 EUR/Tag, ~27 Tage. Preis selbst nicht hergeleitet.",
+   "amortisation_laut_quelle": "~27 Tage (gemessen)"
+  },
+  {
+   "id": "lager_nord",
+   "name": "Lagererweiterung 1 – etwas mehr Platz",
+   "kat": "flaeche",
+   "lvl": 8,
+   "kap": null,
+   "req": "lager",
+   "preis": 1900,
+   "xp_beim_kauf": 158,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "47 m2, 6 Stellplaetze; Voraussetzung Werkbank",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "lager_gross",
+   "name": "Lagererweiterung 2 – deutlich mehr Platz",
+   "kat": "flaeche",
+   "lvl": 13,
+   "kap": null,
+   "req": "lager_nord",
+   "preis": 6200,
+   "xp_beim_kauf": 517,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "118 m2 (Abschnitt Lager Sued); Voraussetzung Packstation-Kette",
+   "begruendung": "Gemessen (mit Kameras+Sonntag vermischt): +472 EUR/Tag, ~13 Tage. Beschreibung nennt \"grosse Halle/Hochregale\" (Rueckbau 16.10.: gestrichen).",
+   "amortisation_laut_quelle": "~13 Tage (vermischt)"
+  },
+  {
+   "id": "shop_ost",
+   "name": "Ladenerweiterung 3 – viel mehr Platz",
+   "kat": "flaeche",
+   "lvl": 21,
+   "kap": null,
+   "req": "shop_gross",
+   "preis": 16000,
+   "xp_beim_kauf": 1333,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Ladengroesse +0.26, 212 m2, Gondelgassen",
+   "begruendung": "keine (ist-analyse: im Lauf nur auf Kredit gekauft, danach Abwaertsspirale)",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "shop_sued",
+   "name": "Ladenerweiterung 4 – riesig viel Platz",
+   "kat": "flaeche",
+   "lvl": 24,
+   "kap": 6,
+   "req": "shop_ost",
+   "preis": 34000,
+   "xp_beim_kauf": 2833,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Ladengroesse +0.3, 478 m2, 2 Durchgaenge; Kapitel 6",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "lager_sued",
+   "name": "Lagererweiterung 3 – noch mehr Platz",
+   "kat": "flaeche",
+   "lvl": 18,
+   "kap": null,
+   "req": "lager_gross",
+   "preis": 11000,
+   "xp_beim_kauf": 917,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "83 m2 mehr (Abschnitt 3)",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "lager_sued2",
+   "name": "Lagererweiterung 4 – die ganze Halle",
+   "kat": "flaeche",
+   "lvl": 25,
+   "kap": null,
+   "req": "lager_sued",
+   "preis": 15000,
+   "xp_beim_kauf": 1250,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "283 m2 Gesamt, 13 Stellplaetze",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "packstation",
+   "name": "Packstation für den Versand",
+   "kat": "flaeche",
+   "lvl": 25,
+   "kap": null,
+   "req": "lager_sued2",
+   "preis": 6400,
+   "xp_beim_kauf": 533,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Packplatz 1, Foerderband, Palette; Bestellungen als echte Pakete; stufeMul 1,0 (Stufe 1)",
+   "begruendung": "Altwert (nicht neu gerechnet): ist-analyse 3.9: 1 Packer ~12 Pakete/Tag x ~20 EUR DB - 165 Lohn = ~75 EUR/Tag -> ~85 Tage. DDL-Kommentar 11e: ~58 EUR/Tag mit Packer. Zielkurve will 15-30 Tage (Preis ~3.000-3.500), nicht umgesetzt.",
+   "amortisation_laut_quelle": "~85 Tage (ist-analyse) / ~110 Tage (58 EUR/Tag, eigene Rechnung)"
+  },
+  {
+   "id": "packstation2",
+   "name": "Packstation – zweiter Packplatz",
+   "kat": "flaeche",
+   "lvl": 27,
+   "kap": null,
+   "req": "packstation",
+   "preis": 5900,
+   "xp_beim_kauf": 492,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Packplatz 2, stufeMul 1,45 (mehr Bestellungen)",
+   "begruendung": "Kommentar 02-data (09.10., Tom): 5.900 statt 14.000 EUR. Ein Packer ~12 Pakete/Tag, DB 26 EUR/Paket (4,90 EUR Versand, frei ab 50) -> +313 EUR/Tag minus Lohn 170 = +140 EUR/Tag; mit Einstellung ~47 Spieltage.",
+   "amortisation_laut_quelle": "~47 Tage (laut Kommentar)"
+  },
+  {
+   "id": "packstation3",
+   "name": "Packstation – Versandstraße",
+   "kat": "flaeche",
+   "lvl": 29,
+   "kap": null,
+   "req": "packstation2",
+   "preis": 6900,
+   "xp_beim_kauf": 575,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Packplatz 3, stufeMul 1,9",
+   "begruendung": "Kommentar 02-data (09.10.): 6.900 EUR, gleiche Rechnung -> ~56 Spieltage.",
+   "amortisation_laut_quelle": "~56 Tage (laut Kommentar)"
+  },
+  {
+   "id": "eingang2",
+   "name": "Ladenerweiterung 5 – zweite Tür",
+   "kat": "flaeche",
+   "lvl": 25,
+   "kap": null,
+   "req": "shop_ost",
+   "preis": 11500,
+   "xp_beim_kauf": 958,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Zweite Tuer: Kunden nehmen naechsten Eingang (Wegzeit)",
+   "begruendung": "keine; wirkt nicht auf Kundenzahl oder Umsatz (nur Weg)",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "kasse2",
+   "name": "SB-Kassen",
+   "kat": "einr",
+   "lvl": 16,
+   "kap": null,
+   "req": "shop_gross",
+   "preis": 3400,
+   "xp_beim_kauf": 283,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "2 SB-Kassen; Kunden mit wenig Ware zahlen selbst (SB-Hilfe-Zeit 30 s)",
+   "begruendung": "keine; ist-analyse 4.2 Ziel mittlere Stufe 10-20 Tage, nicht gemessen",
+   "amortisation_laut_quelle": null
+  },
+  {
+   "id": "labor",
+   "name": "Werkbank – eigene Marke",
+   "kat": "flaeche",
+   "lvl": 20,
+   "kap": 5,
+   "req": "lager_nord",
+   "preis": 2900,
+   "xp_beim_kauf": 242,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Werkbank im Lager: eigene Batterien 25 Schuss, max. 5 gleichzeitig; Kapitel 5; 180 XP je entwickelter Batterie",
+   "begruendung": "01c-Kommentar (16.10.): 3 kleine Batterien x 1,5 Stk/Tag x 20 EUR DB = 90 EUR/Tag -> 32 Tage (mit 5 Batterien 20 Tage). Planwert 1-1,5 Stk/Tag je eigene Batterie (gemessen: 0,8 Stk/Sorte/Tag im Vollsortiment, 13 von 16 an einem Tag im kleinen Laden).",
+   "amortisation_laut_quelle": "~32 Tage"
+  },
+  {
+   "id": "labor2",
+   "name": "Werkbank – Batterien mit 60 Schuss",
+   "kat": "einr",
+   "lvl": 23,
+   "kap": null,
+   "req": "labor",
+   "preis": 3000,
+   "xp_beim_kauf": 250,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Batterien 60 Schuss",
+   "begruendung": "01c: 2 Batterien x 1,3 Stk/Tag x 46 EUR DB -> ~25 Tage (Rechnung nachgerechnet: 3.000/120 = 25).",
+   "amortisation_laut_quelle": "~25 Tage"
+  },
+  {
+   "id": "labor3",
+   "name": "Werkbank – Batterien mit 110 Schuss",
+   "kat": "einr",
+   "lvl": 26,
+   "kap": null,
+   "req": "labor2",
+   "preis": 3600,
+   "xp_beim_kauf": 300,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Batterien 110 Schuss",
+   "begruendung": "01c: 2 x 1,1 x 61 EUR -> ~27 Tage (nachgerechnet 26,9).",
+   "amortisation_laut_quelle": "~27 Tage"
+  },
+  {
+   "id": "labor4",
+   "name": "Werkbank – Batterien mit 200 Schuss",
+   "kat": "einr",
+   "lvl": 29,
+   "kap": null,
+   "req": "labor3",
+   "preis": 4800,
+   "xp_beim_kauf": 400,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Batterien 200 Schuss",
+   "begruendung": "01c: 2 x 0,9 x 98 EUR -> ~27 Tage (nachgerechnet 27,2; werkbank.md nennt DB 87 -> 30 Tage).",
+   "amortisation_laut_quelle": "~27 Tage"
+  },
+  {
+   "id": "labor5",
+   "name": "Werkbank – Batterien mit 500 Schuss",
+   "kat": "einr",
+   "lvl": 32,
+   "kap": null,
+   "req": "labor4",
+   "preis": 8500,
+   "xp_beim_kauf": 708,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "Batterien 500 Schuss",
+   "begruendung": "01c: 2 x 0,7 x 245 EUR -> ~25 Tage (nachgerechnet 24,8; werkbank.md nennt DB 220 -> 28 Tage).",
+   "amortisation_laut_quelle": "~25 Tage"
+  },
+  {
+   "id": "gravur",
+   "name": "Gravur-Automat",
+   "kat": "einr",
+   "lvl": 9,
+   "kap": null,
+   "req": null,
+   "preis": 1200,
+   "xp_beim_kauf": 100,
+   "betrieb_tag": 0,
+   "betrieb_hinweis": "Kein Ausbau hat eigene laufende Kosten (keine Miete/Nebenkosten); laufend wirken nur Level-Steuer, Regale und Personal, s. laufend.",
+   "wirkung": "~30 % der Kunden wollen Gravur (Blanko 3,20 EUR EK -> Gravur-Rakete Marktwert 24,99); 12 XP je Gravur",
+   "begruendung": "keine",
+   "amortisation_laut_quelle": null
+  }
+ ],
+ "lizenzen": [
+  {
+   "id": "start",
+   "name": "Grundsortiment",
+   "lvl": 1,
+   "preis": 0,
+   "produkte_anzahl": 5,
+   "preis_je_sorte": 0,
+   "xp_beim_kauf": 0,
+   "durchschnitt_ek": 0.66,
+   "durchschnitt_vk_markt": 1.73,
+   "durchschnitt_db_je_stueck": 1.07,
+   "begruendung": "gratis",
+   "produkte": [
+    "wunder",
+    "knallerbsen",
+    "knallfrosch",
+    "wunderherz",
+    "partypopper"
+   ]
+  },
+  {
+   "id": "jugend",
+   "name": "Jugendfeuerwerk",
+   "lvl": 2,
+   "preis": 60,
+   "produkte_anzahl": 11,
+   "preis_je_sorte": 5.45,
+   "xp_beim_kauf": 34,
+   "durchschnitt_ek": 3.95,
+   "durchschnitt_vk_markt": 9.31,
+   "durchschnitt_db_je_stueck": 5.36,
+   "begruendung": "keine",
+   "produkte": [
+    "knallbonbon",
+    "tischbombe",
+    "bengalholz",
+    "wunderzahl",
+    "leuchtfontaene",
+    "feuerteufel",
+    "wunderkerzeXXL",
+    "lb_regenbogenbrunnen",
+    "lb_gluehwuermchen",
+    "lb_tautropfen",
+    "kornblumen"
+   ]
+  },
+  {
+   "id": "zubehoer",
+   "name": "Silvesterzubehör",
+   "lvl": 3,
+   "preis": 120,
+   "produkte_anzahl": 12,
+   "preis_je_sorte": 10,
+   "xp_beim_kauf": 39,
+   "durchschnitt_ek": 1.4,
+   "durchschnitt_vk_markt": 3.66,
+   "durchschnitt_db_je_stueck": 2.25,
+   "begruendung": "keine (Beschreibung: kleine Margen, fast jeder Kunde nimmt etwas mit)",
+   "produkte": [
+    "feuerzeug",
+    "luftschlangen",
+    "knicklichter",
+    "brille",
+    "chips",
+    "konfetti",
+    "stabfeuerzeug",
+    "streichhoelzer",
+    "gehoerschutz",
+    "schutzbrille",
+    "feuerloescher",
+    "luftschlangenspray"
+   ]
+  },
+  {
+   "id": "klassiker",
+   "name": "Silvester-Klassiker",
+   "lvl": 5,
+   "preis": 380,
+   "produkte_anzahl": 16,
+   "preis_je_sorte": 23.75,
+   "xp_beim_kauf": 57,
+   "durchschnitt_ek": 4.8,
+   "durchschnitt_vk_markt": 11.13,
+   "durchschnitt_db_je_stueck": 6.33,
+   "begruendung": "keine; ist-analyse: Soll Kaeufer-Zeitpunkt ~0:40 h, Ist 11:49 h (Preis 380 EUR zu hoch fuer Kiosk-Einkommen, nicht angepasst)",
+   "produkte": [
+    "boeller",
+    "schwaermer",
+    "raketenklein",
+    "sekt",
+    "kindersekt",
+    "blitzknaller",
+    "bodenkreisel",
+    "rosesekt",
+    "berliner",
+    "neujahrsbrezel",
+    "prosecco",
+    "lb_sternschnuppen",
+    "lb_kirschbluete",
+    "bienenweide",
+    "b7_goldlaube",
+    "feuerrad"
+   ]
+  },
+  {
+   "id": "partydeko",
+   "name": "Partydeko",
+   "lvl": 6,
+   "preis": 520,
+   "produkte_anzahl": 15,
+   "preis_je_sorte": 34.67,
+   "xp_beim_kauf": 67,
+   "durchschnitt_ek": 1.94,
+   "durchschnitt_vk_markt": 4.96,
+   "durchschnitt_db_je_stueck": 3.02,
+   "begruendung": "keine",
+   "produkte": [
+    "ballons",
+    "partyhuete",
+    "luftruessel",
+    "girlanden",
+    "folienvorhang",
+    "tischdeko",
+    "geschirr",
+    "kalender",
+    "sektglaeser",
+    "kerzen",
+    "servietten",
+    "haarreifen",
+    "fotobox",
+    "streukonfetti",
+    "lichterkette"
+   ]
+  },
+  {
+   "id": "snacks",
+   "name": "Snacks & Süßes",
+   "lvl": 7,
+   "preis": 260,
+   "produkte_anzahl": 6,
+   "preis_je_sorte": 43.33,
+   "xp_beim_kauf": 49,
+   "durchschnitt_ek": 1.13,
+   "durchschnitt_vk_markt": 2.84,
+   "durchschnitt_db_je_stueck": 1.71,
+   "begruendung": "keine",
+   "produkte": [
+    "popcorn",
+    "salzstangen",
+    "erdnuesse",
+    "gummibaerchen",
+    "marzipanschwein",
+    "schokotaler"
+   ]
+  },
+  {
+   "id": "krach",
+   "name": "Abteilung Krach",
+   "lvl": 8,
+   "preis": 1100,
+   "produkte_anzahl": 13,
+   "preis_je_sorte": 84.62,
+   "xp_beim_kauf": 109,
+   "durchschnitt_ek": 8.02,
+   "durchschnitt_vk_markt": 20.17,
+   "durchschnitt_db_je_stueck": 12.15,
+   "begruendung": "keine; ist-analyse nennt 85 EUR/Sorte als niedrigsten Wert",
+   "produkte": [
+    "monsterboeller",
+    "roemisch",
+    "fontaene",
+    "blanko",
+    "gravur",
+    "bodenfeuer",
+    "feuerberg",
+    "glitzerregen12",
+    "miniverbund",
+    "glitzerraketen",
+    "lb_jadeader",
+    "lb_eisvogel",
+    "lb_lavendelfeld"
+   ]
+  },
+  {
+   "id": "buffet",
+   "name": "Silvester-Buffet",
+   "lvl": 8,
+   "preis": 700,
+   "produkte_anzahl": 13,
+   "preis_je_sorte": 53.85,
+   "xp_beim_kauf": 80,
+   "durchschnitt_ek": 2.49,
+   "durchschnitt_vk_markt": 6.23,
+   "durchschnitt_db_je_stueck": 3.74,
+   "begruendung": "keine",
+   "produkte": [
+    "heringssalat",
+    "kartoffelsalat",
+    "wuerstchen",
+    "frikadellen",
+    "baguette",
+    "mettigel",
+    "partypizza",
+    "dips",
+    "rollmops",
+    "gefuellteeier",
+    "nudelsalat",
+    "gulaschsuppe",
+    "fingerfood"
+   ]
+  },
+  {
+   "id": "partynacht",
+   "name": "Partynacht",
+   "lvl": 9,
+   "preis": 1500,
+   "produkte_anzahl": 16,
+   "preis_je_sorte": 93.75,
+   "xp_beim_kauf": 137,
+   "durchschnitt_ek": 3.25,
+   "durchschnitt_vk_markt": 8.12,
+   "durchschnitt_db_je_stueck": 4.87,
+   "begruendung": "keine",
+   "produkte": [
+    "partyspiel",
+    "secco",
+    "partyfass",
+    "gluehwein",
+    "bier",
+    "cola",
+    "kinderpunsch",
+    "energy",
+    "orangensaft",
+    "wasser",
+    "karaoke",
+    "discokugel",
+    "radler",
+    "bierfrei",
+    "limonade",
+    "kurze"
+   ]
+  },
+  {
+   "id": "kleinfeuer",
+   "name": "Kleinfeuerwerk",
+   "lvl": 10,
+   "preis": 1800,
+   "produkte_anzahl": 4,
+   "preis_je_sorte": 450,
+   "xp_beim_kauf": 159,
+   "durchschnitt_ek": 16.52,
+   "durchschnitt_vk_markt": 37.62,
+   "durchschnitt_db_je_stueck": 21.1,
+   "begruendung": "keine",
+   "produkte": [
+    "schneeballschlacht",
+    "pfauenrad",
+    "lb_glutpalmen",
+    "b7_eisbecher"
+   ]
+  },
+  {
+   "id": "himmel",
+   "name": "Bunte Nacht",
+   "lvl": 11,
+   "preis": 2600,
+   "produkte_anzahl": 13,
+   "preis_je_sorte": 200,
+   "xp_beim_kauf": 216,
+   "durchschnitt_ek": 11.1,
+   "durchschnitt_vk_markt": 25.72,
+   "durchschnitt_db_je_stueck": 14.62,
+   "begruendung": "keine",
+   "produkte": [
+    "raketen",
+    "goldgeysir",
+    "bleigiessen",
+    "bowle",
+    "kometenraketen",
+    "farbenrausch",
+    "glueckssymbole",
+    "glueckskekse",
+    "gluecksklee",
+    "crossettenstern",
+    "lb_saphirfaecher",
+    "lb_herbstlaub",
+    "b7_maerchen"
+   ]
+  },
+  {
+   "id": "genuss",
+   "name": "Fondue & Raclette",
+   "lvl": 12,
+   "preis": 3400,
+   "produkte_anzahl": 14,
+   "preis_je_sorte": 242.86,
+   "xp_beim_kauf": 273,
+   "durchschnitt_ek": 8.35,
+   "durchschnitt_vk_markt": 20.87,
+   "durchschnitt_db_je_stueck": 12.52,
+   "begruendung": "keine",
+   "produkte": [
+    "fonduegeraet",
+    "raclettegeraet",
+    "fondueessen",
+    "racletteessen",
+    "raclettekaese",
+    "raclettezubehoer",
+    "fonduesossen",
+    "kaeseplatte",
+    "lachs",
+    "cracker",
+    "kaesefondue",
+    "fondueoel",
+    "luxusfondue",
+    "schokofondue"
+   ]
+  },
+  {
+   "id": "feuerzauber",
+   "name": "Feuerzauber",
+   "lvl": 13,
+   "preis": 4200,
+   "produkte_anzahl": 2,
+   "preis_je_sorte": 2100,
+   "xp_beim_kauf": 330,
+   "durchschnitt_ek": 8.3,
+   "durchschnitt_vk_markt": 19.49,
+   "durchschnitt_db_je_stueck": 11.19,
+   "begruendung": "keine; 2 Sorten fuer 4.200 = 2.100 EUR/Sorte",
+   "produkte": [
+    "goldpalmen",
+    "knisterstern"
+   ]
+  },
+  {
+   "id": "verbund",
+   "name": "Verbund & Kugelbomben",
+   "lvl": 14,
+   "preis": 6000,
+   "produkte_anzahl": 14,
+   "preis_je_sorte": 428.57,
+   "xp_beim_kauf": 459,
+   "durchschnitt_ek": 17.16,
+   "durchschnitt_vk_markt": 39.53,
+   "durchschnitt_db_je_stueck": 22.36,
+   "begruendung": "keine; ist-analyse: Ist \"nie\" (38 h) gekauft, Soll ~3:30 h",
+   "produkte": [
+    "knatter",
+    "faecher",
+    "kugel75",
+    "kugel100",
+    "dreiklang",
+    "smaragd",
+    "goldbrokat100",
+    "weidenregen",
+    "lb_rubinpalmen",
+    "lb_polarweiden",
+    "lb_kolibri",
+    "silberdistel75",
+    "hummelschwarm75",
+    "b7_wolfsnacht"
+   ]
+  },
+  {
+   "id": "getraenke",
+   "name": "Feine Getränke",
+   "lvl": 14,
+   "preis": 5000,
+   "produkte_anzahl": 15,
+   "preis_je_sorte": 333.33,
+   "xp_beim_kauf": 387,
+   "durchschnitt_ek": 13.69,
+   "durchschnitt_vk_markt": 34.14,
+   "durchschnitt_db_je_stueck": 20.45,
+   "begruendung": "keine",
+   "produkte": [
+    "champagner",
+    "cocktailset",
+    "rotwein",
+    "weisswein",
+    "eierlikoer",
+    "likoer",
+    "kindersekt2",
+    "magnum",
+    "kaviar",
+    "champagnerturm",
+    "goldsekt",
+    "jahrgang",
+    "hugo",
+    "gintonic",
+    "whisky"
+   ]
+  },
+  {
+   "id": "festtafel",
+   "name": "Festtafel",
+   "lvl": 15,
+   "preis": 6500,
+   "produkte_anzahl": 4,
+   "preis_je_sorte": 1625,
+   "xp_beim_kauf": 494,
+   "durchschnitt_ek": 6.05,
+   "durchschnitt_vk_markt": 15.11,
+   "durchschnitt_db_je_stueck": 9.07,
+   "begruendung": "keine",
+   "produkte": [
+    "karpfen",
+    "tiramisu",
+    "neujahrstorte",
+    "sushi"
+   ]
+  },
+  {
+   "id": "nachthimmel",
+   "name": "Nachthimmel",
+   "lvl": 16,
+   "preis": 9000,
+   "produkte_anzahl": 3,
+   "preis_je_sorte": 3000,
+   "xp_beim_kauf": 673,
+   "durchschnitt_ek": 8.09,
+   "durchschnitt_vk_markt": 18.82,
+   "durchschnitt_db_je_stueck": 10.74,
+   "begruendung": "keine; ~3.000 EUR/Sorte (ist-analyse)",
+   "produkte": [
+    "wasserspiel",
+    "faecherstern",
+    "blauregen100"
+   ]
+  },
+  {
+   "id": "import",
+   "name": "Import & Sonderposten",
+   "lvl": 17,
+   "preis": 13000,
+   "produkte_anzahl": 4,
+   "preis_je_sorte": 3250,
+   "xp_beim_kauf": 959,
+   "durchschnitt_ek": 20.67,
+   "durchschnitt_vk_markt": 46.86,
+   "durchschnitt_db_je_stueck": 26.2,
+   "begruendung": "keine",
+   "produkte": [
+    "atomboeller",
+    "silberregen",
+    "fackelhimmel150",
+    "b7_wuestengold"
+   ]
+  },
+  {
+   "id": "goldklasse",
+   "name": "Goldklasse",
+   "lvl": 18,
+   "preis": 15000,
+   "produkte_anzahl": 6,
+   "preis_je_sorte": 2500,
+   "xp_beim_kauf": 1101,
+   "durchschnitt_ek": 13.64,
+   "durchschnitt_vk_markt": 31.57,
+   "durchschnitt_db_je_stueck": 17.94,
+   "begruendung": "keine",
+   "produkte": [
+    "kristall",
+    "crossettennetz150",
+    "tigerkrone150",
+    "farbcrossette150",
+    "korallenriff",
+    "wetterleuchten150"
+   ]
+  },
+  {
+   "id": "schabernack",
+   "name": "Schabernack-Edition",
+   "lvl": 19,
+   "preis": 16000,
+   "produkte_anzahl": 1,
+   "preis_je_sorte": 16000,
+   "xp_beim_kauf": 1173,
+   "durchschnitt_ek": 6.2,
+   "durchschnitt_vk_markt": 15.99,
+   "durchschnitt_db_je_stueck": 9.79,
+   "begruendung": "keine; 1 Sorte fuer 16.000 EUR (ist-analyse: teuerste Sorte, amortisiert sich kaum)",
+   "produkte": [
+    "furzrakete"
+   ]
+  },
+  {
+   "id": "sternklasse",
+   "name": "Sternklasse",
+   "lvl": 19,
+   "preis": 18000,
+   "produkte_anzahl": 7,
+   "preis_je_sorte": 2571.43,
+   "xp_beim_kauf": 1316,
+   "durchschnitt_ek": 30.03,
+   "durchschnitt_vk_markt": 69.13,
+   "durchschnitt_db_je_stueck": 39.11,
+   "begruendung": "keine",
+   "produkte": [
+    "regenbogenkrone",
+    "eisblume",
+    "crossettenkrone",
+    "schatztruhe200",
+    "b7_neonkueste",
+    "lb_kronenfeuer",
+    "lb_blitzpalmen"
+   ]
+  },
+  {
+   "id": "grossfeuer",
+   "name": "Großkaliber",
+   "lvl": 20,
+   "preis": 21000,
+   "produkte_anzahl": 15,
+   "preis_je_sorte": 1400,
+   "xp_beim_kauf": 1530,
+   "durchschnitt_ek": 33.48,
+   "durchschnitt_vk_markt": 76.92,
+   "durchschnitt_db_je_stueck": 43.44,
+   "begruendung": "keine",
+   "produkte": [
+    "jumbogold",
+    "feuerpfau",
+    "feuerwand",
+    "hochzeitsfaecher",
+    "kronenkranz200",
+    "zwillingssonne200",
+    "blitzpalme200",
+    "goldweidenkreuz200",
+    "lb_silbergewitter",
+    "lb_farbtiger",
+    "kreuzfeuer90",
+    "lb_sonnenblumen",
+    "bluetenhagel200",
+    "b7_goldnatter",
+    "lb_weidenhain"
+   ]
+  },
+  {
+   "id": "feinkost",
+   "name": "Feinkost",
+   "lvl": 21,
+   "preis": 12000,
+   "produkte_anzahl": 2,
+   "preis_je_sorte": 6000,
+   "xp_beim_kauf": 887,
+   "durchschnitt_ek": 13,
+   "durchschnitt_vk_markt": 32.49,
+   "durchschnitt_db_je_stueck": 19.49,
+   "begruendung": "keine; 2 Sorten fuer 12.000 = 6.000 EUR/Sorte (ist-analyse)",
+   "produkte": [
+    "austern",
+    "hummer"
+   ]
+  },
+  {
+   "id": "profi",
+   "name": "Profiklasse",
+   "lvl": 22,
+   "preis": 26000,
+   "produkte_anzahl": 13,
+   "preis_je_sorte": 2000,
+   "xp_beim_kauf": 1887,
+   "durchschnitt_ek": 34.81,
+   "durchschnitt_vk_markt": 79.07,
+   "durchschnitt_db_je_stueck": 44.26,
+   "begruendung": "keine",
+   "produkte": [
+    "kugel300",
+    "jumboleiter",
+    "silbermond",
+    "feuerdrache",
+    "kanonade300",
+    "sternensturm300",
+    "faecherweide",
+    "meteorschauer",
+    "riesenpalme300",
+    "ringnebel300",
+    "b7_paukenschlag",
+    "b7_sternparade",
+    "hexenkessel"
+   ]
+  },
+  {
+   "id": "meister",
+   "name": "Meisterklasse",
+   "lvl": 25,
+   "preis": 34000,
+   "produkte_anzahl": 5,
+   "preis_je_sorte": 6800,
+   "xp_beim_kauf": 2459,
+   "durchschnitt_ek": 53.87,
+   "durchschnitt_vk_markt": 121.59,
+   "durchschnitt_db_je_stueck": 67.72,
+   "begruendung": "keine",
+   "produkte": [
+    "supernova",
+    "kometensturm300",
+    "urknall300",
+    "lb_jadekoenig",
+    "finale"
+   ]
+  },
+  {
+   "id": "grossfeuerwerk",
+   "name": "Großfeuerwerk",
+   "lvl": 27,
+   "preis": 42000,
+   "produkte_anzahl": 6,
+   "preis_je_sorte": 7000,
+   "xp_beim_kauf": 3030,
+   "durchschnitt_ek": 77.85,
+   "durchschnitt_vk_markt": 174.99,
+   "durchschnitt_db_je_stueck": 97.14,
+   "begruendung": "keine",
+   "produkte": [
+    "herbststurm300",
+    "eiszeit300",
+    "titanenfaust300",
+    "lavastrom300",
+    "b7_blumenmeer",
+    "b7_ragnaroek"
+   ]
+  },
+  {
+   "id": "pyroweltklasse",
+   "name": "Pyro-Weltklasse",
+   "lvl": 29,
+   "preis": 52000,
+   "produkte_anzahl": 4,
+   "preis_je_sorte": 13000,
+   "xp_beim_kauf": 3744,
+   "durchschnitt_ek": 60.08,
+   "durchschnitt_vk_markt": 139.99,
+   "durchschnitt_db_je_stueck": 79.91,
+   "begruendung": "keine",
+   "produkte": [
+    "galaxie300",
+    "sturmflut300",
+    "goetterdaemmerung300",
+    "himmelssturz300"
+   ]
+  }
+ ],
+ "personal": [
+  {
+   "id": "reinigung",
+   "name": "Reinigungskraft",
+   "lvl": 6,
+   "req": null,
+   "einstellung": 250,
+   "lohn_tag": 55,
+   "lohn_tag_je_stufe": [
+    41.25,
+    55,
+    71.5,
+    90.75
+   ],
+   "wirkung": "Wischt Dreck weg solange offen (Sauberkeit: Kundentakt x(0,75+Sauberkeit/300); Fleck-Chance 8 % je Kunde)",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "auffueller",
+   "name": "Einräumer",
+   "lvl": 9,
+   "req": "lager",
+   "einstellung": 450,
+   "lohn_tag": 110,
+   "lohn_tag_je_stufe": [
+    82.5,
+    110,
+    143,
+    181.5
+   ],
+   "wirkung": "Laedt LKW aus, raeumt Lager/Regale ein (spart Spielerzeit, kein Umsatz direkt)",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "auffueller2",
+   "name": "Zweiter Einräumer",
+   "lvl": 12,
+   "req": "lager",
+   "einstellung": 600,
+   "lohn_tag": 130,
+   "lohn_tag_je_stufe": [
+    97.5,
+    130,
+    169,
+    214.5
+   ],
+   "wirkung": "Zweites Paar Haende fuer Einraeumen",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "kassierer",
+   "name": "Kassierer",
+   "lvl": 11,
+   "req": null,
+   "einstellung": 600,
+   "lohn_tag": 145,
+   "lohn_tag_je_stufe": [
+    108.75,
+    145,
+    188.5,
+    239.25
+   ],
+   "wirkung": "Scannt und kassiert selbststaendig an der Kasse",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "kassierer2",
+   "name": "SB-Betreuer",
+   "lvl": 16,
+   "req": "kasse2",
+   "einstellung": 600,
+   "lohn_tag": 140,
+   "lohn_tag_je_stufe": [
+    105,
+    140,
+    182,
+    231
+   ],
+   "wirkung": "SB-Betreuer: hilft an SB-Kassen (jeder 3.-5. Kunde kommt allein nicht weiter), erlaubt vollere Koerbe an SB (maxKorbBetreut 8 statt 3)",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "kassierer3",
+   "name": "Zweiter SB-Betreuer",
+   "lvl": 17,
+   "req": "kasse2",
+   "einstellung": 600,
+   "lohn_tag": 140,
+   "lohn_tag_je_stufe": [
+    105,
+    140,
+    182,
+    231
+   ],
+   "wirkung": "Zweiter SB-Betreuer bei Andrang",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "security",
+   "name": "Sicherheitsdienst",
+   "lvl": 13,
+   "req": null,
+   "einstellung": 800,
+   "lohn_tag": 190,
+   "lohn_tag_je_stufe": [
+    142.5,
+    190,
+    247,
+    313.5
+   ],
+   "wirkung": "Diebstahlchance x0.35",
+   "begruendung": "keine (ist-analyse 4.2 nennt nur das Ziel \"Lohn <= 50 % des zusaetzlichen Rohertrags, Einstellung in <= 5 Tagen zurueck\"; Personal-Nutzen = Spielerzeit, nie gemessen)"
+  },
+  {
+   "id": "packer",
+   "name": "Versandmitarbeiter",
+   "lvl": 25,
+   "req": "packstation",
+   "einstellung": 700,
+   "lohn_tag": 165,
+   "lohn_tag_je_stufe": [
+    123.75,
+    165,
+    214.5,
+    272.25
+   ],
+   "wirkung": "Kommissioniert und packt Onlinebestellungen (~12 Pakete/Tag laut Kommentar)",
+   "begruendung": "Packer: Rechnung 09.10. (02-data-Kommentar Packstation): Lohn 170, Einstellung in ~47-56 Tagen drin, wenn die Stufe laeuft. Einstellung/Lohn selbst: keine Herleitung."
+  },
+  {
+   "id": "packer2",
+   "name": "Zweiter Versandmitarbeiter",
+   "lvl": 27,
+   "req": "packstation2",
+   "einstellung": 750,
+   "lohn_tag": 170,
+   "lohn_tag_je_stufe": [
+    127.5,
+    170,
+    221,
+    280.5
+   ],
+   "wirkung": "Packer am 2. Packplatz",
+   "begruendung": "Packer: Rechnung 09.10. (02-data-Kommentar Packstation): Lohn 170, Einstellung in ~47-56 Tagen drin, wenn die Stufe laeuft. Einstellung/Lohn selbst: keine Herleitung."
+  },
+  {
+   "id": "packer3",
+   "name": "Dritter Versandmitarbeiter",
+   "lvl": 29,
+   "req": "packstation3",
+   "einstellung": 800,
+   "lohn_tag": 175,
+   "lohn_tag_je_stufe": [
+    131.25,
+    175,
+    227.5,
+    288.75
+   ],
+   "wirkung": "Packer am 3. Packplatz",
+   "begruendung": "Packer: Rechnung 09.10. (02-data-Kommentar Packstation): Lohn 170, Einstellung in ~47-56 Tagen drin, wenn die Stufe laeuft. Einstellung/Lohn selbst: keine Herleitung."
+  }
+ ],
+ "werkbank": [
+  {
+   "stufe": 1,
+   "schuss": 25,
+   "lvl": 20,
+   "ausbau": {
+    "id": "labor",
+    "preis": 2900
+   },
+   "entwicklung": "450 + 30 je Abschnitt (max 12 Abschnitte)",
+   "entwicklung_basis_eur": 450,
+   "mindestmenge": {
+    "kartons": 4,
+    "stueck_je_karton": 8,
+    "stueck_gesamt": 32,
+    "kosten_typ_eur": 334.4
+   },
+   "lieferung_tage": 2,
+   "lieferung": "2 Tage bis zum naechsten LKW",
+   "stueckkosten": {
+    "formel": "verpackung + Schuss x jeSchuss x Klasse(1/1,2/1,45/1,75) x Kaliber(0,85/1/1,2) x Hoehe(0,95/1/1,08) x (1+Farbaufschlag x 0,5) + 0,15 je Abschnitt",
+    "min": 7.21,
+    "typisch": 10.45,
+    "doc_werkbank_md": 11
+   },
+   "ref_preis_3_sterne": 30,
+   "ref_preis": 30,
+   "markt_1_stern": 21,
+   "markt_5_sterne": 39,
+   "db_je_stueck_3_sterne": {
+    "aus_formel_typisch": 19.55,
+    "kommentar_01c": 20,
+    "doc_werkbank_md": 19
+   },
+   "einkauf_je_schuss_typisch": 0.418
+  },
+  {
+   "stufe": 2,
+   "schuss": 60,
+   "lvl": 23,
+   "ausbau": {
+    "id": "labor2",
+    "preis": 3000
+   },
+   "entwicklung": "900 + 30 je Abschnitt (max 12 Abschnitte)",
+   "entwicklung_basis_eur": 900,
+   "mindestmenge": {
+    "kartons": 5,
+    "stueck_je_karton": 2,
+    "stueck_gesamt": 10,
+    "kosten_typ_eur": 216.9
+   },
+   "lieferung_tage": 2,
+   "lieferung": "2 Tage bis zum naechsten LKW",
+   "stueckkosten": {
+    "formel": "verpackung + Schuss x jeSchuss x Klasse(1/1,2/1,45/1,75) x Kaliber(0,85/1/1,2) x Hoehe(0,95/1/1,08) x (1+Farbaufschlag x 0,5) + 0,15 je Abschnitt",
+    "min": 15.03,
+    "typisch": 21.69,
+    "doc_werkbank_md": 23
+   },
+   "ref_preis_3_sterne": 68,
+   "ref_preis": 68,
+   "markt_1_stern": 47.6,
+   "markt_5_sterne": 88.4,
+   "db_je_stueck_3_sterne": {
+    "aus_formel_typisch": 46.31,
+    "kommentar_01c": 46,
+    "doc_werkbank_md": 45
+   },
+   "einkauf_je_schuss_typisch": 0.362
+  },
+  {
+   "stufe": 3,
+   "schuss": 110,
+   "lvl": 26,
+   "ausbau": {
+    "id": "labor3",
+    "preis": 3600
+   },
+   "entwicklung": "1300 + 30 je Abschnitt (max 12 Abschnitte)",
+   "entwicklung_basis_eur": 1300,
+   "mindestmenge": {
+    "kartons": 8,
+    "stueck_je_karton": 1,
+    "stueck_gesamt": 8,
+    "kosten_typ_eur": 291.6
+   },
+   "lieferung_tage": 3,
+   "lieferung": "3 Tage bis zum naechsten LKW",
+   "stueckkosten": {
+    "formel": "verpackung + Schuss x jeSchuss x Klasse(1/1,2/1,45/1,75) x Kaliber(0,85/1/1,2) x Hoehe(0,95/1/1,08) x (1+Farbaufschlag x 0,5) + 0,15 je Abschnitt",
+    "min": 25.36,
+    "typisch": 36.45,
+    "doc_werkbank_md": 39
+   },
+   "ref_preis_3_sterne": 100,
+   "ref_preis": 100,
+   "markt_1_stern": 70,
+   "markt_5_sterne": 130,
+   "db_je_stueck_3_sterne": {
+    "aus_formel_typisch": 63.55,
+    "kommentar_01c": 61,
+    "doc_werkbank_md": 61
+   },
+   "einkauf_je_schuss_typisch": 0.331
+  },
+  {
+   "stufe": 4,
+   "schuss": 200,
+   "lvl": 29,
+   "ausbau": {
+    "id": "labor4",
+    "preis": 4800
+   },
+   "entwicklung": "1800 + 30 je Abschnitt (max 12 Abschnitte)",
+   "entwicklung_basis_eur": 1800,
+   "mindestmenge": {
+    "kartons": 10,
+    "stueck_je_karton": 1,
+    "stueck_gesamt": 10,
+    "kosten_typ_eur": 582.5
+   },
+   "lieferung_tage": 3,
+   "lieferung": "3 Tage bis zum naechsten LKW",
+   "stueckkosten": {
+    "formel": "verpackung + Schuss x jeSchuss x Klasse(1/1,2/1,45/1,75) x Kaliber(0,85/1/1,2) x Hoehe(0,95/1/1,08) x (1+Farbaufschlag x 0,5) + 0,15 je Abschnitt",
+    "min": 40.68,
+    "typisch": 58.25,
+    "doc_werkbank_md": 63
+   },
+   "ref_preis_3_sterne": 150,
+   "ref_preis": 150,
+   "markt_1_stern": 105,
+   "markt_5_sterne": 195,
+   "db_je_stueck_3_sterne": {
+    "aus_formel_typisch": 91.75,
+    "kommentar_01c": 98,
+    "doc_werkbank_md": 87
+   },
+   "einkauf_je_schuss_typisch": 0.291
+  },
+  {
+   "stufe": 5,
+   "schuss": 500,
+   "lvl": 32,
+   "ausbau": {
+    "id": "labor5",
+    "preis": 8500
+   },
+   "entwicklung": "3000 + 30 je Abschnitt (max 12 Abschnitte)",
+   "entwicklung_basis_eur": 3000,
+   "mindestmenge": {
+    "kartons": 5,
+    "stueck_je_karton": 1,
+    "stueck_gesamt": 5,
+    "kosten_typ_eur": 647.25
+   },
+   "lieferung_tage": 3,
+   "lieferung": "3 Tage bis zum naechsten LKW",
+   "stueckkosten": {
+    "formel": "verpackung + Schuss x jeSchuss x Klasse(1/1,2/1,45/1,75) x Kaliber(0,85/1/1,2) x Hoehe(0,95/1/1,08) x (1+Farbaufschlag x 0,5) + 0,15 je Abschnitt",
+    "min": 89.9,
+    "typisch": 129.45,
+    "doc_werkbank_md": 140
+   },
+   "ref_preis_3_sterne": 360,
+   "ref_preis": 360,
+   "markt_1_stern": 252,
+   "markt_5_sterne": 468,
+   "db_je_stueck_3_sterne": {
+    "aus_formel_typisch": 230.55,
+    "kommentar_01c": 245,
+    "doc_werkbank_md": 220
+   },
+   "einkauf_je_schuss_typisch": 0.259
+  }
+ ],
+ "laufend": {
+  "fix": {
+   "formel": "fixedCosts() = 10 + 6 x Lagerregale + round(max(0, Level - 4) x 4) + Summe Fixkosten je Verkaufsregal",
+   "regal_art": {
+    "klein": 4,
+    "standard": 9,
+    "hoch": 12,
+    "kuehl": 18,
+    "gondel": 14,
+    "eck": 11,
+    "gross": 13,
+    "gitter": 3,
+    "gitter2": 4,
+    "gitter3": 5,
+    "tisch": 6,
+    "tischgross": 8
+   },
+   "regalStandard": 9,
+   "level_steuer_beispiele": [
+    {
+     "lvl": 4,
+     "levelsteuer": 0
+    },
+    {
+     "lvl": 5,
+     "levelsteuer": 4
+    },
+    {
+     "lvl": 8,
+     "levelsteuer": 16
+    },
+    {
+     "lvl": 10,
+     "levelsteuer": 24
+    },
+    {
+     "lvl": 15,
+     "levelsteuer": 44
+    },
+    {
+     "lvl": 20,
+     "levelsteuer": 64
+    },
+    {
+     "lvl": 25,
+     "levelsteuer": 84
+    },
+    {
+     "lvl": 30,
+     "levelsteuer": 104
+    },
+    {
+     "lvl": 35,
+     "levelsteuer": 124
+    }
+   ],
+   "hinweis": "Keine Miete: Flaechen/Hallen/Tore/Packstation kosten nach dem Kauf nichts. Die einzige Kostenart, die mit Wachstum steigt, ist die \"Level-Steuer\" (ist-analyse 3.6: \"ohne Gegenwert\"). Vorschlag Miete ~0,3-0,4 EUR/m2/Tag (ist-analyse Stellschraube 5) nicht umgesetzt."
+  },
+  "kredit": {
+   "stufen": [
+    {
+     "lvl": 5,
+     "betrag": 1000,
+     "laufzeit_nominal": 10,
+     "zins_tag": 0.012,
+     "erste_rate": 112,
+     "gesamtzins_eur": 66,
+     "gesamtzins_prozent": 6.6,
+     "tatsaechliche_tage": 10,
+     "zins_jahr_einfach_prozent": 438
+    },
+    {
+     "lvl": 8,
+     "betrag": 2500,
+     "laufzeit_nominal": 12,
+     "zins_tag": 0.013,
+     "erste_rate": 240.83,
+     "gesamtzins_eur": 211.24,
+     "gesamtzins_prozent": 8.4,
+     "tatsaechliche_tage": 12,
+     "zins_jahr_einfach_prozent": 474.5
+    },
+    {
+     "lvl": 12,
+     "betrag": 5000,
+     "laufzeit_nominal": 14,
+     "zins_tag": 0.014,
+     "erste_rate": 427.14,
+     "gesamtzins_eur": 525,
+     "gesamtzins_prozent": 10.5,
+     "tatsaechliche_tage": 15,
+     "zins_jahr_einfach_prozent": 511
+    },
+    {
+     "lvl": 15,
+     "betrag": 10000,
+     "laufzeit_nominal": 16,
+     "zins_tag": 0.015,
+     "erste_rate": 775,
+     "gesamtzins_eur": 1275.04,
+     "gesamtzins_prozent": 12.8,
+     "tatsaechliche_tage": 16,
+     "zins_jahr_einfach_prozent": 547.5
+    },
+    {
+     "lvl": 20,
+     "betrag": 25000,
+     "laufzeit_nominal": 20,
+     "zins_tag": 0.016,
+     "erste_rate": 1650,
+     "gesamtzins_eur": 4200,
+     "gesamtzins_prozent": 16.8,
+     "tatsaechliche_tage": 20,
+     "zins_jahr_einfach_prozent": 584
+    },
+    {
+     "lvl": 26,
+     "betrag": 60000,
+     "laufzeit_nominal": 24,
+     "zins_tag": 0.017,
+     "erste_rate": 3520,
+     "gesamtzins_eur": 12750,
+     "gesamtzins_prozent": 21.3,
+     "tatsaechliche_tage": 24,
+     "zins_jahr_einfach_prozent": 620.5
+    }
+   ],
+   "wirkungsweise": "Rate je Tag = Betrag/Laufzeit + Restschuld x Zinssatz; jeden Tagesabschluss abgebucht; nur ein Kredit gleichzeitig; Tilgungsknoepfe 250 / 1.000 / alles; Ablöse bringt 40 XP.",
+   "fehler": "takeLoan() nimmt Laufzeit+Zins der HOECHSTEN freigeschalteten Stufe (loanTier), nicht der im Laptop gewaehlten Karte; Rahmen = hoechste Stufe. 5.000-EUR stufe laeuft wegen Rundung 15 statt 14 Tage.",
+   "zins_jahr_einfach_prozent": "438 % (Stufe 1) bis 620 % (Stufe 6) - keine realen Konditionen; ist-analyse 6: \"an echten Daten ausrichten\" offen."
+  },
+  "dispo": {
+   "ab_level": 4,
+   "rahmen": "260 + 70 x Level",
+   "beispiele": [
+    {
+     "lvl": 4,
+     "rahmen": 540
+    },
+    {
+     "lvl": 5,
+     "rahmen": 610
+    },
+    {
+     "lvl": 8,
+     "rahmen": 820
+    },
+    {
+     "lvl": 10,
+     "rahmen": 960
+    },
+    {
+     "lvl": 15,
+     "rahmen": 1310
+    },
+    {
+     "lvl": 20,
+     "rahmen": 1660
+    },
+    {
+     "lvl": 25,
+     "rahmen": 2010
+    },
+    {
+     "lvl": 30,
+     "rahmen": 2360
+    }
+   ],
+   "zins_tag": 0.006,
+   "zins_jahr_einfach_prozent": 219,
+   "ruf_je_tagesabschluss_im_minus": -3,
+   "begruendung": "01c-Kommentar: \"bewusst schmerzhaft\" / wirtschaft.md: echte Dispozinsen zweistellig, hier absichtlich ueberzeichnet. Rahmen-Formel: keine Herleitung."
+  },
+  "miete": "keine (existiert nicht)",
+  "loehne": {
+   "formel": "Summe Grundlohn x Lohnstufe (0,75/1,00/1,30/1,65); Tempo 0,55+0,48 x Stufe; <0,8 kuendigt mit 14 %/Tag; Saisonpause 30 % Lohn",
+   "lohnstufen": [
+    0.75,
+    1,
+    1.3,
+    1.65
+   ],
+   "pause": 0.3,
+   "kuendigung": {
+    "unter": 0.8,
+    "chanceTag": 0.14
+   },
+   "lohn_tag": {
+    "reinigung": 55,
+    "auffueller": 110,
+    "auffueller2": 130,
+    "kassierer": 145,
+    "kassierer2": 140,
+    "kassierer3": 140,
+    "security": 190,
+    "packer": 165,
+    "packer2": 170,
+    "packer3": 175
+   },
+   "einstellung": {
+    "reinigung": 250,
+    "auffueller": 450,
+    "auffueller2": 600,
+    "kassierer": 600,
+    "kassierer2": 600,
+    "kassierer3": 600,
+    "security": 800,
+    "packer": 700,
+    "packer2": 750,
+    "packer3": 800
+   },
+   "hinweis": "auch sonntags und an Ruhetagen gezahlt (dailyWages ohne Tagesbedingung)"
+  },
+  "regale": {
+   "verkauf": {
+    "klein": {
+     "grund": 45,
+     "jeWeiteres": 28
+    },
+    "standard": {
+     "grund": 130,
+     "jeWeiteres": 70
+    },
+    "hoch": {
+     "grund": 260,
+     "jeWeiteres": 95
+    },
+    "kuehl": {
+     "grund": 430,
+     "jeWeiteres": 155
+    },
+    "gondel": {
+     "grund": 560,
+     "jeWeiteres": 190
+    },
+    "eck": {
+     "grund": 480,
+     "jeWeiteres": 165
+    },
+    "gross": {
+     "grund": 640,
+     "jeWeiteres": 210
+    },
+    "tisch": {
+     "grund": 220,
+     "jeWeiteres": 80
+    },
+    "tischgross": {
+     "grund": 340,
+     "jeWeiteres": 120
+    },
+    "gitter": {
+     "grund": 140,
+     "jeWeiteres": 50
+    },
+    "gitter2": {
+     "grund": 210,
+     "jeWeiteres": 75
+    },
+    "gitter3": {
+     "grund": 290,
+     "jeWeiteres": 100
+    },
+    "kasse": {
+     "grund": 120,
+     "jeWeiteres": 60
+    }
+   },
+   "lager": {
+    "standard": {
+     "grund": 0,
+     "jeWeiteres": 0
+    },
+    "hoch": {
+     "grund": 520,
+     "jeWeiteres": 150
+    },
+    "schwer": {
+     "grund": 880,
+     "jeWeiteres": 240
+    }
+   },
+   "formel": "Preis = grund + jeWeiteres x bereits aufgestellte derselben Art (regalPreis)",
+   "begruendung": "keine"
+  },
+  "porto": {
+   "S": 2,
+   "M": 3.5,
+   "L": 5,
+   "hinweis": "je Paket an DDL; Quelle: Toms Vorgabe (11c-Kommentar), Abgleich mit echten Tarifen laut ist-analyse \"offen\""
+  },
+  "ddl": {
+   "pauschale_je_abholung": 39,
+   "anfahrt_s": 20,
+   "begruendung": "11e-palette.js Kopf: nachgerechnet fuer Stufe 1: ~12 Bestellungen x 26 EUR DB = 312 - Porto/Material = ~262 EUR/Tag; mit Packer (165) bleiben ~58 EUR/Tag, Schwelle ~9,4 Bestellungen/Tag; bei 3 Paketen 13 EUR je Paket -> zum Sammeln anregen. UEBERGABE 000: Verladen dauert jetzt ~120 s statt 57 s -> Pauschale noch nicht neu bewertet."
+  },
+  "packmaterial": {
+   "je_paket_eur": {
+    "S": 1.31,
+    "M": 2.46,
+    "L": 4.25
+   },
+   "preise": {
+    "ks": {
+     "preis": 8.9,
+     "stueck": 25
+    },
+    "km": {
+     "preis": 11.4,
+     "stueck": 15
+    },
+    "kl": {
+     "preis": 12.8,
+     "stueck": 8
+    },
+    "folie": {
+     "preis": 14.9,
+     "stueck": 20
+    },
+    "band": {
+     "preis": 9.9,
+     "stueck": 48
+    },
+    "folieJe": {
+     "1": 1,
+     "3": 2,
+     "6": 3
+    },
+    "bandJe": {
+     "1": 1,
+     "3": 1,
+     "6": 2
+    }
+   }
+  },
+  "versandkunde": {
+   "standard_versandkosten": 4.9,
+   "gratis_ab": 50,
+   "regler_max": [
+    20,
+    300
+   ],
+   "abbruch": {
+    "k": 0.75,
+    "a": 0.2,
+    "b": 2.5
+   },
+   "besucher_formel": "clamp(round(4 + 0,12 x Ruf + 0,35 x Level), 4, 22) x Stufe-Mul(1/1,45/1,9) x Sale",
+   "besucher_beispiele_level25_ruf70": 21,
+   "stufeMul": [
+    1,
+    1,
+    1.45,
+    1.9
+   ],
+   "onlineDeckel": 1.3,
+   "strafen": {
+    "offenAb": 8,
+    "offenJe": 0.12,
+    "offenMax": 2,
+    "wartendJe": 0.06,
+    "wartendMax": 3
+   },
+   "quellen": "Baymard 2024/25, Lewis/Singh/Fay 2006, UPS 2014, Bijmolt et al. 2005 (11c-versand.js Kopf)"
+  },
+  "online": {
+   "pauschale_formel": "round(40 + 1.6 x Ruf + 4 x Level) je Tag ab Kauf Onlineshop, ohne Kosten, auch mit Packstation",
+   "beispiele": [
+    {
+     "lvl": 15,
+     "ruf": 50,
+     "eur_tag": 180
+    },
+    {
+     "lvl": 15,
+     "ruf": 70,
+     "eur_tag": 212
+    },
+    {
+     "lvl": 20,
+     "ruf": 70,
+     "eur_tag": 232
+    },
+    {
+     "lvl": 25,
+     "ruf": 70,
+     "eur_tag": 252
+    },
+    {
+     "lvl": 30,
+     "ruf": 80,
+     "eur_tag": 288
+    },
+    {
+     "lvl": 35,
+     "ruf": 90,
+     "eur_tag": 324
+    }
+   ],
+   "begruendung": "keine fuer die Zahlen; ist-analyse: 16-26 % des Umsatzes, 52 % des Betriebsgewinns, \"lehrt nichts ueber Kosten\" -> Stellschraube 6 (Wareneinsatz+Gebuehr buchen) nicht umgesetzt."
+  },
+  "automat": {
+   "eur_tag_einnahme": 45,
+   "hinweis": "Deko Getraenkeautomat (640 EUR, Level 14): +45 EUR/Tag; Amortisation 14 Tage; keine Herleitung"
+  },
+  "laden_grundtakt": {
+   "kunden_je_tag_bei_m1": 35.9,
+   "formel": "Kunde alle max(0,55; 9,2 / m) s; m = Saison x Wochentag x Ereignis x Eroeffnung x Jahr x (0,55+Ruf/100) x Bekanntheit x Sortiment x Ladengroesse x Werbung x (1+Hype/50) x Ambiente x Sauberkeit",
+   "max_gleichzeitig": 20
+  }
+ },
+ "produkte": {
+  "gesamt_im_katalog": 239,
+  "verkaufbar": 237,
+  "nicht_im_regal": [
+   "blanko",
+   "gravur"
+  ],
+  "je_gruppe": {
+   "boden": {
+    "anzahl": 22,
+    "ab_level": [
+     1,
+     20
+    ],
+    "ab_level_lizenz": [
+     1,
+     20
+    ],
+    "ek_spanne": [
+     0.55,
+     19
+    ],
+    "vk_spanne": [
+     1.49,
+     44.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.33,
+     "median": 2.49,
+     "max": 2.71
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 59.9
+   },
+   "boeller": {
+    "anzahl": 6,
+    "ab_level": [
+     1,
+     17
+    ],
+    "ab_level_lizenz": [
+     1,
+     17
+    ],
+    "ek_spanne": [
+     0.35,
+     15.5
+    ],
+    "vk_spanne": [
+     0.99,
+     36.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.36,
+     "median": 2.41,
+     "max": 2.83
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 58.4
+   },
+   "zubehoer": {
+    "anzahl": 36,
+    "ab_level": [
+     3,
+     14
+    ],
+    "ab_level_lizenz": [
+     3,
+     14
+    ],
+    "ek_spanne": [
+     0.45,
+     22
+    ],
+    "vk_spanne": [
+     1.29,
+     54.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.49,
+     "median": 2.52,
+     "max": 2.87
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 60.4
+   },
+   "sekt": {
+    "anzahl": 31,
+    "ab_level": [
+     5,
+     14
+    ],
+    "ab_level_lizenz": [
+     5,
+     14
+    ],
+    "ek_spanne": [
+     0.9,
+     46
+    ],
+    "vk_spanne": [
+     2.29,
+     114.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.37,
+     "median": 2.5,
+     "max": 2.54
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 59.9
+   },
+   "raketen": {
+    "anzahl": 21,
+    "ab_level": [
+     5,
+     25
+    ],
+    "ab_level_lizenz": [
+     5,
+     25
+    ],
+    "ek_spanne": [
+     2.6,
+     28
+    ],
+    "vk_spanne": [
+     6.49,
+     64.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.29,
+     "median": 2.35,
+     "max": 2.58
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 57.5
+   },
+   "essen": {
+    "anzahl": 41,
+    "ab_level": [
+     3,
+     21
+    ],
+    "ab_level_lizenz": [
+     3,
+     21
+    ],
+    "ek_spanne": [
+     0.8,
+     34
+    ],
+    "vk_spanne": [
+     1.99,
+     84.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.49,
+     "median": 2.5,
+     "max": 2.54
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 60
+   },
+   "batterien": {
+    "anzahl": 48,
+    "ab_level": [
+     2,
+     27
+    ],
+    "ab_level_lizenz": [
+     2,
+     27
+    ],
+    "ek_spanne": [
+     3.1,
+     159.09
+    ],
+    "vk_spanne": [
+     6.99,
+     349.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.17,
+     "median": 2.31,
+     "max": 2.4
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 56.7
+   },
+   "kugeln": {
+    "anzahl": 32,
+    "ab_level": [
+     14,
+     29
+    ],
+    "ab_level_lizenz": [
+     14,
+     29
+    ],
+    "ek_spanne": [
+     4.29,
+     72.96
+    ],
+    "vk_spanne": [
+     9.99,
+     169.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.33,
+     "median": 2.33,
+     "max": 2.33
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 57.1
+   }
+  },
+  "je_cat": {
+   "F1_cat1": {
+    "anzahl": 12,
+    "ab_level": [
+     1,
+     2
+    ],
+    "ab_level_lizenz": [
+     1,
+     2
+    ],
+    "ek_spanne": [
+     0.35,
+     2.2
+    ],
+    "vk_spanne": [
+     0.99,
+     5.49
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.43,
+     "median": 2.53,
+     "max": 2.83
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 60.5
+   },
+   "F2_cat2": {
+    "anzahl": 117,
+    "ab_level": [
+     2,
+     29
+    ],
+    "ab_level_lizenz": [
+     2,
+     29
+    ],
+    "ek_spanne": [
+     1.3,
+     159.09
+    ],
+    "vk_spanne": [
+     3.19,
+     349.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.17,
+     "median": 2.33,
+     "max": 2.58
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 57.1
+   },
+   "Zubehoer_cat0": {
+    "anzahl": 108,
+    "ab_level": [
+     3,
+     21
+    ],
+    "ab_level_lizenz": [
+     3,
+     21
+    ],
+    "ek_spanne": [
+     0.45,
+     46
+    ],
+    "vk_spanne": [
+     1.29,
+     114.99
+    ],
+    "aufschlag_vk_durch_ek": {
+     "min": 2.37,
+     "median": 2.5,
+     "max": 2.87
+    },
+    "marge_typisch": "Rohmarge in % vom VK (Median)",
+    "marge_typisch_prozent_vom_vk": 60
+   }
+  },
+  "gesamt": {
+   "anzahl": 237,
+   "ab_level": [
+    1,
+    29
+   ],
+   "ab_level_lizenz": [
+    1,
+    29
+   ],
+   "ek_spanne": [
+    0.35,
+    159.09
+   ],
+   "vk_spanne": [
+    0.99,
+    349.99
+   ],
+   "aufschlag_vk_durch_ek": {
+    "min": 2.17,
+    "median": 2.46,
+    "max": 2.87
+   },
+   "marge_typisch": "Rohmarge in % vom VK (Median)",
+   "marge_typisch_prozent_vom_vk": 59.4
+  },
+  "sortiment_je_level": [
+   {
+    "lvl": 1,
+    "neue_sorten": 5,
+    "sorten_gesamt": 5
+   },
+   {
+    "lvl": 2,
+    "neue_sorten": 11,
+    "sorten_gesamt": 16
+   },
+   {
+    "lvl": 3,
+    "neue_sorten": 12,
+    "sorten_gesamt": 28
+   },
+   {
+    "lvl": 4,
+    "neue_sorten": 0,
+    "sorten_gesamt": 28
+   },
+   {
+    "lvl": 5,
+    "neue_sorten": 16,
+    "sorten_gesamt": 44
+   },
+   {
+    "lvl": 6,
+    "neue_sorten": 15,
+    "sorten_gesamt": 59
+   },
+   {
+    "lvl": 7,
+    "neue_sorten": 6,
+    "sorten_gesamt": 65
+   },
+   {
+    "lvl": 8,
+    "neue_sorten": 24,
+    "sorten_gesamt": 89
+   },
+   {
+    "lvl": 9,
+    "neue_sorten": 16,
+    "sorten_gesamt": 105
+   },
+   {
+    "lvl": 10,
+    "neue_sorten": 4,
+    "sorten_gesamt": 109
+   },
+   {
+    "lvl": 11,
+    "neue_sorten": 13,
+    "sorten_gesamt": 122
+   },
+   {
+    "lvl": 12,
+    "neue_sorten": 14,
+    "sorten_gesamt": 136
+   },
+   {
+    "lvl": 13,
+    "neue_sorten": 2,
+    "sorten_gesamt": 138
+   },
+   {
+    "lvl": 14,
+    "neue_sorten": 29,
+    "sorten_gesamt": 167
+   },
+   {
+    "lvl": 15,
+    "neue_sorten": 4,
+    "sorten_gesamt": 171
+   },
+   {
+    "lvl": 16,
+    "neue_sorten": 3,
+    "sorten_gesamt": 174
+   },
+   {
+    "lvl": 17,
+    "neue_sorten": 4,
+    "sorten_gesamt": 178
+   },
+   {
+    "lvl": 18,
+    "neue_sorten": 6,
+    "sorten_gesamt": 184
+   },
+   {
+    "lvl": 19,
+    "neue_sorten": 8,
+    "sorten_gesamt": 192
+   },
+   {
+    "lvl": 20,
+    "neue_sorten": 15,
+    "sorten_gesamt": 207
+   },
+   {
+    "lvl": 21,
+    "neue_sorten": 2,
+    "sorten_gesamt": 209
+   },
+   {
+    "lvl": 22,
+    "neue_sorten": 13,
+    "sorten_gesamt": 222
+   },
+   {
+    "lvl": 23,
+    "neue_sorten": 0,
+    "sorten_gesamt": 222
+   },
+   {
+    "lvl": 24,
+    "neue_sorten": 0,
+    "sorten_gesamt": 222
+   },
+   {
+    "lvl": 25,
+    "neue_sorten": 5,
+    "sorten_gesamt": 227
+   },
+   {
+    "lvl": 26,
+    "neue_sorten": 0,
+    "sorten_gesamt": 227
+   },
+   {
+    "lvl": 27,
+    "neue_sorten": 6,
+    "sorten_gesamt": 233
+   },
+   {
+    "lvl": 28,
+    "neue_sorten": 0,
+    "sorten_gesamt": 233
+   },
+   {
+    "lvl": 29,
+    "neue_sorten": 4,
+    "sorten_gesamt": 237
+   },
+   {
+    "lvl": 30,
+    "neue_sorten": 0,
+    "sorten_gesamt": 237
+   },
+   {
+    "lvl": 31,
+    "neue_sorten": 0,
+    "sorten_gesamt": 237
+   },
+   {
+    "lvl": 32,
+    "neue_sorten": 0,
+    "sorten_gesamt": 237
+   }
+  ],
+  "preisregeln": {
+   "einkauf": "EK je Stueck = P.cost x Einkaufsindex mi (0,62..1,88, taeglich) x Inflation (~0,21 %/Tag, bis x4) x Lieferant (Fachhandel 1,0; Grosshandel 1,0 mit Staffel 10 Kartons -10 %, 20 Kartons -18 %; Ratzke 0,6 bei Qualitaet 0,86) x Grosshandelslizenz 0,9; Liefergebuehr 5,90 EUR unter 150 EUR Warenwert.",
+   "verkauf": "Marktpreis = P.market x Kundenerwartung me (zieht mit 26 %/Tag der Luecke nach) x Inflation; Kunde kauft sicher bis Preis/Markt <= Toleranz (0,95 + Ambiente/450 + Ruf/900 + Bilder + Freundlichkeit-Anteil) x Ereignis x Konkurrenz, danach linear auf 0 bei +0,5.",
+   "kugelbomben": "Kugelbomben der Runde 5/6: EK = VK / 2,33 (WIRT.ware.kugelMarge).",
+   "batterien7": "Batterien Runde 7 (b7_*): Aufschlag 2,20.",
+   "begruendung_der_preise": "keine: P.cost/P.market stehen als Katalogwerte in 7 Dateien, ohne Herleitung; wirtschaft.md: \"Produktpreise ... Ein Margen-Pruefwerkzeug ueber alle Sorten gehoert in Etappe 5\" - nicht gebaut. Nur Werkbank-Kommentar behauptet \"Einkauf = Ladenpreis / 2,2\" (gemessen am Katalog: Median Gesamt 2.46)."
+  }
+ },
+ "hype": {
+  "aufbau": "Beim Zuenden auf dem Testfeld (Ausbau \"Testfeld\", Level 5, 3.200 EUR) + P.hype je gezuendetem Stueck, gedeckelt auf 100; Ware ist verbraucht (zum EK als \"Selbst gezuendet\" im Tagesabschluss); XP = max(1, Hype/3).",
+  "wert_je_produkt": {
+   "min": 2,
+   "max": 112,
+   "hinweis": "einzelne Produkte haben P.hype > 100 (Deckel greift), z. B. Max 112"
+  },
+  "wirkung_auf_kunden": [
+   "Kundentakt x(1 + Hype/50): Hype 40 = x1,8, Hype 100 = x3,0 (Intervall mind. 0,55 s)",
+   "Ab Hype 40: F2-Wuensche x1.3",
+   "Ereignis \"Video geht viral\": Hype +35 und Kundenfaktor 1,7"
+  ],
+  "abklingen": "-1.1 je Sekunde (100 -> 0 in ~91 s Echtzeit = ca. 28 % eines 330-s-Tages); Tagesende auf 0",
+  "begruendung": "01c/wirtschaft.md: \"Marketing kostet Ware - Wirkung ist kurz\". Zahlen (50, 40, 1,3, 1,1/s) ohne Herleitung. Bekannte Luecke: \"Gewinn des Tages\" zieht Selbst-Gezuendetes ab, obwohl es nie vom Konto geht (doppelt gezaehlt)."
+ },
+ "lieferanten": [
+  {
+   "id": "fachhandel",
+   "lvl": 1,
+   "kap": null,
+   "mult": 1,
+   "quality": 1
+  },
+  {
+   "id": "grosshandel",
+   "lvl": 8,
+   "kap": 2,
+   "mult": 1,
+   "quality": 1
+  },
+  {
+   "id": "ratzke",
+   "lvl": 14,
+   "kap": null,
+   "mult": 0.6,
+   "quality": 0.86
+  }
+ ],
+ "restposten_pakete": [
+  {
+   "id": "tuete",
+   "lvl": 14,
+   "kartons": 6,
+   "gruppe": null,
+   "sorten": null
+  },
+  {
+   "id": "kiste",
+   "lvl": 15,
+   "kartons": 14,
+   "gruppe": null,
+   "sorten": null
+  },
+  {
+   "id": "palette",
+   "lvl": 17,
+   "kartons": 30,
+   "gruppe": null,
+   "sorten": null
+  },
+  {
+   "id": "knallkiste",
+   "lvl": 14,
+   "kartons": 10,
+   "gruppe": "boeller",
+   "sorten": null
+  },
+  {
+   "id": "raketenpaket",
+   "lvl": 15,
+   "kartons": 8,
+   "gruppe": "raketen",
+   "sorten": null
+  },
+  {
+   "id": "verbundpaket",
+   "lvl": 17,
+   "kartons": 5,
+   "gruppe": "batterien",
+   "sorten": null
+  },
+  {
+   "id": "partykiste",
+   "lvl": 14,
+   "kartons": 8,
+   "gruppe": "zubehoer",
+   "sorten": null
+  },
+  {
+   "id": "kugelkiste",
+   "lvl": 18,
+   "kartons": 4,
+   "gruppe": "kugeln",
+   "sorten": null
+  },
+  {
+   "id": "sortenposten",
+   "lvl": 14,
+   "kartons": 8,
+   "gruppe": null,
+   "sorten": 1
+  },
+  {
+   "id": "mischposten",
+   "lvl": 16,
+   "kartons": 12,
+   "gruppe": null,
+   "sorten": 3
+  }
+ ],
+ "weitere_preise_und_regeln": {
+  "deko": [
+   {
+    "id": "pflanze",
+    "lvl": 6,
+    "name": "Zimmerpflanze",
+    "cost": 70,
+    "amb": 2,
+    "buy": 0
+   },
+   {
+    "id": "stehtisch",
+    "lvl": 6,
+    "name": "Stehtisch",
+    "cost": 95,
+    "amb": 2,
+    "buy": 0
+   },
+   {
+    "id": "muell",
+    "lvl": 6,
+    "name": "Mülleimer",
+    "cost": 80,
+    "amb": 2,
+    "buy": 0
+   },
+   {
+    "id": "teppich",
+    "lvl": 7,
+    "name": "Läufer-Teppich",
+    "cost": 130,
+    "amb": 3,
+    "buy": 0
+   },
+   {
+    "id": "lichter",
+    "lvl": 8,
+    "name": "Lichterkette",
+    "cost": 170,
+    "amb": 5,
+    "buy": 0
+   },
+   {
+    "id": "ventilator",
+    "lvl": 9,
+    "name": "Deckenventilator",
+    "cost": 210,
+    "amb": 4,
+    "buy": 0
+   },
+   {
+    "id": "baum",
+    "lvl": 10,
+    "name": "Weihnachtsbaum",
+    "cost": 290,
+    "amb": 7,
+    "buy": 0
+   },
+   {
+    "id": "neon",
+    "lvl": 12,
+    "name": "Neonschild Frohes Neues",
+    "cost": 480,
+    "amb": 9,
+    "buy": 0
+   },
+   {
+    "id": "automat",
+    "lvl": 14,
+    "name": "Getränkeautomat",
+    "cost": 640,
+    "amb": 8,
+    "buy": 0
+   },
+   {
+    "id": "bild_raketen",
+    "lvl": 5,
+    "name": "Bild: Raketennacht",
+    "cost": 180,
+    "amb": 4,
+    "buy": 0.03
+   },
+   {
+    "id": "bild_stadt",
+    "lvl": 8,
+    "name": "Bild: Feuerwerk über der Stadt",
+    "cost": 320,
+    "amb": 6,
+    "buy": 0.04
+   },
+   {
+    "id": "bild_sortiment",
+    "lvl": 11,
+    "name": "Bild: Sortimentstafel",
+    "cost": 420,
+    "amb": 5,
+    "buy": 0.05
+   },
+   {
+    "id": "saeule",
+    "lvl": 19,
+    "name": "Leuchtsäule",
+    "cost": 900,
+    "amb": 10,
+    "buy": 0
+   },
+   {
+    "id": "vitrine",
+    "lvl": 22,
+    "name": "Schauvitrine",
+    "cost": 1400,
+    "amb": 12,
+    "buy": 0.04
+   },
+   {
+    "id": "bild_meister",
+    "lvl": 16,
+    "name": "Bild: Der Sprengmeister",
+    "cost": 820,
+    "amb": 9,
+    "buy": 0.07
+   }
+  ],
+  "wand_preise": {
+   "creme": 0,
+   "weiss": 50,
+   "salbei": 140,
+   "sand": 250,
+   "streifen": 370,
+   "anthrazit": 520,
+   "raute": 670,
+   "terrakotta": 780,
+   "ziegel": 840,
+   "metro": 960,
+   "beere": 1020,
+   "blume": 1210,
+   "holzvert": 1410,
+   "mitternacht": 1620,
+   "petrol": 1840,
+   "gold": 2060,
+   "gras": 2400,
+   "damast": 2900,
+   "moire": 3400,
+   "nussbaum": 4200,
+   "samt": 5600,
+   "marmorwand": 7800
+  },
+  "boden_preise": {
+   "grau": 0,
+   "vinyl": 70,
+   "holz": 190,
+   "schach": 340,
+   "eiche": 520,
+   "fliese": 720,
+   "beton": 940,
+   "industrie": 1180,
+   "teppich": 1430,
+   "terrazzo": 1690,
+   "marmor": 1970,
+   "fischgraet": 2600,
+   "chevron": 3200,
+   "travertin": 3900,
+   "nussfisch": 4600,
+   "veneziano": 5400,
+   "marmorband": 6200,
+   "versailles": 8500
+  },
+  "herausforderungen": {
+   "v_boeller": [
+    60,
+    320,
+    1600,
+    7000
+   ],
+   "v_raketen": [
+    80,
+    400,
+    2000,
+    8000
+   ],
+   "v_batterien": [
+    260,
+    1400,
+    5000,
+    14000
+   ],
+   "v_kugeln": [
+    300,
+    1600,
+    5500,
+    16000
+   ],
+   "v_sekt": [
+    70,
+    350,
+    1500,
+    5500
+   ],
+   "v_essen": [
+    60,
+    300,
+    1300,
+    5000
+   ],
+   "v_zubehoer": [
+    60,
+    300,
+    1300,
+    5000
+   ],
+   "kunden": [
+    80,
+    450,
+    2200,
+    9000
+   ],
+   "kartons": [
+    60,
+    300,
+    1400,
+    5500
+   ],
+   "lkw": [
+    70,
+    380,
+    1800,
+    7000
+   ],
+   "gezuendet": [
+    80,
+    400,
+    1800,
+    7000
+   ],
+   "brucharten": [
+    150,
+    600,
+    2400,
+    9000
+   ],
+   "hype": [
+    90,
+    500,
+    2200,
+    8000
+   ],
+   "pakete": [
+    200,
+    900,
+    3600,
+    12000
+   ],
+   "ddl": [
+    180,
+    800,
+    3200,
+    11000
+   ],
+   "auftraege": [
+    220,
+    1000,
+    4200,
+    14000
+   ],
+   "eigene": [
+    400,
+    1800,
+    6000,
+    18000
+   ],
+   "v_eigene": [
+    300,
+    1400,
+    5000,
+    16000
+   ],
+   "rek_tag": [
+    120,
+    600,
+    2400,
+    9000
+   ],
+   "rek_kunden": [
+    110,
+    550,
+    2200,
+    8000
+   ],
+   "tage": [
+    100,
+    500,
+    2000,
+    7500
+   ]
+  },
+  "wochenziele": {
+   "umsatz": {
+    "ziel": [
+     600,
+     260
+    ],
+    "praemie": [
+     120,
+     45
+    ]
+   },
+   "kunden": {
+    "ziel": [
+     40,
+     14
+    ],
+    "praemie": [
+     100,
+     40
+    ]
+   },
+   "artikel": {
+    "ziel": [
+     90,
+     34
+    ],
+    "praemie": [
+     110,
+     42
+    ]
+   },
+   "f2": {
+    "ziel": [
+     30,
+     16
+    ],
+    "praemie": [
+     150,
+     55
+    ]
+   },
+   "sauber": {
+    "tage": 5,
+    "praemie": [
+     130,
+     40
+    ]
+   },
+   "gross": {
+    "levelJeAuftrag": 5,
+    "praemie": [
+     200,
+     60
+    ]
+   }
+  },
+  "grossauftraege": {
+   "kartons": [
+    {
+     "abLevel": 15,
+     "n": [
+      4,
+      9
+     ]
+    },
+    {
+     "abLevel": 10,
+     "n": [
+      3,
+      6
+     ]
+    },
+    {
+     "abLevel": 0,
+     "n": [
+      2,
+      4
+     ]
+    }
+   ],
+   "zweiSorten": 0.5,
+   "stammJe": 0.02,
+   "stammMax": 0.08,
+   "nachgeben": 0.35,
+   "meister": 1.33,
+   "flau": {
+    "grund": 1.9,
+    "jeSaison": 0.9,
+    "min": 0.8,
+    "max": 1.9
+   },
+   "vollerKarton": 0.9,
+   "takt": {
+    "start": 120,
+    "keineWare": 90,
+    "klingeln": 26,
+    "verpasst": [
+     60,
+     110
+    ],
+    "nachAnnahme": [
+     150,
+     260
+    ],
+    "nachAblehnung": [
+     70,
+     130
+    ],
+    "abholung": [
+     18,
+     30
+    ]
+   }
+  },
+  "restposten": {
+   "welle": [
+    70,
+    260
+   ],
+   "dauer": [
+    120,
+    360
+   ],
+   "max": 8,
+   "ersteWelle": [
+    15,
+    40
+   ],
+   "druck": {
+    "kostenMin": 60,
+    "tageAb": 4,
+    "tageSpanne": 26,
+    "mitKredit": 0.5
+   },
+   "leer": {
+    "grund": 0.15,
+    "jeDruck": 0.4
+   },
+   "viel": {
+    "grund": 0.28,
+    "jeDruck": -0.2
+   },
+   "vielN": [
+    3,
+    3
+   ],
+   "normalN": [
+    1,
+    2
+   ],
+   "vorrat": {
+    "zwei": 0.35,
+    "drei": 0.12
+   },
+   "preis": [
+    0.85,
+    1.12
+   ],
+   "takt": {
+    "grund": 0.7,
+    "jeDruck": 0.9
+   }
+  },
+  "pakete": {
+   "rabatt": {
+    "tuete": 0.62,
+    "kiste": 0.58,
+    "palette": 0.52
+   },
+   "sonstige": 0.7,
+   "themen": 0.6,
+   "sorten": 0.56,
+   "jackpot": 0.12,
+   "teuerAb": 6,
+   "runden": 5,
+   "min": 5
+  },
+  "markt": {
+   "regime": {
+    "fest": {
+     "amp": 0.1,
+     "rev": 0.26,
+     "d": [
+      12,
+      30
+     ]
+    },
+    "ruhig": {
+     "amp": 0.34,
+     "rev": 0.15,
+     "d": [
+      8,
+      20
+     ]
+    },
+    "normal": {
+     "amp": 0.85,
+     "rev": 0.07,
+     "d": [
+      5,
+      14
+     ]
+    },
+    "sturm": {
+     "amp": 2.1,
+     "rev": 0.04,
+     "d": [
+      3,
+      9
+     ]
+    }
+   },
+   "regimeWahl": [
+    {
+     "bis": 0.3,
+     "w": [
+      72,
+      26,
+      2,
+      0
+     ]
+    },
+    {
+     "bis": 0.6,
+     "w": [
+      32,
+      44,
+      23,
+      1
+     ]
+    },
+    {
+     "bis": 0.95,
+     "w": [
+      12,
+      32,
+      43,
+      13
+     ]
+    },
+    {
+     "bis": null,
+     "w": [
+      4,
+      19,
+      45,
+      32
+     ]
+    }
+   ],
+   "volaStandard": {
+    "f2": 0.85,
+    "f1": 0.6,
+    "zubehoer": 0.45
+   },
+   "miMin": 0.62,
+   "miMax": 1.88,
+   "gaussBreite": 1.15,
+   "startStreuung": 0.06,
+   "rauschen": 0.045,
+   "traegheit": 0.26,
+   "verlaufTage": 16,
+   "inflation": {
+    "min": 0.0008,
+    "max": 0.0028,
+    "sprungChance": 0.05,
+    "sprungMin": 0.003,
+    "sprungMax": 0.009,
+    "deckel": 4
+   },
+   "schock": {
+    "abVola": 0.48,
+    "chanceJeVola": 0.012,
+    "knappAnteil": 0.55,
+    "knapp": [
+     0.28,
+     0.8
+    ],
+    "schwemme": [
+     0.18,
+     0.4
+    ],
+    "dauer": [
+     3,
+     9
+    ],
+    "sturmDauer": [
+     3,
+     8
+    ]
+   },
+   "schnittMin": 0.7,
+   "schnittMax": 1.5,
+   "konkurrenz": {
+    "schwank": [
+     0.95,
+     1.05
+    ],
+    "min": 0.88,
+    "max": 1.12,
+    "ladeMin": 0.85,
+    "ladeMax": 1.15
+   },
+   "ladeMktMin": 0.7,
+   "ladeMktMax": 1.4
+  },
+  "saison": {
+   "regeln": [
+    {
+     "m": 11,
+     "ab": 26,
+     "silvester": true,
+     "text": "Silvestergeschäft"
+    },
+    {
+     "m": 11,
+     "ab": 20,
+     "f": 1.25,
+     "text": "Weihnachtswoche"
+    },
+    {
+     "m": 11,
+     "f": 1.1,
+     "text": "Vorweihnachtszeit"
+    },
+    {
+     "m": 0,
+     "ab": 1,
+     "bis": 1,
+     "f": 1.35,
+     "text": "Neujahr, Restverkauf"
+    },
+    {
+     "m": 0,
+     "bis": 14,
+     "f": 0.8,
+     "text": "Ruhige Januartage"
+    },
+    {
+     "m": [
+      0,
+      1
+     ],
+     "f": 0.72,
+     "text": "Tiefste Nebensaison"
+    },
+    {
+     "m": 2,
+     "f": 0.8,
+     "text": "Frühjahr, wenig los"
+    },
+    {
+     "m": 3,
+     "ab": 25,
+     "f": 1.45,
+     "text": "Walpurgisnacht steht an"
+    },
+    {
+     "m": 4,
+     "bis": 2,
+     "f": 1.3,
+     "text": "Erster Mai"
+    },
+    {
+     "m": [
+      3,
+      4
+     ],
+     "f": 0.9,
+     "text": "Frühling"
+    },
+    {
+     "m": 5,
+     "f": 1,
+     "text": "Sommeranfang, Feste"
+    },
+    {
+     "m": [
+      6,
+      7
+     ],
+     "f": 1.15,
+     "text": "Sommerfeste und Hochzeiten"
+    },
+    {
+     "m": 8,
+     "f": 0.88,
+     "text": "Spätsommer"
+    },
+    {
+     "m": 9,
+     "ab": 28,
+     "f": 1.25,
+     "text": "Halloween"
+    },
+    {
+     "m": 9,
+     "f": 0.92,
+     "text": "Oktober"
+    },
+    {
+     "f": 0.86,
+     "text": "November, ruhig"
+    }
+   ],
+   "silvester": {
+    "ab": 26,
+    "grund": 1.5,
+    "jeTag": 0.34
+   },
+   "wochentag": [
+    0.55,
+    0.82,
+    0.84,
+    0.9,
+    1,
+    1.28,
+    1.35
+   ]
+  },
+  "ruf": {
+   "kaufOk": 0.8,
+   "kaufMitFehl": 0.2,
+   "fehlwunsch": -0.4,
+   "leerGegangen": -0.3,
+   "zuTeuer": -0.5,
+   "geduldWeg": -2,
+   "diebGestellt": 0.6,
+   "diebEntkommen": -1.8,
+   "sbAllein": -0.4,
+   "sbHilfe": 0.1,
+   "auftragErfuellt": 2.5,
+   "auftragVerfehlt": -4,
+   "pruefungGut": 3,
+   "pruefungSchlecht": -5,
+   "pruefungSauberAb": 70,
+   "kuendigung": -1,
+   "kontoMinus": -3
+  },
+  "xp_quellen": {
+   "kurve": {
+    "a": 50,
+    "exp": 1.55
+   },
+   "kunde": {
+    "jeEuro": 0.5,
+    "grund": 4,
+    "barPassend": 3
+   },
+   "tag": {
+    "grund": 60,
+    "jeUmsatz": 0.05,
+    "ohneBeschwerde": 40
+   },
+   "jahr": 200,
+   "kreditGetilgt": 40,
+   "kapitel": 40,
+   "ausbauTeiler": 12,
+   "lizenz": {
+    "teiler": 14,
+    "bonus": 30
+   },
+   "herausforderung": {
+    "teiler": 10,
+    "bonus": 25
+   },
+   "wochenzielTeiler": 3,
+   "auftragAngenommen": 20,
+   "auftragErfuellt": {
+    "jeEuro": 0.4,
+    "grund": 40
+   },
+   "restposten": 20,
+   "eigeneBatterie": 180,
+   "zuenden": {
+    "hypeTeiler": 3,
+    "min": 1
+   },
+   "serieStufen": [
+    5,
+    10,
+    20,
+    35,
+    50,
+    75,
+    100
+   ],
+   "serieJeKunde": 6,
+   "diebGestellt": 25,
+   "regalAufbau": 12,
+   "einbau": 20,
+   "gravur": 12,
+   "paketGepackt": 3,
+   "dreckWeg": 3,
+   "fensterPutzen": 4,
+   "sbHilfe": 4,
+   "packmaterialEinlagern": 1
+  },
+  "kunden": {
+   "takt": {
+    "basis": 9.2,
+    "min": 0.55,
+    "streuung": [
+     0.6,
+     1.4
+    ],
+    "maxGleichzeitig": 20,
+    "jahrBonus": 0.05,
+    "rufGrund": 0.55,
+    "rufTeiler": 100,
+    "hypeTeiler": 50,
+    "ambGrund": 0.85,
+    "ambTeiler": 180,
+    "sauberGrund": 0.75,
+    "sauberTeiler": 300
+   },
+   "werbung": {
+    "plakat": 1.3,
+    "radio": 1.25,
+    "tafel": 1.3,
+    "kundenkarte": 1.12
+   },
+   "eroeffnung": {
+    "tage": 7,
+    "start": 1.75,
+    "jeTag": 0.11
+   },
+   "bekanntheit": {
+    "maxLevel": 20,
+    "jeLevel": 0.019
+   },
+   "sortiment": {
+    "grund": 0.78,
+    "voll": 0.52,
+    "vollZaehler": 34,
+    "vollNenner": 68
+   },
+   "laden": {
+    "shop_gross": 0.34,
+    "shop_ost": 0.26,
+    "shop_sued": 0.3
+   },
+   "korb": {
+    "grund": 0.78,
+    "jeGroesse": 0.22
+   },
+   "ereignis": {
+    "abTag": 3,
+    "keinsChance": 0.34
+   },
+   "toleranz": {
+    "grund": 0.95,
+    "ambTeiler": 450,
+    "rufTeiler": 900,
+    "jeFreundlichkeit": 0.12
+   },
+   "kauf": {
+    "jeMenge": 0.18,
+    "kuehl": 0.16,
+    "spanne": 0.5
+   },
+   "nachfrage": {
+    "nurLager": 0.5,
+    "nirgends": 0.3
+   },
+   "wunsch": {
+    "n": [
+     0.38,
+     0.6,
+     0.8
+    ],
+    "silvesterF2": 1.9,
+    "hypeAb": 40,
+    "hypeF2": 1.3,
+    "zubehoer": 1.1,
+    "jugendF2": 0.12,
+    "profiF2": 2.6,
+    "teuerAb": 20,
+    "mittelAb": 7,
+    "mittelEins": 0.65,
+    "kleinMax": 3,
+    "silvesterPlus": 0.45
+   },
+   "profiAbLevel": 8,
+   "dieb": {
+    "abLevel": 4,
+    "grund": 0.035,
+    "jeLevel": 0.0035,
+    "maxLevelAnteil": 0.05,
+    "kameras": 0.5,
+    "security": 0.35,
+    "alarm": 0.7
+   },
+   "geduld": {
+    "min": 75,
+    "max": 110,
+    "jeRuf": 0.3,
+    "heizung": 30,
+    "klima": 35,
+    "jeAmbiente": 0.35,
+    "freundGrund": 0.72,
+    "jeFreund": 0.3
+   },
+   "gravurWunsch": 0.3,
+   "dreck": {
+    "chance": 0.08,
+    "mitMuell": 0.04,
+    "jeFleck": 7
+   },
+   "ambiente": {
+    "musik": 6,
+    "regallicht": 6,
+    "heizung": 4,
+    "fensterDreck": 12,
+    "wandMax": 26,
+    "bodenMax": 20
+   },
+   "karteAnteil": 0.6,
+   "preisAmpel": {
+    "einige": 0.2,
+    "viele": 0.45
+   },
+   "sb": {
+    "maxKorb": 3,
+    "maxKorbBetreut": 8,
+    "wahl": 0.45,
+    "wahlBetreut": 0.6,
+    "problemGrund": 0.18,
+    "problemJeArtikel": 0.025,
+    "problemMax": 0.36
+   },
+   "hype": {
+    "max": 100,
+    "verfallJeSek": 1.1
+   }
+  },
+  "werkbank_regeln": {
+   "slots": 5,
+   "stufen": [
+    {
+     "schuss": 25,
+     "kal": 20,
+     "lvl": 20,
+     "up": "labor",
+     "jeSchuss": 0.3,
+     "verpackung": 1,
+     "entwicklung": 450,
+     "mindest": 4,
+     "liefertage": 2,
+     "ref": 30,
+     "gewicht": 6,
+     "hype": 40
+    },
+    {
+     "schuss": 60,
+     "kal": 25,
+     "lvl": 23,
+     "up": "labor2",
+     "jeSchuss": 0.27,
+     "verpackung": 1.8,
+     "entwicklung": 900,
+     "mindest": 5,
+     "liefertage": 2,
+     "ref": 68,
+     "gewicht": 5,
+     "hype": 55
+    },
+    {
+     "schuss": 110,
+     "kal": 30,
+     "lvl": 26,
+     "up": "labor3",
+     "jeSchuss": 0.25,
+     "verpackung": 3,
+     "entwicklung": 1300,
+     "mindest": 8,
+     "liefertage": 3,
+     "ref": 100,
+     "gewicht": 4,
+     "hype": 70
+    },
+    {
+     "schuss": 200,
+     "kal": 30,
+     "lvl": 29,
+     "up": "labor4",
+     "jeSchuss": 0.22,
+     "verpackung": 5,
+     "entwicklung": 1800,
+     "mindest": 10,
+     "liefertage": 3,
+     "ref": 150,
+     "gewicht": 3,
+     "hype": 85
+    },
+    {
+     "schuss": 500,
+     "kal": 25,
+     "lvl": 32,
+     "up": "labor5",
+     "jeSchuss": 0.2,
+     "verpackung": 9,
+     "entwicklung": 3000,
+     "mindest": 5,
+     "liefertage": 3,
+     "ref": 360,
+     "gewicht": 2.5,
+     "hype": 105
+    }
+   ],
+   "kosten": {
+    "klasse": [
+     1,
+     1.2,
+     1.45,
+     1.75
+    ],
+    "kaliber": [
+     0.85,
+     1,
+     1.2
+    ],
+    "hoehe": [
+     0.95,
+     1,
+     1.08
+    ],
+    "farbAuf": 0.5,
+    "abschnitt": 0.15,
+    "entwicklungJeAbschnitt": 30
+   },
+   "bewertung": {
+    "effekt": 0.45,
+    "abwechslung": 0.3,
+    "ablauf": 0.25
+   },
+   "markt": {
+    "grund": 0.7,
+    "spanne": 0.6
+   },
+   "nachfrage": {
+    "grund": 0.6,
+    "spanne": 0.8
+   },
+   "hypeF": {
+    "grund": 0.8,
+    "spanne": 0.4
+   },
+   "rabatt": [
+    {
+     "ab": 2,
+     "d": 0.05
+    },
+    {
+     "ab": 4,
+     "d": 0.1
+    }
+   ],
+   "vola": 0.3
+  },
+  "historie_erstattungen": {
+   "erstattung": {
+    "labor2": 16500,
+    "kasse3": 3800,
+    "sbBetreuer": 650,
+    "packstation": 6400,
+    "packstation2": 14000,
+    "packstation3": 26000,
+    "packer": 700,
+    "packer2": 750,
+    "packer3": 800,
+    "ausbau": {
+     "lager_west": 22000,
+     "rampe2": 12000,
+     "lager_west2": 30000,
+     "rampe3": 15000,
+     "rampe4": 20000,
+     "lager_west3": 42000,
+     "rampe5": 26000,
+     "lagerlogistik": 18500,
+     "fabrik": 46000,
+     "fabrik2": 26000,
+     "fabrik3": 23000
+    },
+    "rohstoff": {
+     "huelsen": 2.2,
+     "oxidator": 5.8,
+     "metall": 13.5,
+     "schwarzpulver": 9.8,
+     "premium": 1.2
+    }
+   }
+  }
+ },
+ "wirt_komplett": {
+  "start": {
+   "geld": 500,
+   "ruf": 50,
+   "level": 1,
+   "startDoy": 273
+  },
+  "zeit": {
+   "oeffnen": 480,
+   "schliessen": 1320,
+   "echtzeitSek": 330
+  },
+  "saison": {
+   "regeln": [
+    {
+     "m": 11,
+     "ab": 26,
+     "silvester": true,
+     "text": "Silvestergeschäft"
+    },
+    {
+     "m": 11,
+     "ab": 20,
+     "f": 1.25,
+     "text": "Weihnachtswoche"
+    },
+    {
+     "m": 11,
+     "f": 1.1,
+     "text": "Vorweihnachtszeit"
+    },
+    {
+     "m": 0,
+     "ab": 1,
+     "bis": 1,
+     "f": 1.35,
+     "text": "Neujahr, Restverkauf"
+    },
+    {
+     "m": 0,
+     "bis": 14,
+     "f": 0.8,
+     "text": "Ruhige Januartage"
+    },
+    {
+     "m": [
+      0,
+      1
+     ],
+     "f": 0.72,
+     "text": "Tiefste Nebensaison"
+    },
+    {
+     "m": 2,
+     "f": 0.8,
+     "text": "Frühjahr, wenig los"
+    },
+    {
+     "m": 3,
+     "ab": 25,
+     "f": 1.45,
+     "text": "Walpurgisnacht steht an"
+    },
+    {
+     "m": 4,
+     "bis": 2,
+     "f": 1.3,
+     "text": "Erster Mai"
+    },
+    {
+     "m": [
+      3,
+      4
+     ],
+     "f": 0.9,
+     "text": "Frühling"
+    },
+    {
+     "m": 5,
+     "f": 1,
+     "text": "Sommeranfang, Feste"
+    },
+    {
+     "m": [
+      6,
+      7
+     ],
+     "f": 1.15,
+     "text": "Sommerfeste und Hochzeiten"
+    },
+    {
+     "m": 8,
+     "f": 0.88,
+     "text": "Spätsommer"
+    },
+    {
+     "m": 9,
+     "ab": 28,
+     "f": 1.25,
+     "text": "Halloween"
+    },
+    {
+     "m": 9,
+     "f": 0.92,
+     "text": "Oktober"
+    },
+    {
+     "f": 0.86,
+     "text": "November, ruhig"
+    }
+   ],
+   "silvester": {
+    "ab": 26,
+    "grund": 1.5,
+    "jeTag": 0.34
+   },
+   "wochentag": [
+    0.55,
+    0.82,
+    0.84,
+    0.9,
+    1,
+    1.28,
+    1.35
+   ]
+  },
+  "kunden": {
+   "takt": {
+    "basis": 9.2,
+    "min": 0.55,
+    "streuung": [
+     0.6,
+     1.4
+    ],
+    "maxGleichzeitig": 20,
+    "jahrBonus": 0.05,
+    "rufGrund": 0.55,
+    "rufTeiler": 100,
+    "hypeTeiler": 50,
+    "ambGrund": 0.85,
+    "ambTeiler": 180,
+    "sauberGrund": 0.75,
+    "sauberTeiler": 300
+   },
+   "werbung": {
+    "plakat": 1.3,
+    "radio": 1.25,
+    "tafel": 1.3,
+    "kundenkarte": 1.12
+   },
+   "eroeffnung": {
+    "tage": 7,
+    "start": 1.75,
+    "jeTag": 0.11
+   },
+   "bekanntheit": {
+    "maxLevel": 20,
+    "jeLevel": 0.019
+   },
+   "sortiment": {
+    "grund": 0.78,
+    "voll": 0.52,
+    "vollZaehler": 34,
+    "vollNenner": 68
+   },
+   "laden": {
+    "shop_gross": 0.34,
+    "shop_ost": 0.26,
+    "shop_sued": 0.3
+   },
+   "korb": {
+    "grund": 0.78,
+    "jeGroesse": 0.22
+   },
+   "ereignis": {
+    "abTag": 3,
+    "keinsChance": 0.34
+   },
+   "toleranz": {
+    "grund": 0.95,
+    "ambTeiler": 450,
+    "rufTeiler": 900,
+    "jeFreundlichkeit": 0.12
+   },
+   "kauf": {
+    "jeMenge": 0.18,
+    "kuehl": 0.16,
+    "spanne": 0.5
+   },
+   "nachfrage": {
+    "nurLager": 0.5,
+    "nirgends": 0.3
+   },
+   "wunsch": {
+    "n": [
+     0.38,
+     0.6,
+     0.8
+    ],
+    "silvesterF2": 1.9,
+    "hypeAb": 40,
+    "hypeF2": 1.3,
+    "zubehoer": 1.1,
+    "jugendF2": 0.12,
+    "profiF2": 2.6,
+    "teuerAb": 20,
+    "mittelAb": 7,
+    "mittelEins": 0.65,
+    "kleinMax": 3,
+    "silvesterPlus": 0.45
+   },
+   "profiAbLevel": 8,
+   "dieb": {
+    "abLevel": 4,
+    "grund": 0.035,
+    "jeLevel": 0.0035,
+    "maxLevelAnteil": 0.05,
+    "kameras": 0.5,
+    "security": 0.35,
+    "alarm": 0.7
+   },
+   "geduld": {
+    "min": 75,
+    "max": 110,
+    "jeRuf": 0.3,
+    "heizung": 30,
+    "klima": 35,
+    "jeAmbiente": 0.35,
+    "freundGrund": 0.72,
+    "jeFreund": 0.3
+   },
+   "gravurWunsch": 0.3,
+   "dreck": {
+    "chance": 0.08,
+    "mitMuell": 0.04,
+    "jeFleck": 7
+   },
+   "ambiente": {
+    "musik": 6,
+    "regallicht": 6,
+    "heizung": 4,
+    "fensterDreck": 12,
+    "wandMax": 26,
+    "bodenMax": 20
+   },
+   "karteAnteil": 0.6,
+   "preisAmpel": {
+    "einige": 0.2,
+    "viele": 0.45
+   },
+   "sb": {
+    "maxKorb": 3,
+    "maxKorbBetreut": 8,
+    "wahl": 0.45,
+    "wahlBetreut": 0.6,
+    "problemGrund": 0.18,
+    "problemJeArtikel": 0.025,
+    "problemMax": 0.36
+   },
+   "hype": {
+    "max": 100,
+    "verfallJeSek": 1.1
+   }
+  },
+  "ware": {
+   "kugelMarge": 2.33
+  },
+  "markt": {
+   "regime": {
+    "fest": {
+     "amp": 0.1,
+     "rev": 0.26,
+     "d": [
+      12,
+      30
+     ]
+    },
+    "ruhig": {
+     "amp": 0.34,
+     "rev": 0.15,
+     "d": [
+      8,
+      20
+     ]
+    },
+    "normal": {
+     "amp": 0.85,
+     "rev": 0.07,
+     "d": [
+      5,
+      14
+     ]
+    },
+    "sturm": {
+     "amp": 2.1,
+     "rev": 0.04,
+     "d": [
+      3,
+      9
+     ]
+    }
+   },
+   "regimeWahl": [
+    {
+     "bis": 0.3,
+     "w": [
+      72,
+      26,
+      2,
+      0
+     ]
+    },
+    {
+     "bis": 0.6,
+     "w": [
+      32,
+      44,
+      23,
+      1
+     ]
+    },
+    {
+     "bis": 0.95,
+     "w": [
+      12,
+      32,
+      43,
+      13
+     ]
+    },
+    {
+     "bis": null,
+     "w": [
+      4,
+      19,
+      45,
+      32
+     ]
+    }
+   ],
+   "volaStandard": {
+    "f2": 0.85,
+    "f1": 0.6,
+    "zubehoer": 0.45
+   },
+   "miMin": 0.62,
+   "miMax": 1.88,
+   "gaussBreite": 1.15,
+   "startStreuung": 0.06,
+   "rauschen": 0.045,
+   "traegheit": 0.26,
+   "verlaufTage": 16,
+   "inflation": {
+    "min": 0.0008,
+    "max": 0.0028,
+    "sprungChance": 0.05,
+    "sprungMin": 0.003,
+    "sprungMax": 0.009,
+    "deckel": 4
+   },
+   "schock": {
+    "abVola": 0.48,
+    "chanceJeVola": 0.012,
+    "knappAnteil": 0.55,
+    "knapp": [
+     0.28,
+     0.8
+    ],
+    "schwemme": [
+     0.18,
+     0.4
+    ],
+    "dauer": [
+     3,
+     9
+    ],
+    "sturmDauer": [
+     3,
+     8
+    ]
+   },
+   "schnittMin": 0.7,
+   "schnittMax": 1.5,
+   "konkurrenz": {
+    "schwank": [
+     0.95,
+     1.05
+    ],
+    "min": 0.88,
+    "max": 1.12,
+    "ladeMin": 0.85,
+    "ladeMax": 1.15
+   },
+   "ladeMktMin": 0.7,
+   "ladeMktMax": 1.4
+  },
+  "einkauf": {
+   "lieferSek": 5,
+   "liefergebuehr": 5.9,
+   "lieferfreiAb": 150,
+   "lieferant": {
+    "fachhandel": {
+     "mult": 1,
+     "qualitaet": 1,
+     "staffel": [
+      {
+       "n": 1,
+       "d": 0
+      }
+     ]
+    },
+    "grosshandel": {
+     "mult": 1,
+     "qualitaet": 1,
+     "staffel": [
+      {
+       "n": 10,
+       "d": 0.1
+      },
+      {
+       "n": 20,
+       "d": 0.18
+      }
+     ]
+    },
+    "ratzke": {
+     "mult": 0.6,
+     "qualitaet": 0.86
+    }
+   },
+   "grosshandelslizenz": 0.9,
+   "pakete": {
+    "rabatt": {
+     "tuete": 0.62,
+     "kiste": 0.58,
+     "palette": 0.52
+    },
+    "sonstige": 0.7,
+    "themen": 0.6,
+    "sorten": 0.56,
+    "jackpot": 0.12,
+    "teuerAb": 6,
+    "runden": 5,
+    "min": 5
+   },
+   "restposten": {
+    "welle": [
+     70,
+     260
+    ],
+    "dauer": [
+     120,
+     360
+    ],
+    "max": 8,
+    "ersteWelle": [
+     15,
+     40
+    ],
+    "druck": {
+     "kostenMin": 60,
+     "tageAb": 4,
+     "tageSpanne": 26,
+     "mitKredit": 0.5
+    },
+    "leer": {
+     "grund": 0.15,
+     "jeDruck": 0.4
+    },
+    "viel": {
+     "grund": 0.28,
+     "jeDruck": -0.2
+    },
+    "vielN": [
+     3,
+     3
+    ],
+    "normalN": [
+     1,
+     2
+    ],
+    "vorrat": {
+     "zwei": 0.35,
+     "drei": 0.12
+    },
+    "preis": [
+     0.85,
+     1.12
+    ],
+    "takt": {
+     "grund": 0.7,
+     "jeDruck": 0.9
+    }
+   }
+  },
+  "versand": {
+   "std": {
+    "kosten": 4.9,
+    "frei": 50
+   },
+   "kostenMax": 20,
+   "freiMax": 300,
+   "porto": {
+    "1": 2,
+    "3": 3.5,
+    "6": 5
+   },
+   "abbruch": {
+    "k": 0.75,
+    "a": 0.2,
+    "b": 2.5
+   },
+   "korb": [
+    5,
+    9,
+    13,
+    18,
+    22,
+    28,
+    38,
+    55,
+    95
+   ],
+   "aufstocken": {
+    "ab": 0.7,
+    "anteil": 0.6,
+    "maxSchritte": 4
+   },
+   "sale": {
+    "allesElast": -1.5,
+    "produktElast": -2.62,
+    "produktNeu": 0.5,
+    "allesMax": 50,
+    "produktMin": 5,
+    "produktMax": 70
+   },
+   "basis": {
+    "grund": 4,
+    "jeRuf": 0.12,
+    "jeLevel": 0.35,
+    "min": 4,
+    "max": 22
+   },
+   "stufeMul": [
+    1,
+    1,
+    1.45,
+    1.9
+   ],
+   "onlineDeckel": 1.3,
+   "paketwertSchaetzung": {
+    "grund": 12,
+    "jeLevel": 0.6
+   },
+   "groesse": {
+    "anteilS": 0.68,
+    "bisM": 0.94,
+    "spaetAb": 22,
+    "spaetS": 0.5,
+    "spaetBisM": 0.85
+   },
+   "pauschale": {
+    "grund": 40,
+    "jeRuf": 1.6,
+    "jeLevel": 4
+   },
+   "ddl": {
+    "pauschale": 39,
+    "anfahrtSek": 20
+   },
+   "strafe": {
+    "offenAb": 8,
+    "offenJe": 0.12,
+    "offenMax": 2,
+    "wartendJe": 0.06,
+    "wartendMax": 3
+   },
+   "material": {
+    "ks": {
+     "preis": 8.9,
+     "stueck": 25
+    },
+    "km": {
+     "preis": 11.4,
+     "stueck": 15
+    },
+    "kl": {
+     "preis": 12.8,
+     "stueck": 8
+    },
+    "folie": {
+     "preis": 14.9,
+     "stueck": 20
+    },
+    "band": {
+     "preis": 9.9,
+     "stueck": 48
+    },
+    "folieJe": {
+     "1": 1,
+     "3": 2,
+     "6": 3
+    },
+    "bandJe": {
+     "1": 1,
+     "3": 1,
+     "6": 2
+    }
+   }
+  },
+  "ausbau": {
+   "kistenJeKauf": 5,
+   "preis": {
+    "plakat": 400,
+    "sackkarre": 350,
+    "kisten": 10,
+    "wagen": 1400,
+    "terminal": 320,
+    "tag4": 900,
+    "heizung": 450,
+    "musik": 380,
+    "radio": 1200,
+    "cams": 900,
+    "regallicht": 700,
+    "alarm": 2200,
+    "grosskunden": 500,
+    "onlineshop": 3200,
+    "kundenkarte": 2600,
+    "tafel": 4200,
+    "lizenz": 6500,
+    "klima": 5400,
+    "meister": 12000,
+    "shop_halb": 1400,
+    "testfeld": 3200,
+    "shop_gross": 7500,
+    "lager": 1200,
+    "lager_nord": 1900,
+    "lager_gross": 6200,
+    "shop_ost": 16000,
+    "shop_sued": 34000,
+    "lager_sued": 11000,
+    "lager_sued2": 15000,
+    "packstation": 6400,
+    "packstation2": 5900,
+    "packstation3": 6900,
+    "eingang2": 11500,
+    "kasse2": 3400,
+    "gravur": 1200,
+    "labor": 2900,
+    "labor2": 3000,
+    "labor3": 3600,
+    "labor4": 4800,
+    "labor5": 8500
+   }
+  },
+  "lizenz": {
+   "preis": {
+    "start": 0,
+    "jugend": 60,
+    "zubehoer": 120,
+    "klassiker": 380,
+    "partydeko": 520,
+    "snacks": 260,
+    "krach": 1100,
+    "buffet": 700,
+    "partynacht": 1500,
+    "kleinfeuer": 1800,
+    "himmel": 2600,
+    "genuss": 3400,
+    "feuerzauber": 4200,
+    "verbund": 6000,
+    "getraenke": 5000,
+    "festtafel": 6500,
+    "nachthimmel": 9000,
+    "import": 13000,
+    "goldklasse": 15000,
+    "schabernack": 16000,
+    "sternklasse": 18000,
+    "grossfeuer": 21000,
+    "feinkost": 12000,
+    "profi": 26000,
+    "meister": 34000,
+    "grossfeuerwerk": 42000,
+    "pyroweltklasse": 52000
+   }
+  },
+  "personal": {
+   "lohnstufen": [
+    0.75,
+    1,
+    1.3,
+    1.65
+   ],
+   "pause": 0.3,
+   "kuendigung": {
+    "unter": 0.8,
+    "chanceTag": 0.14
+   },
+   "tempo": {
+    "grund": 0.55,
+    "jeLohn": 0.48
+   },
+   "einstellung": {
+    "reinigung": 250,
+    "auffueller": 450,
+    "auffueller2": 600,
+    "kassierer": 600,
+    "kassierer2": 600,
+    "kassierer3": 600,
+    "security": 800,
+    "packer": 700,
+    "packer2": 750,
+    "packer3": 800
+   },
+   "lohn": {
+    "reinigung": 55,
+    "auffueller": 110,
+    "auffueller2": 130,
+    "kassierer": 145,
+    "kassierer2": 140,
+    "kassierer3": 140,
+    "security": 190,
+    "packer": 165,
+    "packer2": 170,
+    "packer3": 175
+   }
+  },
+  "deko": {
+   "preis": {
+    "pflanze": 70,
+    "stehtisch": 95,
+    "muell": 80,
+    "teppich": 130,
+    "lichter": 170,
+    "ventilator": 210,
+    "baum": 290,
+    "neon": 480,
+    "automat": 640,
+    "bild_raketen": 180,
+    "bild_stadt": 320,
+    "bild_sortiment": 420,
+    "saeule": 900,
+    "vitrine": 1400,
+    "bild_meister": 820
+   }
+  },
+  "wand": {
+   "preis": {
+    "creme": 0,
+    "weiss": 50,
+    "salbei": 140,
+    "sand": 250,
+    "streifen": 370,
+    "anthrazit": 520,
+    "raute": 670,
+    "terrakotta": 780,
+    "ziegel": 840,
+    "metro": 960,
+    "beere": 1020,
+    "blume": 1210,
+    "holzvert": 1410,
+    "mitternacht": 1620,
+    "petrol": 1840,
+    "gold": 2060,
+    "gras": 2400,
+    "damast": 2900,
+    "moire": 3400,
+    "nussbaum": 4200,
+    "samt": 5600,
+    "marmorwand": 7800
+   }
+  },
+  "boden": {
+   "preis": {
+    "grau": 0,
+    "vinyl": 70,
+    "holz": 190,
+    "schach": 340,
+    "eiche": 520,
+    "fliese": 720,
+    "beton": 940,
+    "industrie": 1180,
+    "teppich": 1430,
+    "terrazzo": 1690,
+    "marmor": 1970,
+    "fischgraet": 2600,
+    "chevron": 3200,
+    "travertin": 3900,
+    "nussfisch": 4600,
+    "veneziano": 5400,
+    "marmorband": 6200,
+    "versailles": 8500
+   }
+  },
+  "regal": {
+   "verkauf": {
+    "klein": {
+     "grund": 45,
+     "jeWeiteres": 28
+    },
+    "standard": {
+     "grund": 130,
+     "jeWeiteres": 70
+    },
+    "hoch": {
+     "grund": 260,
+     "jeWeiteres": 95
+    },
+    "kuehl": {
+     "grund": 430,
+     "jeWeiteres": 155
+    },
+    "gondel": {
+     "grund": 560,
+     "jeWeiteres": 190
+    },
+    "eck": {
+     "grund": 480,
+     "jeWeiteres": 165
+    },
+    "gross": {
+     "grund": 640,
+     "jeWeiteres": 210
+    },
+    "tisch": {
+     "grund": 220,
+     "jeWeiteres": 80
+    },
+    "tischgross": {
+     "grund": 340,
+     "jeWeiteres": 120
+    },
+    "gitter": {
+     "grund": 140,
+     "jeWeiteres": 50
+    },
+    "gitter2": {
+     "grund": 210,
+     "jeWeiteres": 75
+    },
+    "gitter3": {
+     "grund": 290,
+     "jeWeiteres": 100
+    },
+    "kasse": {
+     "grund": 120,
+     "jeWeiteres": 60
+    }
+   },
+   "lager": {
+    "standard": {
+     "grund": 0,
+     "jeWeiteres": 0
+    },
+    "hoch": {
+     "grund": 520,
+     "jeWeiteres": 150
+    },
+    "schwer": {
+     "grund": 880,
+     "jeWeiteres": 240
+    }
+   }
+  },
+  "auftrag": {
+   "kartons": [
+    {
+     "abLevel": 15,
+     "n": [
+      4,
+      9
+     ]
+    },
+    {
+     "abLevel": 10,
+     "n": [
+      3,
+      6
+     ]
+    },
+    {
+     "abLevel": 0,
+     "n": [
+      2,
+      4
+     ]
+    }
+   ],
+   "zweiSorten": 0.5,
+   "stammJe": 0.02,
+   "stammMax": 0.08,
+   "nachgeben": 0.35,
+   "meister": 1.33,
+   "flau": {
+    "grund": 1.9,
+    "jeSaison": 0.9,
+    "min": 0.8,
+    "max": 1.9
+   },
+   "vollerKarton": 0.9,
+   "takt": {
+    "start": 120,
+    "keineWare": 90,
+    "klingeln": 26,
+    "verpasst": [
+     60,
+     110
+    ],
+    "nachAnnahme": [
+     150,
+     260
+    ],
+    "nachAblehnung": [
+     70,
+     130
+    ],
+    "abholung": [
+     18,
+     30
+    ]
+   }
+  },
+  "ziele": {
+   "umsatz": {
+    "ziel": [
+     600,
+     260
+    ],
+    "praemie": [
+     120,
+     45
+    ]
+   },
+   "kunden": {
+    "ziel": [
+     40,
+     14
+    ],
+    "praemie": [
+     100,
+     40
+    ]
+   },
+   "artikel": {
+    "ziel": [
+     90,
+     34
+    ],
+    "praemie": [
+     110,
+     42
+    ]
+   },
+   "f2": {
+    "ziel": [
+     30,
+     16
+    ],
+    "praemie": [
+     150,
+     55
+    ]
+   },
+   "sauber": {
+    "tage": 5,
+    "praemie": [
+     130,
+     40
+    ]
+   },
+   "gross": {
+    "levelJeAuftrag": 5,
+    "praemie": [
+     200,
+     60
+    ]
+   }
+  },
+  "erfolg": {
+   "lohn": {
+    "v_boeller": [
+     60,
+     320,
+     1600,
+     7000
+    ],
+    "v_raketen": [
+     80,
+     400,
+     2000,
+     8000
+    ],
+    "v_batterien": [
+     260,
+     1400,
+     5000,
+     14000
+    ],
+    "v_kugeln": [
+     300,
+     1600,
+     5500,
+     16000
+    ],
+    "v_sekt": [
+     70,
+     350,
+     1500,
+     5500
+    ],
+    "v_essen": [
+     60,
+     300,
+     1300,
+     5000
+    ],
+    "v_zubehoer": [
+     60,
+     300,
+     1300,
+     5000
+    ],
+    "kunden": [
+     80,
+     450,
+     2200,
+     9000
+    ],
+    "kartons": [
+     60,
+     300,
+     1400,
+     5500
+    ],
+    "lkw": [
+     70,
+     380,
+     1800,
+     7000
+    ],
+    "gezuendet": [
+     80,
+     400,
+     1800,
+     7000
+    ],
+    "brucharten": [
+     150,
+     600,
+     2400,
+     9000
+    ],
+    "hype": [
+     90,
+     500,
+     2200,
+     8000
+    ],
+    "pakete": [
+     200,
+     900,
+     3600,
+     12000
+    ],
+    "ddl": [
+     180,
+     800,
+     3200,
+     11000
+    ],
+    "auftraege": [
+     220,
+     1000,
+     4200,
+     14000
+    ],
+    "eigene": [
+     400,
+     1800,
+     6000,
+     18000
+    ],
+    "v_eigene": [
+     300,
+     1400,
+     5000,
+     16000
+    ],
+    "rek_tag": [
+     120,
+     600,
+     2400,
+     9000
+    ],
+    "rek_kunden": [
+     110,
+     550,
+     2200,
+     8000
+    ],
+    "tage": [
+     100,
+     500,
+     2000,
+     7500
+    ]
+   }
+  },
+  "werkbank": {
+   "slots": 5,
+   "stufen": [
+    {
+     "schuss": 25,
+     "kal": 20,
+     "lvl": 20,
+     "up": "labor",
+     "jeSchuss": 0.3,
+     "verpackung": 1,
+     "entwicklung": 450,
+     "mindest": 4,
+     "liefertage": 2,
+     "ref": 30,
+     "gewicht": 6,
+     "hype": 40
+    },
+    {
+     "schuss": 60,
+     "kal": 25,
+     "lvl": 23,
+     "up": "labor2",
+     "jeSchuss": 0.27,
+     "verpackung": 1.8,
+     "entwicklung": 900,
+     "mindest": 5,
+     "liefertage": 2,
+     "ref": 68,
+     "gewicht": 5,
+     "hype": 55
+    },
+    {
+     "schuss": 110,
+     "kal": 30,
+     "lvl": 26,
+     "up": "labor3",
+     "jeSchuss": 0.25,
+     "verpackung": 3,
+     "entwicklung": 1300,
+     "mindest": 8,
+     "liefertage": 3,
+     "ref": 100,
+     "gewicht": 4,
+     "hype": 70
+    },
+    {
+     "schuss": 200,
+     "kal": 30,
+     "lvl": 29,
+     "up": "labor4",
+     "jeSchuss": 0.22,
+     "verpackung": 5,
+     "entwicklung": 1800,
+     "mindest": 10,
+     "liefertage": 3,
+     "ref": 150,
+     "gewicht": 3,
+     "hype": 85
+    },
+    {
+     "schuss": 500,
+     "kal": 25,
+     "lvl": 32,
+     "up": "labor5",
+     "jeSchuss": 0.2,
+     "verpackung": 9,
+     "entwicklung": 3000,
+     "mindest": 5,
+     "liefertage": 3,
+     "ref": 360,
+     "gewicht": 2.5,
+     "hype": 105
+    }
+   ],
+   "kosten": {
+    "klasse": [
+     1,
+     1.2,
+     1.45,
+     1.75
+    ],
+    "kaliber": [
+     0.85,
+     1,
+     1.2
+    ],
+    "hoehe": [
+     0.95,
+     1,
+     1.08
+    ],
+    "farbAuf": 0.5,
+    "abschnitt": 0.15,
+    "entwicklungJeAbschnitt": 30
+   },
+   "bewertung": {
+    "effekt": 0.45,
+    "abwechslung": 0.3,
+    "ablauf": 0.25
+   },
+   "markt": {
+    "grund": 0.7,
+    "spanne": 0.6
+   },
+   "nachfrage": {
+    "grund": 0.6,
+    "spanne": 0.8
+   },
+   "hypeF": {
+    "grund": 0.8,
+    "spanne": 0.4
+   },
+   "rabatt": [
+    {
+     "ab": 2,
+     "d": 0.05
+    },
+    {
+     "ab": 4,
+     "d": 0.1
+    }
+   ],
+   "vola": 0.3
+  },
+  "kredit": {
+   "stufen": [
+    {
+     "lvl": 5,
+     "amount": 1000,
+     "term": 10,
+     "rate": 0.012
+    },
+    {
+     "lvl": 8,
+     "amount": 2500,
+     "term": 12,
+     "rate": 0.013
+    },
+    {
+     "lvl": 12,
+     "amount": 5000,
+     "term": 14,
+     "rate": 0.014
+    },
+    {
+     "lvl": 15,
+     "amount": 10000,
+     "term": 16,
+     "rate": 0.015
+    },
+    {
+     "lvl": 20,
+     "amount": 25000,
+     "term": 20,
+     "rate": 0.016
+    },
+    {
+     "lvl": 26,
+     "amount": 60000,
+     "term": 24,
+     "rate": 0.017
+    }
+   ],
+   "tilgenKnoepfe": [
+    250,
+    1000
+   ],
+   "dispo": {
+    "abLevel": 4,
+    "grund": 260,
+    "jeLevel": 70,
+    "zinsTag": 0.006
+   }
+  },
+  "fix": {
+   "grund": 10,
+   "jeLagerregal": 6,
+   "levelAb": 4,
+   "jeLevel": 4,
+   "regalArt": {
+    "klein": 4,
+    "standard": 9,
+    "hoch": 12,
+    "kuehl": 18,
+    "gondel": 14,
+    "eck": 11,
+    "gross": 13,
+    "gitter": 3,
+    "gitter2": 4,
+    "gitter3": 5,
+    "tisch": 6,
+    "tischgross": 8
+   },
+   "regalStandard": 9
+  },
+  "tag": {
+   "automat": 45
+  },
+  "ruf": {
+   "kaufOk": 0.8,
+   "kaufMitFehl": 0.2,
+   "fehlwunsch": -0.4,
+   "leerGegangen": -0.3,
+   "zuTeuer": -0.5,
+   "geduldWeg": -2,
+   "diebGestellt": 0.6,
+   "diebEntkommen": -1.8,
+   "sbAllein": -0.4,
+   "sbHilfe": 0.1,
+   "auftragErfuellt": 2.5,
+   "auftragVerfehlt": -4,
+   "pruefungGut": 3,
+   "pruefungSchlecht": -5,
+   "pruefungSauberAb": 70,
+   "kuendigung": -1,
+   "kontoMinus": -3
+  },
+  "xp": {
+   "kurve": {
+    "a": 50,
+    "exp": 1.55
+   },
+   "kunde": {
+    "jeEuro": 0.5,
+    "grund": 4,
+    "barPassend": 3
+   },
+   "tag": {
+    "grund": 60,
+    "jeUmsatz": 0.05,
+    "ohneBeschwerde": 40
+   },
+   "jahr": 200,
+   "kreditGetilgt": 40,
+   "kapitel": 40,
+   "ausbauTeiler": 12,
+   "lizenz": {
+    "teiler": 14,
+    "bonus": 30
+   },
+   "herausforderung": {
+    "teiler": 10,
+    "bonus": 25
+   },
+   "wochenzielTeiler": 3,
+   "auftragAngenommen": 20,
+   "auftragErfuellt": {
+    "jeEuro": 0.4,
+    "grund": 40
+   },
+   "restposten": 20,
+   "eigeneBatterie": 180,
+   "zuenden": {
+    "hypeTeiler": 3,
+    "min": 1
+   },
+   "serieStufen": [
+    5,
+    10,
+    20,
+    35,
+    50,
+    75,
+    100
+   ],
+   "serieJeKunde": 6,
+   "diebGestellt": 25,
+   "regalAufbau": 12,
+   "einbau": 20,
+   "gravur": 12,
+   "paketGepackt": 3,
+   "dreckWeg": 3,
+   "fensterPutzen": 4,
+   "sbHilfe": 4,
+   "packmaterialEinlagern": 1
+  },
+  "historie": {
+   "erstattung": {
+    "labor2": 16500,
+    "kasse3": 3800,
+    "sbBetreuer": 650,
+    "packstation": 6400,
+    "packstation2": 14000,
+    "packstation3": 26000,
+    "packer": 700,
+    "packer2": 750,
+    "packer3": 800,
+    "ausbau": {
+     "lager_west": 22000,
+     "rampe2": 12000,
+     "lager_west2": 30000,
+     "rampe3": 15000,
+     "rampe4": 20000,
+     "lager_west3": 42000,
+     "rampe5": 26000,
+     "lagerlogistik": 18500,
+     "fabrik": 46000,
+     "fabrik2": 26000,
+     "fabrik3": 23000
+    },
+    "rohstoff": {
+     "huelsen": 2.2,
+     "oxidator": 5.8,
+     "metall": 13.5,
+     "schwarzpulver": 9.8,
+     "premium": 1.2
+    }
+   }
+  }
+ },
+ "quellen": [
+  "src/parts/01c-wirtschaft.js:28 WIRT (start 30, zeit 37, saison 46, kunden 70, ware 101, markt 107, einkauf 129, versand 151, ausbau.preis 184, lizenz 204, personal 213, deko 223, wand 224, boden 225, regal 226, auftrag 231, ziele 243, erfolg 252, werkbank 286, kredit 317, fix 337, tag 345, ruf 351, xp 369, historie 391)",
+  "src/parts/01c-wirtschaft.js:402 WF, :438 WIRT_KETTEN",
+  "src/parts/02-data.js:8 P (Produkte), :232 KAPITEL, :259 UPGRADES, :323 DEKO, :340 STAFF, :368 SUPPLIERS, :383 PACKS, :410 LOANS, :735 xpFor, :794 levelUnlocks",
+  "src/parts/02b-markt.js:193 LIZENZEN (+ 02e-neuware.js:575 NEU_LIZENZEN, 02i-kugeln6.js:36 K6_LIZENZEN)",
+  "src/parts/02d-werkbank.js:207 wbStueckkosten, :214 wbMarkt, :217 wbEntwicklung, :220 wbRabatt",
+  "src/parts/16-day.js:38-46 Kredit, :169-176 Dispo+fixedCosts, :124 spawnInterval, :201 Online-Pauschale",
+  "src/parts/17-laptop.js:190 buyLizenz, :1626ff buyUp (XP = Kosten/12)",
+  "src/parts/11c-versand.js:66 Versand-Wirtschaft (Quellen), src/parts/11e-palette.js:21-32 DDL-Pauschale-Herleitung",
+  "src/parts/02-data.js:279-293 Kommentar Packstation Stufe 2/3 (09.10.)",
+  "docs/fundament/wirtschaft.md, docs/fundament/wirtschaft-werte.md, docs/balancing/ist-analyse.md (Abschn. 1,3,4,5), docs/uebergabe/balancing-0910.md, docs/werkbank/werkbank.md, docs/rueckbau/rueckbau.md (Progression), UEBERGABE.md Abschn. 000"
+ ]
+}

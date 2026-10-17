@@ -2010,11 +2010,15 @@ function _akBau(form,detail){
       const ax=roh[i+3]-roh[i], ay=roh[i+4]-roh[i+1], az=roh[i+5]-roh[i+2], bx=roh[i+6]-roh[i], by=roh[i+7]-roh[i+1], bz=roh[i+8]-roh[i+2];
       const ny=(az*bx-ax*bz)/(Math.hypot(ay*bz-az*by,az*bx-ax*bz,ax*by-ay*bx)||1);
       let kl='lack', f=0xffffff;
-      const imRad=ach.some(zw=>Math.hypot(cz-zw,cy-yc)<Ra+0.018)&&cx<W0-btU*0.35&&cy>yS-0.01;
-      /* nur die Fase (die Seitenflaeche selbst liegt bei x = W0 und bekommt Planken als Auflage, sonst Saegezahn) */
-      const fase=cx>W0-btU*1.02&&cx<W0-1e-4;
-      const schwell=fase&&cy<yS+bsU*0.95&&cz<ach[0]-Ra&&cz>ach[1]+Ra;
-      const planke=F.planke&&fase&&(cy<yS+bsU*0.95||ach.some(zw=>Math.hypot(cz-zw,cy-yc)<Ra+bsU*1.1));
+      /* Einteilung nach den Ecken (beide Dreiecke eines Vierecks gleich - kein Saegezahn an Radlauf und Schweller) */
+      const X=[Math.abs(roh[i]),Math.abs(roh[i+3]),Math.abs(roh[i+6])], Y=[roh[i+1],roh[i+4],roh[i+7]], xmax=Math.max(...X), xmin=Math.min(...X), ymax=Math.max(...Y);
+      const amRad=k=>ach.some(zw=>Math.hypot(roh[i+k*3+2]-zw,roh[i+k*3+1]-yc)<Ra+bsU+0.012);
+      const radNah=amRad(0)&&amRad(1)&&amRad(2);
+      const imRad=radNah&&xmax<W0-btU*0.3&&cy>yS-0.01;
+      /* nur die Fase (die Seitenflaeche selbst liegt bei x = W0 und bekommt Planken als Auflage) */
+      const fase=xmax>W0-btU*1.02&&xmin<W0-1e-4;
+      const schwell=fase&&ymax<yS+bsU+0.002&&cz<ach[0]-Ra&&cz>ach[1]+Ra;
+      const planke=F.planke&&fase&&(ymax<yS+bsU+0.002||radNah);
       if(ny<-0.6&&cy<yS+0.12||imRad){ kl='dunkel'; f=UNT; } else if(btU&&(schwell||planke)){ kl='dunkel'; f=PL; }
       T[kl].tri(n3(i,pa),n3(i,na),f); }
     g.dispose(); }
@@ -2088,11 +2092,15 @@ function _akBau(form,detail){
       if(D>=1) fl('chrom',_akKreis(sg*(0.84*W0),yL0+0.07,0.026,0.02,12),front,0.0075,VOR,'hellgrau',0.03); } }
   mark('front');
   /* --- Heck: Rueckleuchten (um die Ecke), Leuchtenband, Diffusor, Reflektoren, Klappenfugen --- */
-  { const yT=F.heck==='stufe'?F.deck[1]-0.035:F.gurt[1]-0.012, u0=0.43*W0, u1=aU+arcU+(D>=1?0.13:0.08);
-    const rl=[[u0,yT-0.02],[u0+0.02,yT],[u1-0.02,yT-0.005],[u1,yT-0.03],[u1-0.01,yT-0.10],[aU*0.92,yT-0.115],[u0+0.04,yT-0.085]];
+  { const kasten=F.heck==='kasten', yT=F.heck==='stufe'?F.deck[1]-0.035:kasten?F.gurt[1]-0.06:F.gurt[1]-0.012, u0=kasten?aU-0.1:0.43*W0, u1=aU+arcU+(D>=1?(kasten?0.04:0.13):0.08);
+    /* Transporter: senkrechte Leuchten an den Heckecken (wie T6), sonst waagerecht um die Ecke */
+    const rl=kasten?[[u0,F.heckY+0.06],[u1,F.heckY+0.06],[u1,yT],[u0,yT]]:[[u0,yT-0.02],[u0+0.02,yT],[u1-0.02,yT-0.005],[u1,yT-0.03],[u1-0.01,yT-0.10],[aU*0.92,yT-0.115],[u0+0.04,yT-0.085]];
     for(const sg of [-1,1]){ const P=sg>0?rl:_akSp(rl);
       fl('glas',P,heck,0.004,RUE,'feuerrot',fs);
-      if(D>=1){ const st=[]; for(let i=0;i<=10;i++){ const u=u0+0.03+(u1-0.05-u0-0.03)*i/10; st.push([sg*u,yT-0.03]); }
+      if(D>=1&&kasten){ const st=[[sg*(u0+u1)/2,yT-0.03],[sg*(u0+u1)/2,yT-0.2]]; band('glas',st,0.06,heck,0.008,RUE,'signalrot',0.03);
+        fl('chrom',sg>0?[[u0+0.015,F.heckY+0.1],[u1-0.015,F.heckY+0.1],[u1-0.015,F.heckY+0.2],[u0+0.015,F.heckY+0.2]]:_akSp([[u0+0.015,F.heckY+0.1],[u1-0.015,F.heckY+0.1],[u1-0.015,F.heckY+0.2],[u0+0.015,F.heckY+0.2]]),heck,0.008,RUE,'lichtgrau',0.03);
+        band('licht',st,0.07,heck,0.011,RUE,'signalrot',0.03); }
+      else if(D>=1){ const st=[]; for(let i=0;i<=10;i++){ const u=u0+0.03+(u1-0.05-u0-0.03)*i/10; st.push([sg*u,yT-0.03]); }
         band('glas',st,0.022,heck,0.008,RUE,'signalrot',fs);
         const rw=[[u0+0.05,yT-0.09],[u0+0.17,yT-0.095],[u0+0.17,yT-0.06],[u0+0.05,yT-0.058]]; fl('chrom',sg>0?rw:_akSp(rw),heck,0.008,RUE,'lichtgrau',0.04);
         band('licht',st,0.03,heck,0.011,RUE,'signalrot',fs); }
@@ -2108,6 +2116,10 @@ function _akBau(form,detail){
       else { const yb=F.heckY+0.05; for(const sg of [-1,1]){ const p=[]; for(let i=0;i<=8;i++) p.push([sg*(u0-0.03),yb+(F.gurt[1]-0.02-yb)*i/8]); fuge(p,heck,RUE); }
         fuge([[-u0+0.03,yb],[u0-0.03,yb]],heck,RUE); } } }
   mark('heck');
+  /* Transporter: zwei Fenster in den Hecktueren (Auflage auf der Kabinenrueckwand) */
+  if(F.heck==='kasten'){ const hC=(x,y,o)=>{ const R=RC.hinten(y); return defC(x,y,R?R.z:-L2,o); }, y0=F.gurt[1]+0.3, y1=F.H-0.16;
+    for(const sg of [-1,1]){ const P=[[0.05,y0],[Wc-btC-0.1,y0],[Wc-btC-0.1,y1],[0.05,y1]], Q=sg>0?P:_akSp(P);
+      fl('glas',Q,hC,0.003,RUE,'tiefschwarz',0.1); fl('glas',_akInnen(Q,0.015),hC,0.0055,RUE,'gummischwarz',0.1); } }
   /* --- Seite: Tuerfugen, Griffe, Tankdeckel, Spiegel, Planken --- */
   for(const sg of [-1,1]){ const m=seiteU(sg), mc=seiteC(sg), h=AUS(sg);
     const fuge=(pts,map)=>band('dunkel',pts,0.006,map||m,0.0025,h,UNT,0.05);
@@ -2131,7 +2143,7 @@ function _akBau(form,detail){
           band('dunkel',[[z1+0.02,gurt(z1)+0.1],[-L2+0.35,gurt(z1)+0.1]],0.025,mc,0.004,h,PL,0.2); }
         T.lack.geo(roundedBoxGeo(0.028,0.03,0.17,0.012,2),_akAufM(m,zB+0.2,gurt(zB)-0.1,0.012,h,sg),0xffffff); }
       /* Tankdeckel rechts hinten */
-      if(sg>0){ const zt=zH+(F.schiebetuer?0.55:0.0)-0.08, yt=gurt(zt)-0.17; band('dunkel',_akKreis(zt,yt,0.085,0.085,20).concat([[zt+0.085,yt]]),0.006,m,0.0025,h,UNT,0.05); } }
+      if(sg>0){ const zt=F.schiebetuer?zH+0.47:Math.min(zT,zH+Ra*0.5)-0.2, yt=gurt(zt)-0.17; band('dunkel',_akKreis(zt,yt,0.085,0.085,20).concat([[zt+0.085,yt]]),0.006,m,0.0025,h,UNT,0.05); } }
     /* Planken (SUV): Radlauf-Verbreiterung und Schweller */
     if(F.planke) for(const zw of ach){ const ring=[]; for(let i=0;i<=16;i++){ const a=Math.PI*i/16; ring.push([zw+(Ra+0.012)*Math.cos(a),yc+(Ra+0.012)*Math.sin(a)]); }
       const aussen=[]; for(let i=16;i>=0;i--){ const a=Math.PI*i/16; aussen.push([zw+(Ra+0.075)*Math.cos(a),yc+(Ra+0.075)*Math.sin(a)]); }
@@ -2268,7 +2280,7 @@ function _akVerbinde(liste,detail){
 function _akMeshes(geos,parent,o){ const M=_akMats(), res=[];
   for(const kl of ['lack','glas','chrom','dunkel','schild','licht']){ const g=geos[kl]; if(!g) continue;
     const me=new THREE.Mesh(g,M[kl]); me.userData.bauteil='auto'; me.userData.klasse=kl; me.matrixAutoUpdate=false;
-    if(kl==='lack'&&o.schatten!==false&&typeof HIQ!=='undefined'&&HIQ) me.receiveShadow=true;
+    if((kl==='lack'||kl==='dunkel')&&o.schatten!==false&&typeof HIQ!=='undefined'&&HIQ) me.receiveShadow=true;
     if(kl==='licht'){ me.visible=_AK.nacht>0.5; _AK.licht.push(me); }
     parent.add(me); res.push(me); }
   return res; }

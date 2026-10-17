@@ -69,6 +69,7 @@ Klassen (`bk.sammler`, Klasse = gleiche Werte wie `MAT.ober`).
 | Bodenschrift | Feld 5,2 × 1,6 m, Signalgelb auf dunklem Grund | `05g-dock.js` „ANLIEFERUNG“ |
 | Tornummer (`bk.schild`) | außen 0,8 × 0,62 m, innen 0,62 × 0,48 m | `04z-baukasten.js` `bk.tor` |
 | Großes Wandschild | 1,9 × 0,78 m (DDL Abholung) | `11e-palette.js` |
+| Pkw (geparkt, Straße) | Kleinwagen 4,05 × 1,75 × 1,46 · Kompakt 4,28 × 1,79 × 1,46 · Limousine 4,70 × 1,83 × 1,45 · Kombi 4,80 × 1,83 × 1,50 · SUV 4,54 × 1,84 × 1,65 · Transporter 4,90 × 1,90 × 1,99 m (Herstellerdaten) | `bk.AUTO` (04z), `autos.md` |
 
 Regel: neue Objekte in **echten Metern** nach diesen Maßen bzw. nach realen Normen (Europalette 1,2 × 0,8 m, Tür 2,0–2,1 m,
 Geländer 1,1 m). Abweichung nur mit Grund (z. B. Spielbarkeit) im Bericht. Fehlt ein Maß hier: im Bericht nennen und hier ergänzen.

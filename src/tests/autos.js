@@ -6,8 +6,8 @@
    - MATERIAL: Lack mit Klarlack und Umgebungsspiegelung, eigenes Glas
    - NORMALEN: keine verdrehten Normalen (< 0,5 %)
    - GRUNDRISS: die Nase ist schmaler als die Wagenmitte; Kabine oben schmaler als unten (Tumblehome)
-   - SCHEINWERFER: sitzen vorn an der Oberflaeche (hoechstens 5 cm hinter der Nase)
-   - LEISTUNG: je Auto hoechstens 6 Zeichenaufrufe und 22 000 Dreiecke (fein), grob hoechstens 2 / 1 500
+   - SCHEINWERFER: Reflektor liegt auf der Karosserie (nicht dahinter, hoechstens 3 cm davor; Strahltest)
+   - LEISTUNG (ohne Schattenwerfer): je Auto hoechstens 6 Zeichenaufrufe und 22 000 Dreiecke (fein), grob hoechstens 2 / 1 500
    - REIHE: bk.autos legt 7 Autos zu hoechstens 6 Meshes je Stufe zusammen (LOD nah/fern), Geometrie je Form gecacht
    - FARBEN: Lackverteilung wie bk.AUTOFARBEN (VDA/KBA: Grau/Silber, Schwarz, Weiss vorn) */
 const path=require('path');
@@ -45,10 +45,16 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
       { const q=dunkel.geometry.attributes.position, uv=dunkel.geometry.attributes.uv; let ymin=9, xr=0, xl=9;
         for(let i=0;i<q.count;i++){ if(uv.getX(i)===0&&uv.getY(i)===0) continue; const y=q.getY(i); ymin=Math.min(ymin,y); if(y<0.05){ xr=Math.max(xr,Math.abs(q.getX(i))); xl=Math.min(xl,Math.abs(q.getX(i))); } }
         o.reifenY=+ymin.toFixed(4); o.spur=+(xr+xl).toFixed(3); o.spurSoll=F.spur; }
-      /* Scheinwerfer: vorderster Punkt im Chrom (Reflektor) zwischen Stossfaenger und Haube gegen die Nase */
-      { const q=chrom.geometry.attributes.position; let zl=-9; for(let i=0;i<q.count;i++){ const y=q.getY(i); if(y>F.nase&&y<F.haube[1]) zl=Math.max(zl,q.getZ(i)); } o.licht=+(z1-zl).toFixed(3); }
-      let tri=0, dc=0; g.traverse(m=>{ if(m.isMesh){ dc++; tri+=m.geometry.attributes.position.count/3; } }); o.dc=dc; o.tri=Math.round(tri);
-      const gr=bk.auto({form:f,farbe:'autoSilber',detail:'grob'}); let tg=0, dg=0; gr.traverse(m=>{ if(m.isMesh){ dg++; tg+=m.geometry.attributes.position.count/3; } }); o.grobDc=dg; o.grobTri=Math.round(tg);
+      /* Scheinwerfer: Reflektor liegt auf der Karosserie - Strahl von vorn auf den Lack, Abstand zum Reflektor (20 Punkte) */
+      { const y0=F.stirn-(F.lichtH||0.095), y1=F.stirn-0.01, q=chrom.geometry.attributes.position, rc=new THREE.Raycaster(), d=[];
+        lack.updateMatrixWorld(true);
+        for(let i=0;i<q.count&&d.length<20;i+=7){ const x=q.getX(i), y=q.getY(i), z=q.getZ(i); if(!(y>y0&&y<y1&&Math.abs(x)>0.35&&Math.abs(x)<0.7&&z>F.L/2-0.3)) continue;
+          rc.set(new THREE.Vector3(x,y,z+0.5),new THREE.Vector3(0,0,-1)); const h=rc.intersectObject(lack)[0]; if(h) d.push(+(h.point.z-z).toFixed(3)); }
+        o.licht=d.length?Math.max(...d):9; o.lichtMin=d.length?Math.min(...d):9; }
+      /* Zaehlen ohne den Schattenwerfer (grobe Form auf Ebene 5, nur fuer die Schattenkarte) */
+      const zaehl=G=>{ let t=0, d=0; G.traverse(m=>{ if(m.isMesh&&m.userData.klasse!=='schatten'){ d++; t+=m.geometry.attributes.position.count/3; } }); return [d,Math.round(t)]; };
+      [o.dc,o.tri]=zaehl(g); o.th=F.th;
+      const gr=bk.auto({form:f,farbe:'autoSilber',detail:'grob'}); [o.grobDc,o.grobTri]=zaehl(gr);
       out.push(o); }
     /* Reihe: 7 Autos, LOD, Cache */
     const L=[]; for(let i=0;i<7;i++) L.push({form:Object.keys(bk.AUTO)[i%6],farbe:bk.autoFarbe(),x:i*6,z:0,ry:Math.PI/2,licht:i===2});
@@ -65,8 +71,8 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
     pruef('NORMALEN',o.verdreht<0.5,o.f+': '+o.verdreht+' % verdrehte Normalen');
     pruef('MASSE',Math.abs(o.L-o.soll[0])<0.03&&Math.abs(o.B-o.soll[1])<0.03&&Math.abs(o.H-o.soll[2])<0.03,o.f+': Masse '+o.L+'/'+o.B+'/'+o.H+' statt '+o.soll.join('/'));
     pruef('RAD',o.reifenY>=-0.0005&&o.reifenY<=0.002&&Math.abs(o.spur-o.spurSoll)<0.03,o.f+': Reifen Unterkante '+o.reifenY+' m, Spur '+o.spur+' statt '+o.spurSoll);
-    pruef('GRUNDRISS',o.nase<=0.97&&o.tumble<=0.9,o.f+': Nase/Mitte '+o.nase+', Kabine oben/unten '+o.tumble);
-    pruef('SCHEINWERFER',o.licht<=0.05,o.f+': Scheinwerfer '+o.licht+' m hinter der Nase');
+    pruef('GRUNDRISS',o.nase<=0.97&&o.tumble<=1-o.th*0.5,o.f+': Nase/Mitte '+o.nase+', Kabine oben/unten '+o.tumble);
+    pruef('SCHEINWERFER',o.licht<=0.002&&o.lichtMin>=-0.03,o.f+': Reflektor '+o.lichtMin+'..'+o.licht+' m vor/hinter dem Lack (Lack davor = positiv)');
     pruef('LEISTUNG',o.dc<=6&&o.tri<=22000&&o.grobDc<=2&&o.grobTri<=1500,o.f+': fein '+o.dc+' Aufrufe/'+o.tri+' Dreiecke, grob '+o.grobDc+'/'+o.grobTri);
   });
   pruef('REIHE',r.reihe.lod&&r.reihe.stufen.length===2&&r.reihe.stufen.every(n=>n<=6)&&r.reihe.cacheNeu===0,JSON.stringify(r.reihe));
